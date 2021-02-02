@@ -1,8 +1,8 @@
-﻿using BabelBot.Context;
-using BabelBot.CustomPreconditions;
-using BabelBot.Models;
+﻿using BabelBot.CustomPreconditions;
+using BabelDatabase;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,38 +20,87 @@ namespace BabelBot.Modules
 			_context = context;
 		}
 
-		[Command("create character")]
+		[Command("cliques")]
 		[RequireProfile]
 		[RequireLivingActiveCharacter]
-		public async Task CreateCharacter(string name, string species = "Human")
+		public async Task MyCliques()
 		{
-			if(name.Length < 2 || name.Length > 32)
+			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+
+			var embedBuilder = new EmbedBuilder();
+
+			embedBuilder.Title = "Cliques";
+
+			foreach (var clique in profile.ActiveCharacter.Cliques)
 			{
-				await ReplyAsync("Name may be a minimum of 2 characters and a maximum of 32 characters long.");
+				var field = new EmbedFieldBuilder();
+				field.Name = clique.Clique.CliqueName;
+
+				field.Value += "Members:\n";
+
+				foreach (var character in clique.Clique.CliqueMembers)
+				{
+					field.Value += character.Member.CharacterName + "\n";
+				}
+
+				field.Value += "\nOfficers:\n";
+
+				foreach (var officer in clique.Clique.CliqueOfficers)
+				{
+					field.Value += officer.Officer.CharacterName + "\n";
+				}
+
+				embedBuilder.AddField(field);
+			}
+
+			await Context.User.SendMessageAsync(embed: embedBuilder.Build());
+		}
+
+		[Command("me")]
+		[RequireProfile]
+		public async Task ViewCurrentCharacter([Remainder] SocketGuildUser mention = null)
+		{
+			DiscordUser profile = null;
+
+			if (mention != null)
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			}
+			else
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			}
+
+			var character = profile.ActiveCharacter;
+
+			if (character == null)
+			{
+				await ReplyAsync("This user has no active character.");
 				return;
 			}
 
-			//something about species
+			var embedBuilder = new EmbedBuilder();
 
-			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			embedBuilder.Title = $"{character.CharacterName} {character.YearOfBirth}-Present";
+			embedBuilder.Description = $"Bio: {character.CharacterBio}";
 
-			var newCharacter = new Character()
-			{
-				CharacterName = name,
-				DiscordUser = profile
-			};
-
-			_context.Characters.Add(newCharacter);
-			await _context.SaveChangesAsync();
-
-			await ReplyAsync("Character created.");
+			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("history")]
 		[RequireProfile]
-		public async Task ViewCharacters()
+		public async Task ViewCharacters([Remainder] SocketGuildUser mention = null)
 		{
-			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			DiscordUser profile = null;
+
+			if (mention != null)
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			}
+			else
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			}		
 
 			var embedBuilder = new EmbedBuilder();
 
@@ -62,12 +111,12 @@ namespace BabelBot.Modules
 				if (!character.IsDead())
 				{
 					field.Name = $"{character.CharacterName} {character.YearOfBirth}-Present";
-					field.Value = $"Species: {character.Species}\n{character.CharacterBio}";
+					field.Value = $"Species: {character.Species.SpeciesName}\n{character.CharacterBio}";
 				}
 				else
 				{
 					field.Name = $"{character.CharacterName} {character.YearOfBirth}-{character.YearOfDeath}";
-					field.Value = $"Species: {character.Species}\n{character.CharacterBio}";
+					field.Value = $"Species: {character.Species.SpeciesName}\n{character.CharacterBio}";
 				}
 
 				embedBuilder.AddField(field);

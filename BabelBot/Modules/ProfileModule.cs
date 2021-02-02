@@ -1,6 +1,5 @@
-﻿using BabelBot.Context;
-using BabelBot.CustomPreconditions;
-using BabelBot.Models;
+﻿using BabelBot.CustomPreconditions;
+using BabelDatabase;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -24,7 +23,9 @@ namespace BabelBot.Modules
 		{
 			var profile = new DiscordUser()
 			{
-				DiscordUserId = Context.User.Id.ToString()
+				DiscordUserId = Context.User.Id.ToString(),
+				UserName = Context.User.Username,
+				IsAdmin = false
 			};
 
 			_context.DiscordUsers.Add(profile);

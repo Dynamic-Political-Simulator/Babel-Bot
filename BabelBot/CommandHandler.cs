@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
-using BabelBot.Context;
+using BabelDatabase;
 
 namespace BabelBot
 {
