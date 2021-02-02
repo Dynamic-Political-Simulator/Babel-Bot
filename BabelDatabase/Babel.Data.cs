@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace BabelBot.Models
+namespace BabelDatabase
 {
 	public class Character
 	{
@@ -30,5 +30,42 @@ namespace BabelBot.Models
 		{
 			return YearOfDeath != 0;
 		}
+	}
+
+	public class DiscordUser
+	{
+		[Key]
+		public string DiscordUserId { get; set; }
+
+		public string ActiveCharacterId { get; set; }
+		public virtual Character ActiveCharacter { get; set; }
+
+		public virtual List<Character> Characters { get; set; }
+	}
+
+	public class Party
+	{
+		[Key]
+		public string PartyId { get; set; } = Guid.NewGuid().ToString();
+
+		[Required]
+		public string PartyName { get; set; }
+
+		public virtual List<Character> Members { get; set; }
+	}
+
+	public class Species
+	{
+		[Key]
+		public string SpeciesId { get; set; } = Guid.NewGuid().ToString();
+
+		public string SpeciesName { get; set; }
+	}
+
+	public class Year
+	{
+		[Key]
+		public string YearId { get; set; } = Guid.NewGuid().ToString();
+		public int CurrentYear { get; set; }
 	}
 }

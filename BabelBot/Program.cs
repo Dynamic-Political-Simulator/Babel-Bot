@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using BabelBot.Context;
+using BabelDatabase;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

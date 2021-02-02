@@ -1,6 +1,5 @@
-﻿using BabelBot.Context;
-using BabelBot.CustomPreconditions;
-using BabelBot.Models;
+﻿using BabelBot.CustomPreconditions;
+using BabelDatabase;
 using Discord;
 using Discord.Commands;
 using System;

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabelBot", "BabelBot\BabelBot.csproj", "{672C51C8-58CC-43B9-B1F4-50F58C70B437}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BabelBot", "BabelBot\BabelBot.csproj", "{672C51C8-58CC-43B9-B1F4-50F58C70B437}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WOPR", "WOPR\WOPR.csproj", "{618221D2-23FA-447F-9EAD-97E270E48890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BabelDatabase", "BabelDatabase\BabelDatabase.csproj", "{3934CF00-506E-4D12-862C-EEF85A2E8832}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{672C51C8-58CC-43B9-B1F4-50F58C70B437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{672C51C8-58CC-43B9-B1F4-50F58C70B437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{672C51C8-58CC-43B9-B1F4-50F58C70B437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{618221D2-23FA-447F-9EAD-97E270E48890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{618221D2-23FA-447F-9EAD-97E270E48890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{618221D2-23FA-447F-9EAD-97E270E48890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{618221D2-23FA-447F-9EAD-97E270E48890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3934CF00-506E-4D12-862C-EEF85A2E8832}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3934CF00-506E-4D12-862C-EEF85A2E8832}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3934CF00-506E-4D12-862C-EEF85A2E8832}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3934CF00-506E-4D12-862C-EEF85A2E8832}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
