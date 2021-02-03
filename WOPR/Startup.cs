@@ -1,3 +1,4 @@
+using BabelDatabase;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WOPR.Services;
 
 namespace WOPR
 {
@@ -30,28 +32,71 @@ namespace WOPR
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddControllers();
-			services.AddCors();
 
-			services.AddAuthentication(option =>
-			{
-				option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-				option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			var configBuilder = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-			}).AddJwtBearer(options =>
+			var configuration = configBuilder.Build();
+
+			var section = configuration.GetSection("WoprConfig");
+
+			services.Configure<WoprConfig>(section);
+
+			// add context
+			services.AddDbContext<BabelContext>();
+
+			services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 			{
-				options.TokenValidationParameters = new TokenValidationParameters
+				builder.AllowAnyOrigin()
+					.AllowAnyMethod()
+					.AllowAnyHeader();
+			}));
+
+			var appSettings = section.Get<WoprConfig>();
+
+			var key = Encoding.ASCII.GetBytes(appSettings.JwtSecret);
+
+			// add services
+			services.AddScoped<DiscordBotService>();
+			services.AddScoped<DiscordUserAuthenticationTokenService>();
+			services.AddScoped<DiscordUserService>();
+
+			services.AddAuthentication(a =>
+			{
+				a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				a.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			}).AddJwtBearer(j =>
+			{
+				j.Events = new JwtBearerEvents()
 				{
-					ValidateIssuer = true,
-					ValidateAudience = true,
-					ValidateLifetime = false,
+					OnTokenValidated = context =>
+					{
+						var userService = context.HttpContext.RequestServices.GetRequiredService<DiscordUserService>();
+						var userId = context.Principal.Identity.Name;
+
+						var user = userService.GetUserById(userId);
+
+						if (user == null)
+						{
+							context.Fail("Unauthorised.");
+						}
+
+						return Task.CompletedTask;
+					}
+				};
+
+				j.RequireHttpsMetadata = false;
+				j.SaveToken = true;
+				j.TokenValidationParameters = new TokenValidationParameters()
+				{
 					ValidateIssuerSigningKey = true,
-					ValidIssuer = Configuration["JwtToken:Issuer"],
-					ValidAudience = Configuration["JwtToken:Issuer"],
-					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtToken:SecretKey"]))
+					IssuerSigningKey = new SymmetricSecurityKey(key),
+					ValidateIssuer = false,
+					ValidateAudience = false
 				};
 			});
 
-			
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

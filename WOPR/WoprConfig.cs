@@ -7,5 +7,7 @@ namespace WOPR
 {
 	public class WoprConfig
 	{
+		public string ConnectionString { get; set; }
+		public string JwtSecret { get; set; }
 	}
 }

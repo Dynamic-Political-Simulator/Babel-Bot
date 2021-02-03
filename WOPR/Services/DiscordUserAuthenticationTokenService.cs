@@ -41,7 +41,7 @@ namespace WOPR.Services
 			return newDiscordAuthenticationToken.Key;
 		}
 
-		public static bool VerifyLogin(string discordUserId, string authCode)
+		public static bool CheckToken(string discordUserId, string authCode)
 		{
 			var storedCode = ActiveTokens.SingleOrDefault(du => du.DiscordUserId == discordUserId);
 
@@ -55,6 +55,8 @@ namespace WOPR.Services
 				RemoveToken(storedCode);
 				return true;				
 			}
+
+			RemoveToken(storedCode);
 
 			return false;
 		}
