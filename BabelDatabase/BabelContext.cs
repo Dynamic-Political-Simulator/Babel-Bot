@@ -29,6 +29,8 @@ namespace BabelDatabase
 		public DbSet<Species> Species { get; set; }
 		public DbSet<Year> Year { get; set; }
 
+		public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 
