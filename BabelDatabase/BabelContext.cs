@@ -8,13 +8,6 @@ namespace BabelDatabase
 {
 	public class BabelContext : DbContext
 	{
-		private readonly BabelDatabaseConfig _config;
-
-		public BabelContext(BabelDatabaseConfig config)
-		{
-			_config = config;
-		}
-
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
 			//optionsBuilder.UseSqlServer("");
@@ -25,15 +18,20 @@ namespace BabelDatabase
 
 		public DbSet<Character> Characters { get; set; }
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
-		public DbSet<Party> Parties { get; set; }
+		public DbSet<PopsimParty> Parties { get; set; }
 		public DbSet<Species> Species { get; set; }
 		public DbSet<Year> Year { get; set; }
+
+		public DbSet<PopsimReport> PopsimReports { get; set; }
 
 		public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-
+			modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
+			{
+				DiscordUserId = "75968535074967552"
+			});
 		}
 	}
 }

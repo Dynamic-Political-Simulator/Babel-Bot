@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BabelDatabase;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using WOPR.Services;
 
 namespace WOPR.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/popsim/")]
 	[ApiController]
 	public class PopsimController : ControllerBase
 	{
@@ -17,6 +18,14 @@ namespace WOPR.Controllers
 		public PopsimController(PopsimService popsimService)
 		{
 			_popsimService = popsimService;
+		}
+
+		[HttpGet("get-popsim-report")]
+		public PopsimReport GetPopsimReport(string guid)
+		{
+			var report = _popsimService.GetExistingReport(guid);
+
+			return report;
 		}
 
 

@@ -1,5 +1,5 @@
-﻿using Discord.Commands;
-using BabelBot.Context;
+﻿using BabelDatabase;
+using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

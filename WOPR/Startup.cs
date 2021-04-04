@@ -57,7 +57,6 @@ namespace WOPR
 			var key = Encoding.ASCII.GetBytes(appSettings.JwtSecret);
 
 			// add services
-			services.AddScoped<DiscordBotService>();
 			services.AddScoped<DiscordUserAuthenticationTokenService>();
 			services.AddScoped<DiscordUserService>();
 
@@ -95,8 +94,6 @@ namespace WOPR
 					ValidateAudience = false
 				};
 			});
-
-
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

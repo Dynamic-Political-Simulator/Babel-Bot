@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,20 +11,46 @@ namespace WOPR.Services
 {
 	public class DiscordBotService
 	{
-		public IConfiguration Configuration { get; }
-
+		private readonly WoprConfig _config;
 		private readonly DiscordSocketClient _client = new DiscordSocketClient();
 
-		public DiscordBotService(IConfiguration configuration)
+		private static DiscordBotService _instance;
+
+		private DiscordBotService()
 		{
-			Configuration = configuration;
+			IOptions<WoprConfig> config;
+
+			var configBuilder = new ConfigurationBuilder()
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+			var configuration = configBuilder.Build();
+
+			var section = configuration.GetSection("WoprConfig");
+
+			_config = section.Get<WoprConfig>();
+
 			Start().GetAwaiter().GetResult();
+		}
+
+		public static DiscordBotService GetInstance()
+		{
+			if(_instance != null)
+			{
+				return _instance;
+			}
+			else
+			{
+				_instance = new DiscordBotService();
+				return _instance;
+			}
 		}
 
 		private async Task Start()
 		{
-			await _client.LoginAsync(TokenType.Bot, Configuration["BotToken"]);
+			await _client.LoginAsync(TokenType.Bot, _config.BotToken);
 			await _client.StartAsync();
+
+			Console.WriteLine("Bot starting...");
 
 			await Task.Delay(-1);
 		}

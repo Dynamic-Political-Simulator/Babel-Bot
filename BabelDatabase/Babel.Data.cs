@@ -66,6 +66,7 @@ namespace BabelDatabase
 		public string PopsimReportId { get; set; } = Guid.NewGuid().ToString();
 		public string PopsimReportName { get; set; }
 		public bool IsPublic { get; set; }
+		public bool IsCurrent { get; set; }
 
 
 	}
