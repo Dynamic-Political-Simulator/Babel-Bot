@@ -8,6 +8,6 @@ namespace WOPR.TerminalCommands
 	public interface ITerminalCommand
 	{
 		public string GetCommand();
-		public string DoCommand(string command);
+		public Task<string> DoCommandAsync(string command);
 	}
 }

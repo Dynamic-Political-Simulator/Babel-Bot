@@ -1,8 +1,12 @@
 using BabelDatabase;
 using Discord.WebSocket;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +17,11 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using WOPR.Services;
 
@@ -33,15 +41,6 @@ namespace WOPR
 		{
 			services.AddControllers();
 
-			var configBuilder = new ConfigurationBuilder()
-				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-			var configuration = configBuilder.Build();
-
-			var section = configuration.GetSection("WoprConfig");
-
-			services.Configure<WoprConfig>(section);
-
 			// add context
 			services.AddDbContext<BabelContext>();
 
@@ -52,14 +51,66 @@ namespace WOPR
 					.AllowAnyHeader();
 			}));
 
-			var appSettings = section.Get<WoprConfig>();
-
-			var key = Encoding.ASCII.GetBytes(appSettings.JwtSecret);
-
 			// add services
-			services.AddScoped<DiscordUserAuthenticationTokenService>();
 			services.AddScoped<DiscordUserService>();
 
+			services.AddAuthentication(options =>
+			{
+				options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+			})
+			.AddCookie()
+			.AddJwtBearer(options => 
+			{
+				options.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateIssuer = true,
+					ValidateAudience = false,
+					ValidateIssuerSigningKey = true,
+					ValidIssuer = Configuration.GetValue<string>("Jwt:Issuer"),
+					ValidAudience = Configuration.GetValue<string>("Jwt:Audience"),
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Jwt:EncryptionKey")))
+				};
+			})
+			.AddOAuth("Discord", options => 
+			{
+				options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
+				options.Scope.Add("identify");
+
+				options.CallbackPath = new PathString("/auth/oauthCallback");
+
+				options.ClientId = Configuration.GetValue<string>("Discord:ClientId");
+				options.ClientSecret = Configuration.GetValue<string>("Discord:ClientSecret");
+
+				options.TokenEndpoint = "https://discord.com/api/oauth2/token";
+
+				options.UserInformationEndpoint = "https://discord.com/api/users/@me";
+
+				options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+				options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+
+				options.AccessDeniedPath = "/api/DiscordAuthFailed";
+
+				options.Events = new OAuthEvents
+				{
+					OnCreatingTicket = async context =>
+					{
+						var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+						request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+						request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+						var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+						response.EnsureSuccessStatusCode();
+
+						var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+
+						context.RunClaimActions(user);
+					}
+				};
+			});
+
+			/*
 			services.AddAuthentication(a =>
 			{
 				a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -94,6 +145,8 @@ namespace WOPR
 					ValidateAudience = false
 				};
 			});
+
+			*/
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -111,6 +164,8 @@ namespace WOPR
 			app.UseAuthorization();
 
 			app.UseAuthentication();
+
+			app.UseCors("MyPolicy");
 
 			app.UseEndpoints(endpoints =>
 			{

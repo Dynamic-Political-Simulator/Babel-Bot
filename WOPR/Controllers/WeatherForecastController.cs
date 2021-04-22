@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace WOPR.Controllers
@@ -24,6 +26,7 @@ namespace WOPR.Controllers
 		}
 
 		[HttpGet]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public IEnumerable<WeatherForecast> Get()
 		{
 			var rng = new Random();

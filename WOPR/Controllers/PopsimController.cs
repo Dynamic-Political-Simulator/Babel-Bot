@@ -1,4 +1,5 @@
 ﻿using BabelDatabase;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -21,6 +22,7 @@ namespace WOPR.Controllers
 		}
 
 		[HttpGet("get-popsim-report")]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public PopsimReport GetPopsimReport(string guid)
 		{
 			var report = _popsimService.GetExistingReport(guid);

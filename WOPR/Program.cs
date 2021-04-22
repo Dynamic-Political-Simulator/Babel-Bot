@@ -16,7 +16,6 @@ namespace WOPR
 		public static void Main(string[] args)
 		{
 			CreateHostBuilder(args).Build().Run();
-			DiscordBotService.GetInstance();
 		}
 
 		public static IHostBuilder CreateHostBuilder(string[] args) =>

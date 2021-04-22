@@ -13,7 +13,7 @@ namespace WOPR.Controllers
 	[ApiController]
 	public class TerminalController : ControllerBase
 	{
-		private readonly Dictionary<string, ITerminalCommand> _terminalCommands;
+		private readonly Dictionary<string, ITerminalCommand> _terminalCommands = new Dictionary<string, ITerminalCommand>();
 
 		public TerminalController()
 		{
@@ -25,25 +25,39 @@ namespace WOPR.Controllers
 
 			foreach(var element in types)
 			{
-				ITerminalCommand instance = (ITerminalCommand)Activator.CreateInstance(element);
+				try
+				{
+					ITerminalCommand instance = (ITerminalCommand)Activator.CreateInstance(element);
 
-				_terminalCommands.Add(instance.GetCommand(), instance);
+					_terminalCommands.Add(instance.GetCommand(), instance);
+				}
+				catch(Exception e)
+				{
+					//insert proper exception handling here
+					//(this is mostly because I'm too lazy to exclude ITerminalCommand itself)
+				}
+				
 			}
 		}
 
-		[HttpPost("terminal")]
-		public string SendTerminalCommand(string inputString)
+		public class TerminalCommandForm
 		{
-			var firstWord = inputString.Split(" ")[0];
+			public string InputString { get; set; }
+		}
+
+		[HttpPost("command")]
+		public async Task<string> SendTerminalCommandAsync([FromBody] TerminalCommandForm form)
+		{
+			var firstWord = form.InputString.Split(" ")[0];
 
 			ITerminalCommand command = null;
 
 			if (_terminalCommands.TryGetValue(firstWord, out command))
 			{
-				return command.DoCommand(inputString);
+				return await command.DoCommandAsync(form.InputString);
 			}
 
-			return null;
+			return "Check";
 		}
 	}
 }
