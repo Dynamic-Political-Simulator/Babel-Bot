@@ -29,7 +29,7 @@ namespace BabelDatabase
 
 		public bool IsDead()
 		{
-			return YearOfDeath != 0;
+			return CauseOfDeath != null;
 		}
 	}
 
@@ -37,6 +37,8 @@ namespace BabelDatabase
 	{
 		[Key]
 		public string DiscordUserId { get; set; }
+
+		public bool IsAdmin { get; set; }
 
 		public string ActiveCharacterId { get; set; }
 		public virtual Character ActiveCharacter { get; set; }
@@ -55,7 +57,7 @@ namespace BabelDatabase
 	public class Year
 	{
 		[Key]
-		public string YearId { get; set; } = Guid.NewGuid().ToString();
+		public int YearId { get; set; } = 1;
 		public int CurrentYear { get; set; }
 	}
 
