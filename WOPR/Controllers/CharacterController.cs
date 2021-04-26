@@ -30,6 +30,26 @@ namespace WOPR.Controllers
 			return allSpecies.ToList();
 		}
 
+		[HttpGet("get-character")]
+		public IActionResult GetCharacter(string id)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var character = _context.Characters.SingleOrDefault(c => c.CharacterId == id);
+
+			if (character == null)
+			{
+				return NotFound();
+			}
+
+			if(character.DiscordUserId != userId)
+			{
+				return StatusCode(401);
+			}
+
+			return Ok(character);
+		}
+
 		[HttpGet("my-characters")]
 		public List<Character> GetMyCharacters()
 		{
@@ -70,7 +90,7 @@ namespace WOPR.Controllers
 
 			var yearOfBirth = currentYear - age;
 
-			var species = _context.Species.SingleOrDefault(s => s.SpeciesName.Equals(form.Species, StringComparison.OrdinalIgnoreCase));
+			var species = _context.Species.SingleOrDefault(s => s.SpeciesName == form.Species);
 
 			var newCharacter = new Character()
 			{

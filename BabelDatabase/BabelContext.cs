@@ -10,8 +10,8 @@ namespace BabelDatabase
 	{
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			//optionsBuilder.UseSqlServer("");
-			optionsBuilder.UseInMemoryDatabase("test");
+			optionsBuilder.UseSqlServer("Server=192.168.178.34;Database=wopr;User ID=SA;Password=gstenaTI22!!;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+			//optionsBuilder.UseInMemoryDatabase("test");
 			optionsBuilder.UseLazyLoadingProxies();			
 		}
 
