@@ -23,11 +23,11 @@ namespace WOPR.Controllers
 		}
 
 		[HttpGet("get-species")]
-		public List<string> GetSpecies()
+		public IActionResult GetSpecies()
 		{
 			var allSpecies = _context.Species.ToList().OrderBy(s => s.SpeciesId).Select(s => s.SpeciesName);
 
-			return allSpecies.ToList();
+			return Ok(allSpecies.ToList());
 		}
 
 		[HttpGet("get-character")]
@@ -42,7 +42,7 @@ namespace WOPR.Controllers
 				return NotFound();
 			}
 
-			if(character.DiscordUserId != userId)
+			if (character.DiscordUserId != userId)
 			{
 				return StatusCode(401);
 			}
@@ -51,7 +51,7 @@ namespace WOPR.Controllers
 		}
 
 		[HttpGet("my-characters")]
-		public List<Character> GetMyCharacters()
+		public IActionResult GetMyCharacters()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -59,7 +59,38 @@ namespace WOPR.Controllers
 				.Include(c => c.Species)
 				.Where(c => c.DiscordUserId == userId);
 
-			return characters.ToList();
+			return Ok(characters.ToList());
+		}
+
+		public struct CharacterEditForm
+		{
+			public string CharacterId { get; set; }
+			public string CharacterBio { get; set; }
+		}
+
+		[HttpPost("edit-character")]
+		public async Task<IActionResult> EditCharacter([FromBody] CharacterEditForm form)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var character = _context.Characters.SingleOrDefault(c => c.CharacterId == form.CharacterId);
+
+			if (character == null)
+			{
+				return NotFound();
+			}
+
+			if (character.DiscordUserId != userId)
+			{
+				return StatusCode(401);
+			}
+
+			character.CharacterBio = form.CharacterBio;
+
+			_context.Characters.Update(character);
+			await _context.SaveChangesAsync();
+
+			return Ok();
 		}
 
 		public struct CharacterCreationForm
