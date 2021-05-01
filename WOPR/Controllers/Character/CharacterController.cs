@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WOPR.Helpers;
 
 namespace WOPR.Controllers
 {
@@ -48,6 +49,44 @@ namespace WOPR.Controllers
 			}
 
 			return Ok(character);
+		}
+
+		public class CharacterSearchForm
+		{
+			public int Page { get; set; }
+			public bool Alive { get; set; }
+			public string Search { get; set; }
+		}
+
+		[HttpPost("search")]
+		public IActionResult SearchCharacters([FromBody] CharacterSearchForm form)
+		{
+			List<BabelDatabase.Character> results = new List<BabelDatabase.Character>();
+
+			if(form.Search != null)
+			{
+				if (form.Alive)
+				{
+					results = _context.Characters
+					.Where(c => (c.CharacterName.ToLower().Contains(form.Search.ToLower()) ||
+					c.CharacterBio.ToLower().Contains(form.Search.ToLower())) &&
+					c.CauseOfDeath == null).ToList();
+				}
+				else
+				{
+					results = _context.Characters
+					.Where(c => c.CharacterName.ToLower().Contains(form.Search.ToLower()) ||
+					c.CharacterBio.ToLower().Contains(form.Search.ToLower())).ToList();
+				}
+			}
+			else
+			{
+				results = _context.Characters.Where(c => c.IsDead() != form.Alive).ToList();
+			}
+
+			var paginatedListings = new PaginatedList<BabelDatabase.Character>(results, results.Count, form.Page, 20);
+
+			return Ok(paginatedListings);
 		}
 
 		[HttpGet("my-characters")]
@@ -123,7 +162,7 @@ namespace WOPR.Controllers
 
 			var species = _context.Species.SingleOrDefault(s => s.SpeciesName == form.Species);
 
-			var newCharacter = new Character()
+			var newCharacter = new BabelDatabase.Character()
 			{
 				CharacterName = form.CharacterName,
 				DiscordUserId = userId,

@@ -24,6 +24,7 @@ namespace BabelDatabase
 		public string SpeciesId { get; set; }
 		public virtual Species Species { get; set; }
 
+		[Required]
 		public string DiscordUserId { get; set; }
 		public virtual DiscordUser DiscordUser { get; set; }
 

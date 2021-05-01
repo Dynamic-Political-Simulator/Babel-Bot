@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BabelDatabase;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WOPR.TerminalCommands;
 
@@ -15,8 +17,12 @@ namespace WOPR.Controllers
 	{
 		private readonly Dictionary<string, ITerminalCommand> _terminalCommands = new Dictionary<string, ITerminalCommand>();
 
-		public TerminalController()
+		private readonly BabelContext _context;
+
+		public TerminalController(BabelContext context)
 		{
+			_context = context;
+
 			var interfaceType = typeof(ITerminalCommand);
 
 			var types = AppDomain.CurrentDomain.GetAssemblies()
@@ -48,6 +54,28 @@ namespace WOPR.Controllers
 		[HttpPost("command")]
 		public async Task<string> SendTerminalCommandAsync([FromBody] TerminalCommandForm form)
 		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			if (userId == null)
+			{
+				return "Please use command 'login' to login.";
+			}
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null)
+			{
+				var newUser = new DiscordUser
+				{
+					DiscordUserId = userId,
+					IsAdmin = false
+				};
+
+				_context.DiscordUsers.Add(newUser);
+
+				await _context.SaveChangesAsync();
+			}
+
 			var firstWord = form.InputString.Split(" ")[0];
 
 			ITerminalCommand command = null;

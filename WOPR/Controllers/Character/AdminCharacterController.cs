@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BabelDatabase;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,13 @@ namespace WOPR.Controllers.Character
 	[ApiController]
 	public class AdminCharacterController : ControllerBase
 	{
+		private readonly BabelContext _context;
+
+		public AdminCharacterController(BabelContext context)
+		{
+			_context = context;
+		}
+
+		
 	}
 }
