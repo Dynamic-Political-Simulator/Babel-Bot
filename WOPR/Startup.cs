@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Newtonsoft;
 using WOPR.Services;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace WOPR
 {
@@ -38,17 +41,34 @@ namespace WOPR
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddControllers();
+
+			services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+			{
+				builder.WithOrigins("http://localhost:3000")
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.AllowCredentials();
+			}));
+
+			services.AddControllers().AddNewtonsoftJson(options =>
+				options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+			);
 
 			// add context
 			services.AddDbContext<BabelContext>();
 
-			services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-			{
-				builder.AllowAnyOrigin()
-					.AllowAnyMethod()
-					.AllowAnyHeader();
-			}));
+			//services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+			//{
+			//	builder.AllowAnyOrigin()
+			//		.AllowAnyMethod()
+			//		.AllowAnyHeader()
+			//		.SetIsOriginAllowed(origin => true)
+			//		.WithOrigins("https://localhost:3000");
+			//}));
+
+			
+
+			
 
 			// add services
 			services.AddScoped<DiscordUserService>();
@@ -64,7 +84,7 @@ namespace WOPR
 			{
 				options.TokenValidationParameters = new TokenValidationParameters
 				{
-					ValidateIssuer = true,
+					ValidateIssuer = false,
 					ValidateAudience = false,
 					ValidateIssuerSigningKey = true,
 					ValidIssuer = Configuration.GetValue<string>("Jwt:Issuer"),
@@ -109,48 +129,22 @@ namespace WOPR
 				};
 			});
 
-			/*
-			services.AddAuthentication(a =>
-			{
-				a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-				a.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-			}).AddJwtBearer(j =>
-			{
-				j.Events = new JwtBearerEvents()
-				{
-					OnTokenValidated = context =>
-					{
-						var userService = context.HttpContext.RequestServices.GetRequiredService<DiscordUserService>();
-						var userId = context.Principal.Identity.Name;
-
-						var user = userService.GetUserById(userId);
-
-						if (user == null)
-						{
-							context.Fail("Unauthorised.");
-						}
-
-						return Task.CompletedTask;
-					}
-				};
-
-				j.RequireHttpsMetadata = false;
-				j.SaveToken = true;
-				j.TokenValidationParameters = new TokenValidationParameters()
-				{
-					ValidateIssuerSigningKey = true,
-					IssuerSigningKey = new SymmetricSecurityKey(key),
-					ValidateIssuer = false,
-					ValidateAudience = false
-				};
-			});
-
-			*/
+			
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
+			//app.UseCors(x => x
+			//	.WithOrigins("http://localhost:3000")
+			//	.AllowAnyMethod()
+			//	.AllowAnyHeader()
+			//	.AllowCredentials());
+
+			app.UseCors("MyPolicy");
+
+			app.UseAuthentication();
+
 			if (env.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();
@@ -162,9 +156,7 @@ namespace WOPR
 
 			app.UseAuthorization();
 
-			app.UseAuthentication();
-
-			app.UseCors("MyPolicy");
+			
 
 			app.UseEndpoints(endpoints =>
 			{

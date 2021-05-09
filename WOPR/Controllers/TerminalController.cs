@@ -65,7 +65,7 @@ namespace WOPR.Controllers
 
 			if (discordUser == null)
 			{
-				var newUser = new DiscordUser
+				var newUser = new BabelDatabase.DiscordUser
 				{
 					DiscordUserId = userId,
 					IsAdmin = false

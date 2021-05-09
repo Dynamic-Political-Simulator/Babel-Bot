@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Http.Cors;
 using WOPR.Helpers;
 
 namespace WOPR.Controllers
@@ -90,9 +91,11 @@ namespace WOPR.Controllers
 		}
 
 		[HttpGet("my-characters")]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult GetMyCharacters()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			Console.WriteLine("USED ID: " + userId);
 
 			var characters = _context.Characters
 				.Include(c => c.Species)
