@@ -28,7 +28,7 @@ namespace WOPR.Controllers.DiscordUser
 		}
 		
 		[HttpGet("is-admin")]
-		//[Authorize]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult IsAdmin()
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

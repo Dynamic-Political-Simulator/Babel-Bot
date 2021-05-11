@@ -32,7 +32,24 @@ namespace WOPR.Controllers
 			return Ok(allSpecies.ToList());
 		}
 
+		public class CharacterDetailReturn
+		{
+			public string CharacterId { get; set; }
+			public string CharacterName { get; set; }
+
+			public string CharacterBio { get; set; }
+
+			public int YearOfBirth { get; set; }
+			public int YearOfDeath { get; set; }
+			public string CauseOfDeath { get; set; }
+			
+			public string Species { get; set; }
+
+			public bool UserOwnsCharacter { get; set; }
+		}
+
 		[HttpGet("get-character")]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult GetCharacter(string id)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -44,12 +61,27 @@ namespace WOPR.Controllers
 				return NotFound();
 			}
 
-			if (character.DiscordUserId != userId)
+			var returnData = new CharacterDetailReturn()
 			{
-				return StatusCode(401);
+				CharacterId = character.CharacterId,
+				CharacterName = character.CharacterName,
+				CharacterBio = character.CharacterBio,
+				YearOfBirth = character.YearOfBirth,
+				YearOfDeath = character.YearOfDeath,
+				CauseOfDeath = character.CauseOfDeath,
+				Species = character.Species.SpeciesName
+			};
+			
+			if (character.DiscordUserId == userId)
+			{
+				returnData.UserOwnsCharacter = true;
+			}
+			else
+			{
+				returnData.UserOwnsCharacter = false;
 			}
 
-			return Ok(character);
+			return Ok(returnData);
 		}
 
 		public class CharacterSearchForm
