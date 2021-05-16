@@ -20,6 +20,7 @@ namespace BabelDatabase
 		public DbSet<PopsimParty> Parties { get; set; }
 		public DbSet<Species> Species { get; set; }
 		public DbSet<Year> Year { get; set; }
+		public DbSet<TimeToMidnight> TimeToMidnight { get; set; }
 
 		//public DbSet<PopsimReport> PopsimReports { get; set; }
 
@@ -43,6 +44,10 @@ namespace BabelDatabase
 					SpeciesId = "2",
 					SpeciesName = "Zelvan"
 				}
+			);
+
+			modelBuilder.Entity<TimeToMidnight>().HasData(
+				new TimeToMidnight()
 			);
 
 			modelBuilder.Entity<DiscordUser>()

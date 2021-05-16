@@ -1,9 +1,11 @@
 ﻿using BabelDatabase;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -52,13 +54,14 @@ namespace WOPR.Controllers
 		}
 
 		[HttpPost("command")]
-		public async Task<string> SendTerminalCommandAsync([FromBody] TerminalCommandForm form)
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public async Task<IActionResult> SendTerminalCommandAsync([FromBody] TerminalCommandForm form)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 			if (userId == null)
 			{
-				return "Please use command 'login' to login.";
+				return Ok("Please use command 'login' to login.");
 			}
 
 			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
@@ -82,10 +85,10 @@ namespace WOPR.Controllers
 
 			if (_terminalCommands.TryGetValue(firstWord, out command))
 			{
-				return await command.DoCommandAsync(form.InputString);
+				return Ok(await command.DoCommandAsync(form.InputString));
 			}
 
-			return "Check";
+			return Ok();
 		}
 	}
 }

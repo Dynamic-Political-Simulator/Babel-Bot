@@ -175,6 +175,7 @@ namespace WOPR.Controllers
 		}
 
 		[HttpPost("create-character")]
+		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult CreateCharacter([FromBody]CharacterCreationForm form)
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

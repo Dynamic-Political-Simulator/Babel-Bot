@@ -62,6 +62,13 @@ namespace BabelDatabase
 		public int CurrentYear { get; set; }
 	}
 
+	public class TimeToMidnight
+	{
+		[Key]
+		public int TimeToMidnightId { get; set; } = 1;
+		public int SecondsToMidnight { get; set; } = 10800;
+	}
+
 	// Popsim stuff
 	public class PopsimReport
 	{

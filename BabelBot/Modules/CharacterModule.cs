@@ -2,6 +2,7 @@
 using BabelDatabase;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,38 +20,49 @@ namespace BabelBot.Modules
 			_context = context;
 		}
 
-		[Command("create character")]
+		[Command("me")]
 		[RequireProfile]
-		[RequireLivingActiveCharacter]
-		public async Task CreateCharacter(string name, string species = "Human")
+		public async Task ViewCurrentCharacter([Remainder] SocketGuildUser mention = null)
 		{
-			if(name.Length < 2 || name.Length > 32)
+			DiscordUser profile = null;
+
+			if (mention != null)
 			{
-				await ReplyAsync("Name may be a minimum of 2 characters and a maximum of 32 characters long.");
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			}
+			else
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			}
+
+			var character = profile.ActiveCharacter;
+
+			if (character == null)
+			{
+				await ReplyAsync("This user has no active character.");
 				return;
 			}
 
-			//something about species
+			var embedBuilder = new EmbedBuilder();
 
-			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
-
-			var newCharacter = new Character()
-			{
-				CharacterName = name,
-				DiscordUser = profile
-			};
-
-			_context.Characters.Add(newCharacter);
-			await _context.SaveChangesAsync();
-
-			await ReplyAsync("Character created.");
+			embedBuilder.Title = $"{character.CharacterName} {character.YearOfBirth}-Present";
+			embedBuilder.Description = $"Bio: {character.CharacterBio}";
 		}
 
 		[Command("history")]
 		[RequireProfile]
-		public async Task ViewCharacters()
+		public async Task ViewCharacters([Remainder] SocketGuildUser mention = null)
 		{
-			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			DiscordUser profile = null;
+
+			if (mention != null)
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			}
+			else
+			{
+				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			}		
 
 			var embedBuilder = new EmbedBuilder();
 
@@ -61,12 +73,12 @@ namespace BabelBot.Modules
 				if (!character.IsDead())
 				{
 					field.Name = $"{character.CharacterName} {character.YearOfBirth}-Present";
-					field.Value = $"Species: {character.Species}\n{character.CharacterBio}";
+					field.Value = $"Species: {character.Species.SpeciesName}\n{character.CharacterBio}";
 				}
 				else
 				{
 					field.Name = $"{character.CharacterName} {character.YearOfBirth}-{character.YearOfDeath}";
-					field.Value = $"Species: {character.Species}\n{character.CharacterBio}";
+					field.Value = $"Species: {character.Species.SpeciesName}\n{character.CharacterBio}";
 				}
 
 				embedBuilder.AddField(field);

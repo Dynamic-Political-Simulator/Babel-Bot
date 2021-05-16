@@ -23,7 +23,8 @@ namespace BabelBot.Modules
 		{
 			var profile = new DiscordUser()
 			{
-				DiscordUserId = Context.User.Id.ToString()
+				DiscordUserId = Context.User.Id.ToString(),
+				IsAdmin = false
 			};
 
 			_context.DiscordUsers.Add(profile);

@@ -31,6 +31,19 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TimeToMidnight",
+                columns: table => new
+                {
+                    TimeToMidnightId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SecondsToMidnight = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimeToMidnight", x => x.TimeToMidnightId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Year",
                 columns: table => new
                 {
@@ -69,7 +82,7 @@ namespace BabelDatabase.Migrations
                     CharacterBio = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PartyId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     SpeciesId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DiscordUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    DiscordUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -79,7 +92,7 @@ namespace BabelDatabase.Migrations
                         column: x => x.DiscordUserId,
                         principalTable: "DiscordUsers",
                         principalColumn: "DiscordUserId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Characters_Parties_PartyId",
                         column: x => x.PartyId,
@@ -103,6 +116,11 @@ namespace BabelDatabase.Migrations
                 table: "Species",
                 columns: new[] { "SpeciesId", "SpeciesName" },
                 values: new object[] { "2", "Zelvan" });
+
+            migrationBuilder.InsertData(
+                table: "TimeToMidnight",
+                columns: new[] { "TimeToMidnightId", "SecondsToMidnight" },
+                values: new object[] { 1, 10800 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Characters_DiscordUserId",
@@ -138,6 +156,9 @@ namespace BabelDatabase.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Characters_DiscordUsers_DiscordUserId",
                 table: "Characters");
+
+            migrationBuilder.DropTable(
+                name: "TimeToMidnight");
 
             migrationBuilder.DropTable(
                 name: "Year");

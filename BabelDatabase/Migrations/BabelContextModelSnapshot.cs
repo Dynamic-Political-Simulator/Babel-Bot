@@ -34,6 +34,7 @@ namespace BabelDatabase.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DiscordUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PartyId")
@@ -119,6 +120,28 @@ namespace BabelDatabase.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BabelDatabase.TimeToMidnight", b =>
+                {
+                    b.Property<int>("TimeToMidnightId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("SecondsToMidnight")
+                        .HasColumnType("int");
+
+                    b.HasKey("TimeToMidnightId");
+
+                    b.ToTable("TimeToMidnight");
+
+                    b.HasData(
+                        new
+                        {
+                            TimeToMidnightId = 1,
+                            SecondsToMidnight = 10800
+                        });
+                });
+
             modelBuilder.Entity("BabelDatabase.Year", b =>
                 {
                     b.Property<int>("YearId")
@@ -138,7 +161,9 @@ namespace BabelDatabase.Migrations
                 {
                     b.HasOne("BabelDatabase.DiscordUser", "DiscordUser")
                         .WithMany("Characters")
-                        .HasForeignKey("DiscordUserId");
+                        .HasForeignKey("DiscordUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("BabelDatabase.PopsimParty", "Party")
                         .WithMany("Members")

@@ -35,6 +35,18 @@ namespace WOPR.Controllers.DiscordUser
 
 			var discordUser = _context.DiscordUsers.SingleOrDefault(c => c.DiscordUserId == userId);
 
+			if (discordUser == null)
+			{
+				var newDiscordUser = new BabelDatabase.DiscordUser()
+				{
+					DiscordUserId = userId,
+					IsAdmin = false
+				};
+
+				_context.Add(newDiscordUser);
+				_context.SaveChanges();
+			}
+
 			return Ok(!(discordUser == null || discordUser.IsAdmin == false));
 		}
 
