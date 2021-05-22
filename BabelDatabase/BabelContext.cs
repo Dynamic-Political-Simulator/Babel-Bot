@@ -19,6 +19,8 @@ namespace BabelDatabase
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
 		public DbSet<PopsimParty> Parties { get; set; }
 		public DbSet<Species> Species { get; set; }
+		public DbSet<StaffAction> StaffActions { get; set; }
+		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
 		public DbSet<Year> Year { get; set; }
 		public DbSet<TimeToMidnight> TimeToMidnight { get; set; }
 

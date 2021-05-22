@@ -38,6 +38,8 @@ namespace BabelDatabase
 	{
 		[Key]
 		public string DiscordUserId { get; set; }
+		[Required]
+		public string UserName { get; set; }
 
 		public bool IsAdmin { get; set; }
 
@@ -45,6 +47,47 @@ namespace BabelDatabase
 		public virtual Character ActiveCharacter { get; set; }
 
 		public virtual List<Character> Characters { get; set; }
+	}
+
+	public class StaffAction
+	{
+		[Key]
+		public string StaffActionId { get; set; } = Guid.NewGuid().ToString();
+
+		[Required]
+		public string Title { get; set; }
+
+		[Required]
+		public DateTime TimeStarted { get; set; }
+
+		[Required]
+		public string OwnerId { get; set; }
+		public virtual DiscordUser Owner { get; set; }
+
+		public virtual List<DiscordUser> Players { get; set; }
+		public virtual List<DiscordUser> Staff { get; set; }
+
+		public virtual List<StaffActionPost> StaffActionPosts { get; set; } 
+	}
+
+	public class StaffActionPost
+	{
+		[Key]
+		public string StaffActionPostId { get; set; } = Guid.NewGuid().ToString();
+
+		[Required]
+		public string Content { get; set; }
+
+		[Required]
+		public DateTime TimePosted { get; set; }
+
+		[Required]
+		public string StaffActionId { get; set; }
+		public virtual StaffAction StaffAction { get; set; }
+
+		[Required]
+		public string AuthorId { get; set; }
+		public virtual DiscordUser Author { get; set; }
 	}
 
 	public class Species
