@@ -20,6 +20,42 @@ namespace BabelBot.Modules
 			_context = context;
 		}
 
+		[Command("cliques")]
+		[RequireProfile]
+		[RequireLivingActiveCharacter]
+		public async Task MyCliques()
+		{
+			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+
+			var embedBuilder = new EmbedBuilder();
+
+			embedBuilder.Title = "Cliques";
+
+			foreach (var clique in profile.ActiveCharacter.Cliques)
+			{
+				var field = new EmbedFieldBuilder();
+				field.Name = clique.CliqueName;
+
+				field.Value += "Members:\n";
+
+				foreach (var character in clique.CliqueMembers)
+				{
+					field.Value += character.CharacterName + "\n";
+				}
+
+				field.Value += "\nOfficers:\n";
+
+				foreach (var officer in clique.CliqueOfficers)
+				{
+					field.Value += officer.CharacterName + "\n";
+				}
+
+				embedBuilder.AddField(field);
+			}
+
+			await Context.User.SendMessageAsync(embed: embedBuilder.Build());
+		}
+
 		[Command("me")]
 		[RequireProfile]
 		public async Task ViewCurrentCharacter([Remainder] SocketGuildUser mention = null)
@@ -47,6 +83,8 @@ namespace BabelBot.Modules
 
 			embedBuilder.Title = $"{character.CharacterName} {character.YearOfBirth}-Present";
 			embedBuilder.Description = $"Bio: {character.CharacterBio}";
+
+			await ReplyAsync(embed: embedBuilder.Build());
 		}
 
 		[Command("history")]
