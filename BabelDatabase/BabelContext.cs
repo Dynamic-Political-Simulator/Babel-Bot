@@ -15,9 +15,13 @@ namespace BabelDatabase
 			optionsBuilder.UseLazyLoadingProxies();			
 		}
 
+		public DbSet<Alignment> Alignments { get; set; }
+		public DbSet<AlignmentSpending> AlignmentSpendings { get; set; }
 		public DbSet<Character> Characters { get; set; }
+		public DbSet<Clique> Cliques { get; set; }
+		public DbSet<CliqueInvite> CliqueInvites { get; set; }
+		public DbSet<CustomSpending> CustomSpendings { get; set; }
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
-		public DbSet<PopsimParty> Parties { get; set; }
 		public DbSet<Species> Species { get; set; }
 		public DbSet<StaffAction> StaffActions { get; set; }
 		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
