@@ -24,6 +24,47 @@ namespace WOPR.Controllers.Spending
 			_context = context;
 		}
 
+		public struct CliqueJoinAlignmentForm
+		{
+			public string CliqueId { get; set; }
+			public string AlignmentId { get; set; }
+		}
+
+		[HttpPost("join-alignment")]
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public IActionResult CliqueJoinAlignment([FromBody] CliqueJoinAlignmentForm form)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (userId == null || discordUser == null)
+			{
+				return Unauthorized();
+			}
+
+			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
+
+			if (clique == null)
+			{
+				return NotFound();
+			}
+
+			if (!clique.CliqueOfficers.Contains(discordUser.ActiveCharacter))
+			{
+				return Unauthorized();
+			}
+
+			var alignment = _context.Alignments.SingleOrDefault(a => a.AlignmentId == form.AlignmentId);
+
+			alignment.Cliques.Add(clique);
+
+			_context.Alignments.Update(alignment);
+			_context.SaveChanges();
+
+			return Ok();
+		}
+
 		public struct CliqueInviteReplyForm
 		{
 			public string ClinqueInviteId { get; set; }

@@ -32,12 +32,12 @@ namespace WOPR.Controllers.Spending
 		/// 
 		/// </summary>
 		/// <returns></returns>
-		[HttpGet("fund-faction")]
-		[Authorize(AuthenticationSchemes = "Discord")]
-		public IActionResult SpendFaction()
-		{
+		//[HttpGet("fund-faction")]
+		//[Authorize(AuthenticationSchemes = "Discord")]
+		//public IActionResult SpendFaction()
+		//{
 
-		}
+		//}
 
 	}
 }

@@ -65,6 +65,47 @@ namespace BabelDatabase
 				.HasOne(c => c.Species)
 				.WithMany()
 				.HasForeignKey(c => c.SpeciesId);
+
+			modelBuilder.Entity<Character>()
+				.HasMany(c => c.Cliques)
+				.WithMany(c => c.CliqueMembers);
+
+			modelBuilder.Entity<Character>()
+				.HasMany(c => c.Cliques)
+				.WithMany(c => c.CliqueOfficers);
+
+			modelBuilder.Entity<StaffAction>()
+				.HasMany(sa => sa.Players);
+
+			modelBuilder.Entity<StaffAction>()
+				.HasMany(sa => sa.Staff);
+
+			modelBuilder.Entity<StaffAction>()
+				.HasMany(sa => sa.StaffActionPosts)
+				.WithOne(sap => sap.StaffAction)
+				.HasForeignKey(sap => sap.StaffActionId);
+
+			modelBuilder.Entity<StaffAction>()
+				.HasOne(sa => sa.Owner)
+				.WithMany()
+				.HasForeignKey(sa => sa.OwnerId);
+
+			modelBuilder.Entity<StaffActionPost>()
+				.HasOne(sap => sap.Author)
+				.WithMany()
+				.HasForeignKey(sap => sap.AuthorId);
+
+			modelBuilder.Entity<Committee>()
+				.HasMany(c => c.CommitteeMembers);
+
+			modelBuilder.Entity<Clique>()
+				.HasMany(c => c.Alignments)
+				.WithMany(a => a.Cliques);
+
+			modelBuilder.Entity<CliqueInvite>()
+				.HasOne(ci => ci.Clique)
+				.WithMany()
+				.HasForeignKey(ci => ci.CliqueId);
 		}
 	}
 }

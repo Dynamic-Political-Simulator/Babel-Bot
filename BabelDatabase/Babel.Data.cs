@@ -18,7 +18,7 @@ namespace BabelDatabase
 		public string CauseOfDeath { get; set; } = null;
 		public string CharacterBio { get; set; } = "Character bio.";
 
-		public List<Clique> Cliques { get; set; }
+		public virtual List<Clique> Cliques { get; set; }
 
 		public string SpeciesId { get; set; }
 		public virtual Species Species { get; set; }
@@ -121,7 +121,7 @@ namespace BabelDatabase
 		[Required]
 		public long Money { get; set; }
 
-		public List<Character> CommitteeMembers { get; set; }
+		public virtual List<Character> CommitteeMembers { get; set; }
 	}
 
 	public class Clique
@@ -134,10 +134,10 @@ namespace BabelDatabase
 		[Required]
 		public ulong Money { get; set; }
 
-		public List<Character> CliqueMembers { get; set; }
-		public List<Character> CliqueOfficers { get; set; }
+		public virtual List<Character> CliqueMembers { get; set; }
+		public virtual List<Character> CliqueOfficers { get; set; }
 
-		public List<Alignment> Alignments { get; set; }
+		public virtual List<Alignment> Alignments { get; set; }
 	}
 
 	public class CliqueInvite
@@ -159,7 +159,7 @@ namespace BabelDatabase
 		[Key]
 		public string AlignmentId { get; set; } = Guid.NewGuid().ToString();
 
-		public List<Clique> Cliques { get; set; }
+		public virtual List<Clique> Cliques { get; set; }
 
 		public int FederalismCentralism { get; set; }
 		public int DemocracyAuthority { get; set; }
@@ -213,10 +213,10 @@ namespace BabelDatabase
 		public virtual Alignment Alignment { get; set; }
 
 		public string PlanetTargetId { get; set; }
-		public PopsimGlobalEthicGroup PlanetTarget { get; set; }
+		public virtual PopsimGlobalEthicGroup PlanetTarget { get; set; }
 
 		public string GlobalTargetId { get; set; }
-		public PopsimGlobalEthicGroup GlobalTarget { get; set; }
+		public virtual PopsimGlobalEthicGroup GlobalTarget { get; set; }
 	}
 
 	public class SpendingLog
@@ -235,7 +235,7 @@ namespace BabelDatabase
 
 		public string PopsimGlobalEthicGroupName { get; set; }
 		
-		public List<PopsimPlanetEthicGroup> planetaryEthicGroups { get; set; }
+		public virtual List<PopsimPlanetEthicGroup> planetaryEthicGroups { get; set; }
 
 		public int FederalismCentralism { get; set; }
 		public int DemocracyAuthority { get; set; }
@@ -265,10 +265,10 @@ namespace BabelDatabase
 		public long MembersOnPlanet { get; set; }
 
 		public string PopsimGlobalEthicGroupId { get; set; }
-		public PopsimGlobalEthicGroup PopsimGlobalEthicGroup { get; set; }
+		public virtual PopsimGlobalEthicGroup PopsimGlobalEthicGroup { get; set; }
 
 		public string PopsimPlanetId { get; set; }
-		public PopsimPlanet PopsimPlanet { get; set; }
+		public virtual PopsimPlanet PopsimPlanet { get; set; }
 	}
 
 }

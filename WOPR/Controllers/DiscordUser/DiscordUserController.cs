@@ -26,6 +26,44 @@ namespace WOPR.Controllers.DiscordUser
 			_context = context;
 			_config = config;
 		}
+
+		public struct PlayerSearchReturn
+		{
+			public string DiscordUserId { get; set; }
+			public string DiscordUserName { get; set; }
+			public bool IsAdmin { get; set; }
+		}
+
+		[HttpGet("search-profile")]
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public IActionResult SearchPlayers(string search)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null || discordUser.IsAdmin == false)
+			{
+				return Unauthorized();
+			}
+
+			var players = _context.DiscordUsers.Where(du => du.DiscordUserId.ToLower().Contains(search.ToLower())
+					|| du.UserName.ToLower().Contains(search.ToLower()));
+
+			var returnList = new List<PlayerSearchReturn>();
+
+			foreach (var p in players)
+			{
+				returnList.Add(new PlayerSearchReturn()
+				{
+					DiscordUserId = p.DiscordUserId,
+					DiscordUserName = p.UserName,
+					IsAdmin = p.IsAdmin
+				});
+			}
+
+			return Ok(returnList);
+		}
 		
 		[HttpGet("is-admin")]
 		[Authorize(AuthenticationSchemes = "Discord")]
