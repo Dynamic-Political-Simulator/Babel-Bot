@@ -50,7 +50,9 @@ namespace WOPR.Controllers.Spending
 				return NotFound();
 			}
 
-			if (!clique.CliqueOfficers.Contains(discordUser.ActiveCharacter))
+			var officers = clique.CliqueOfficers.Select(co => co.Officer);
+
+			if (!officers.Contains(discordUser.ActiveCharacter))
 			{
 				return Unauthorized();
 			}
@@ -88,7 +90,11 @@ namespace WOPR.Controllers.Spending
 
 			if (form.AcceptInvite)
 			{
-				invite.Clique.CliqueMembers.Add(discordUser.ActiveCharacter);
+				invite.Clique.CliqueMembers.Add(new CliqueMemberCharacter()
+				{
+					CliqueId = invite.CliqueId,
+					MemberId = discordUser.ActiveCharacterId
+				});
 				_context.Cliques.Update(invite.Clique);
 			}
 
@@ -119,10 +125,10 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (clique != null && clique.CliqueMembers.Contains(discordUser.ActiveCharacter))
+			if (clique != null && clique.CliqueMembers.Select(cm => cm.Member).Contains(discordUser.ActiveCharacter))
 			{
-				clique.CliqueMembers.Remove(discordUser.ActiveCharacter);
-				clique.CliqueOfficers.Remove(discordUser.ActiveCharacter);
+				clique.CliqueMembers.Remove(clique.CliqueMembers.SingleOrDefault(cm => cm.Member == discordUser.ActiveCharacter));
+				clique.CliqueOfficers.Remove(clique.CliqueOfficers.SingleOrDefault(cm => cm.Officer == discordUser.ActiveCharacter));
 			}
 
 			_context.SaveChanges();
@@ -151,7 +157,8 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Contains(clique) || !clique.CliqueOfficers.Contains(discordUser.ActiveCharacter))
+			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+					|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
 			{
 				return Unauthorized();
 			}
@@ -218,13 +225,22 @@ namespace WOPR.Controllers.Spending
 			{
 				CliqueName = form.CliqueName,
 				Money = 0,
-				CliqueMembers = new List<BabelDatabase.Character>(),
-				CliqueOfficers = new List<BabelDatabase.Character>(),
+				CliqueMembers = new List<BabelDatabase.CliqueMemberCharacter>(),
+				CliqueOfficers = new List<BabelDatabase.CliqueOfficerCharacter>(),
 				Alignments = new List<Alignment>()
 			};
 
-			newClique.CliqueMembers.Add(discordUser.ActiveCharacter);
-			newClique.CliqueOfficers.Add(discordUser.ActiveCharacter);
+			newClique.CliqueMembers.Add(new CliqueMemberCharacter()
+			{
+				Clique = newClique,
+				Member = discordUser.ActiveCharacter
+			});
+
+			newClique.CliqueOfficers.Add(new CliqueOfficerCharacter()
+			{
+				Clique = newClique,
+				Officer = discordUser.ActiveCharacter
+			});
 
 			_context.Cliques.Add(newClique);
 
@@ -257,7 +273,8 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Contains(clique) || !clique.CliqueOfficers.Contains(discordUser.ActiveCharacter))
+			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+				|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
 			{
 				return Unauthorized();
 			}
@@ -313,7 +330,8 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Contains(clique) || !clique.CliqueOfficers.Contains(discordUser.ActiveCharacter))
+			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+				|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
 			{
 				return Unauthorized();
 			}

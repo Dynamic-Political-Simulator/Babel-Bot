@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BabelDatabase
 {
@@ -18,7 +19,7 @@ namespace BabelDatabase
 		public string CauseOfDeath { get; set; } = null;
 		public string CharacterBio { get; set; } = "Character bio.";
 
-		public virtual List<Clique> Cliques { get; set; }
+		public virtual List<CliqueMemberCharacter> Cliques { get; set; }
 
 		public string SpeciesId { get; set; }
 		public virtual Species Species { get; set; }
@@ -97,17 +98,11 @@ namespace BabelDatabase
 		public string SpeciesName { get; set; }
 	}
 
-	public class Year
+	public class GameState
 	{
 		[Key]
-		public int YearId { get; set; } = 1;
-		public int CurrentYear { get; set; }
-	}
-
-	public class TimeToMidnight
-	{
-		[Key]
-		public int TimeToMidnightId { get; set; } = 1;
+		public int GameStateId { get; set; } = 1;
+		public int CurrentYear { get; set; } = 2500;
 		public int SecondsToMidnight { get; set; } = 10800;
 	}
 
@@ -124,6 +119,24 @@ namespace BabelDatabase
 		public virtual List<Character> CommitteeMembers { get; set; }
 	}
 
+	public class CliqueMemberCharacter
+	{
+		public string CliqueId { get; set; }
+		public virtual Clique Clique { get; set; }
+
+		public string MemberId { get; set; }
+		public virtual Character Member { get; set; }
+	}
+
+	public class CliqueOfficerCharacter
+	{
+		public string CliqueId { get; set; }
+		public virtual Clique Clique { get; set; }
+
+		public string OfficerId { get; set; }
+		public virtual Character Officer { get; set; }
+	}
+
 	public class Clique
 	{
 		[Key]
@@ -134,8 +147,8 @@ namespace BabelDatabase
 		[Required]
 		public ulong Money { get; set; }
 
-		public virtual List<Character> CliqueMembers { get; set; }
-		public virtual List<Character> CliqueOfficers { get; set; }
+		public virtual List<CliqueMemberCharacter> CliqueMembers { get; set; }
+		public virtual List<CliqueOfficerCharacter> CliqueOfficers { get; set; }
 
 		public virtual List<Alignment> Alignments { get; set; }
 	}
@@ -235,7 +248,7 @@ namespace BabelDatabase
 
 		public string PopsimGlobalEthicGroupName { get; set; }
 		
-		public virtual List<PopsimPlanetEthicGroup> planetaryEthicGroups { get; set; }
+		public virtual List<PopsimPlanetEthicGroup> PlanetaryEthicGroups { get; set; }
 
 		public int FederalismCentralism { get; set; }
 		public int DemocracyAuthority { get; set; }

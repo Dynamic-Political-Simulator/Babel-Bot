@@ -34,20 +34,20 @@ namespace BabelBot.Modules
 			foreach (var clique in profile.ActiveCharacter.Cliques)
 			{
 				var field = new EmbedFieldBuilder();
-				field.Name = clique.CliqueName;
+				field.Name = clique.Clique.CliqueName;
 
 				field.Value += "Members:\n";
 
-				foreach (var character in clique.CliqueMembers)
+				foreach (var character in clique.Clique.CliqueMembers)
 				{
-					field.Value += character.CharacterName + "\n";
+					field.Value += character.Member.CharacterName + "\n";
 				}
 
 				field.Value += "\nOfficers:\n";
 
-				foreach (var officer in clique.CliqueOfficers)
+				foreach (var officer in clique.Clique.CliqueOfficers)
 				{
-					field.Value += officer.CharacterName + "\n";
+					field.Value += officer.Officer.CharacterName + "\n";
 				}
 
 				embedBuilder.AddField(field);

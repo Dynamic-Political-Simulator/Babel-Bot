@@ -25,8 +25,7 @@ namespace BabelDatabase
 		public DbSet<Species> Species { get; set; }
 		public DbSet<StaffAction> StaffActions { get; set; }
 		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
-		public DbSet<Year> Year { get; set; }
-		public DbSet<TimeToMidnight> TimeToMidnight { get; set; }
+		public DbSet<GameState> GameState { get; set; }
 
 		//public DbSet<PopsimReport> PopsimReports { get; set; }
 
@@ -49,11 +48,16 @@ namespace BabelDatabase
 				{
 					SpeciesId = "2",
 					SpeciesName = "Zelvan"
+				},
+				new Species
+				{
+					SpeciesId = "3",
+					SpeciesName = "Liaran"
 				}
 			);
 
-			modelBuilder.Entity<TimeToMidnight>().HasData(
-				new TimeToMidnight()
+			modelBuilder.Entity<GameState>().HasData(
+				new GameState()
 			);
 
 			modelBuilder.Entity<DiscordUser>()
@@ -66,13 +70,25 @@ namespace BabelDatabase
 				.WithMany()
 				.HasForeignKey(c => c.SpeciesId);
 
-			modelBuilder.Entity<Character>()
-				.HasMany(c => c.Cliques)
+			modelBuilder.Entity<CliqueMemberCharacter>().HasKey(cmc => new { cmc.CliqueId, cmc.MemberId });
+
+			modelBuilder.Entity<CliqueMemberCharacter>()
+				.HasOne(cmc => cmc.Clique)
 				.WithMany(c => c.CliqueMembers);
 
-			modelBuilder.Entity<Character>()
-				.HasMany(c => c.Cliques)
+			modelBuilder.Entity<CliqueMemberCharacter>()
+				.HasOne(cmc => cmc.Member)
+				.WithMany(c => c.Cliques);
+
+			modelBuilder.Entity<CliqueOfficerCharacter>().HasKey(cmc => new { cmc.CliqueId, cmc.OfficerId });
+
+			modelBuilder.Entity<CliqueOfficerCharacter>()
+				.HasOne(cmc => cmc.Clique)
 				.WithMany(c => c.CliqueOfficers);
+
+			modelBuilder.Entity<CliqueOfficerCharacter>()
+				.HasOne(cmc => cmc.Officer)
+				.WithMany();
 
 			modelBuilder.Entity<StaffAction>()
 				.HasMany(sa => sa.Players);
@@ -88,7 +104,8 @@ namespace BabelDatabase
 			modelBuilder.Entity<StaffAction>()
 				.HasOne(sa => sa.Owner)
 				.WithMany()
-				.HasForeignKey(sa => sa.OwnerId);
+				.HasForeignKey(sa => sa.OwnerId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<StaffActionPost>()
 				.HasOne(sap => sap.Author)
@@ -106,6 +123,41 @@ namespace BabelDatabase
 				.HasOne(ci => ci.Clique)
 				.WithMany()
 				.HasForeignKey(ci => ci.CliqueId);
+
+			modelBuilder.Entity<AlignmentSpending>()
+				.HasOne(alsp => alsp.Clique)
+				.WithMany()
+				.HasForeignKey(alsp => alsp.CliqueId);
+
+			modelBuilder.Entity<AlignmentSpending>()
+				.HasOne(alsp => alsp.Character)
+				.WithMany()
+				.HasForeignKey(alsp => alsp.CharacterId);
+
+			modelBuilder.Entity<AlignmentSpending>()
+				.HasOne(alsp => alsp.Alignment)
+				.WithMany()
+				.HasForeignKey(alsp => alsp.AlignmentId);
+
+			modelBuilder.Entity<AlignmentSpending>()
+				.HasOne(alsp => alsp.PlanetTarget)
+				.WithMany()
+				.HasForeignKey(alsp => alsp.PlanetTargetId);
+
+			modelBuilder.Entity<AlignmentSpending>()
+				.HasOne(alsp => alsp.GlobalTarget)
+				.WithMany()
+				.HasForeignKey(alsp => alsp.GlobalTargetId);
+
+			modelBuilder.Entity<PopsimGlobalEthicGroup>()
+				.HasMany(pgeg => pgeg.PlanetaryEthicGroups)
+				.WithOne(ppeg => ppeg.PopsimGlobalEthicGroup)
+				.HasForeignKey(ppeg => ppeg.PopsimGlobalEthicGroupId);
+
+			modelBuilder.Entity<PopsimPlanetEthicGroup>()
+				.HasOne(ppeg => ppeg.PopsimPlanet)
+				.WithMany()
+				.HasForeignKey(ppeg => ppeg.PopsimPlanetId);
 		}
 	}
 }

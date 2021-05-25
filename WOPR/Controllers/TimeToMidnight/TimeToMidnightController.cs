@@ -22,7 +22,7 @@ namespace WOPR.Controllers.TimeToMidnight
 		[HttpGet("time")]
 		public IActionResult GetTimeToMidnight()
 		{
-			var timeToMidnight = _context.TimeToMidnight.FirstOrDefault();
+			var timeToMidnight = _context.GameState.FirstOrDefault();
 
 			if (timeToMidnight == null)
 			{
