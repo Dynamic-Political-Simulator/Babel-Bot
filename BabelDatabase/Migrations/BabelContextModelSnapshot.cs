@@ -283,12 +283,6 @@ namespace BabelDatabase.Migrations
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("bit");
 
-                    b.Property<string>("StaffActionId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("StaffActionId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -297,11 +291,15 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("ActiveCharacterCharacterId");
 
-                    b.HasIndex("StaffActionId");
-
-                    b.HasIndex("StaffActionId1");
-
                     b.ToTable("DiscordUsers");
+
+                    b.HasData(
+                        new
+                        {
+                            DiscordUserId = "75968535074967552",
+                            IsAdmin = true,
+                            UserName = "Obi"
+                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.GameState", b =>
@@ -328,6 +326,19 @@ namespace BabelDatabase.Migrations
                             CurrentYear = 2500,
                             SecondsToMidnight = 10800
                         });
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("StaffActionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("PlayerId", "StaffActionId");
+
+                    b.ToTable("PlayerStaffAction");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimGlobalEthicGroup", b =>
@@ -374,6 +385,9 @@ namespace BabelDatabase.Migrations
                 {
                     b.Property<string>("PopsimPlanetId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PlanetDescription")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PlanetName")
                         .HasColumnType("nvarchar(max)");
@@ -486,6 +500,21 @@ namespace BabelDatabase.Migrations
                     b.HasIndex("StaffActionId");
 
                     b.ToTable("StaffActionPosts");
+                });
+
+            modelBuilder.Entity("BabelDatabase.StaffStaffAction", b =>
+                {
+                    b.Property<string>("StaffId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("StaffActionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("StaffId", "StaffActionId");
+
+                    b.HasIndex("StaffActionId");
+
+                    b.ToTable("StaffStaffAction");
                 });
 
             modelBuilder.Entity("AlignmentClique", b =>
@@ -645,15 +674,26 @@ namespace BabelDatabase.Migrations
                         .WithMany()
                         .HasForeignKey("ActiveCharacterCharacterId");
 
-                    b.HasOne("BabelDatabase.StaffAction", null)
-                        .WithMany("Players")
-                        .HasForeignKey("StaffActionId");
-
-                    b.HasOne("BabelDatabase.StaffAction", null)
-                        .WithMany("Staff")
-                        .HasForeignKey("StaffActionId1");
-
                     b.Navigation("ActiveCharacter");
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
+                {
+                    b.HasOne("BabelDatabase.DiscordUser", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.StaffAction", "StaffAction")
+                        .WithMany("Players")
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Player");
+
+                    b.Navigation("StaffAction");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimPlanetEthicGroup", b =>
@@ -697,6 +737,25 @@ namespace BabelDatabase.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
+
+                    b.Navigation("StaffAction");
+                });
+
+            modelBuilder.Entity("BabelDatabase.StaffStaffAction", b =>
+                {
+                    b.HasOne("BabelDatabase.StaffAction", "StaffAction")
+                        .WithMany("Staff")
+                        .HasForeignKey("StaffActionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.DiscordUser", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
 
                     b.Navigation("StaffAction");
                 });

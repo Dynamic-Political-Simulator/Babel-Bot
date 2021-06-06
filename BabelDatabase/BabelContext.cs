@@ -33,10 +33,12 @@ namespace BabelDatabase
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			//modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
-			//{
-			//	DiscordUserId = "75968535074967552"
-			//});
+			modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
+			{
+				DiscordUserId = "75968535074967552",
+				UserName = "Obi",
+				IsAdmin = true
+			});
 
 			modelBuilder.Entity<Species>().HasData(
 				new Species
@@ -90,11 +92,31 @@ namespace BabelDatabase
 				.HasOne(cmc => cmc.Officer)
 				.WithMany();
 
-			modelBuilder.Entity<StaffAction>()
-				.HasMany(sa => sa.Players);
+			// Staff action stuff
 
-			modelBuilder.Entity<StaffAction>()
-				.HasMany(sa => sa.Staff);
+			modelBuilder.Entity<PlayerStaffAction>().HasKey(psa => new { psa.PlayerId, psa.StaffActionId });
+
+			modelBuilder.Entity<PlayerStaffAction>()
+				.HasOne(psa => psa.Player)
+				.WithMany()
+				.HasForeignKey(psa => psa.PlayerId);
+
+			modelBuilder.Entity<PlayerStaffAction>()
+				.HasOne(psa => psa.StaffAction)
+				.WithMany(sa => sa.Players)
+				.HasForeignKey(psa => psa.PlayerId);
+
+			modelBuilder.Entity<StaffStaffAction>().HasKey(ssa => new { ssa.StaffId, ssa.StaffActionId });
+
+			modelBuilder.Entity<StaffStaffAction>()
+				.HasOne(ssa => ssa.Staff)
+				.WithMany()
+				.HasForeignKey(ssa => ssa.StaffId);
+
+			modelBuilder.Entity<StaffStaffAction>()
+				.HasOne(ssa => ssa.StaffAction)
+				.WithMany(sa => sa.Staff)
+				.HasForeignKey(ssa => ssa.StaffActionId);
 
 			modelBuilder.Entity<StaffAction>()
 				.HasMany(sa => sa.StaffActionPosts)

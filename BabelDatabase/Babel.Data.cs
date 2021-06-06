@@ -49,6 +49,24 @@ namespace BabelDatabase
 		public virtual List<Character> Characters { get; set; }
 	}
 
+	public class PlayerStaffAction
+	{
+		public string PlayerId { get; set; }
+		public virtual DiscordUser Player { get; set; }
+
+		public string StaffActionId { get; set; }
+		public virtual StaffAction StaffAction { get; set; }
+	}
+
+	public class StaffStaffAction
+	{
+		public string StaffId { get; set; }
+		public virtual DiscordUser Staff { get; set; }
+
+		public string StaffActionId { get; set; }
+		public virtual StaffAction StaffAction { get; set; }
+	}
+
 	public class StaffAction
 	{
 		[Key]
@@ -64,8 +82,8 @@ namespace BabelDatabase
 		public string OwnerId { get; set; }
 		public virtual DiscordUser Owner { get; set; }
 
-		public virtual List<DiscordUser> Players { get; set; }
-		public virtual List<DiscordUser> Staff { get; set; }
+		public virtual List<PlayerStaffAction> Players { get; set; }
+		public virtual List<StaffStaffAction> Staff { get; set; }
 
 		public virtual List<StaffActionPost> StaffActionPosts { get; set; } 
 	}
@@ -268,6 +286,7 @@ namespace BabelDatabase
 		public string PopsimPlanetId { get; set; } = Guid.NewGuid().ToString();
 
 		public string PlanetName { get; set; }
+		public string PlanetDescription { get; set; }
 	}
 
 	public class PopsimPlanetEthicGroup

@@ -93,7 +93,8 @@ namespace BabelDatabase.Migrations
                 columns: table => new
                 {
                     PopsimPlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PlanetName = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    PlanetName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlanetDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -287,9 +288,7 @@ namespace BabelDatabase.Migrations
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsAdmin = table.Column<bool>(type: "bit", nullable: false),
                     ActiveCharacterId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ActiveCharacterCharacterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    StaffActionId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    StaffActionId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ActiveCharacterCharacterId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -353,6 +352,30 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PlayerStaffAction",
+                columns: table => new
+                {
+                    PlayerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StaffActionId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlayerStaffAction", x => new { x.PlayerId, x.StaffActionId });
+                    table.ForeignKey(
+                        name: "FK_PlayerStaffAction_DiscordUsers_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "DiscordUsers",
+                        principalColumn: "DiscordUserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlayerStaffAction_StaffActions_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "StaffActions",
+                        principalColumn: "StaffActionId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "StaffActionPosts",
                 columns: table => new
                 {
@@ -378,6 +401,35 @@ namespace BabelDatabase.Migrations
                         principalColumn: "StaffActionId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "StaffStaffAction",
+                columns: table => new
+                {
+                    StaffId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StaffActionId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StaffStaffAction", x => new { x.StaffId, x.StaffActionId });
+                    table.ForeignKey(
+                        name: "FK_StaffStaffAction_DiscordUsers_StaffId",
+                        column: x => x.StaffId,
+                        principalTable: "DiscordUsers",
+                        principalColumn: "DiscordUserId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StaffStaffAction_StaffActions_StaffActionId",
+                        column: x => x.StaffActionId,
+                        principalTable: "StaffActions",
+                        principalColumn: "StaffActionId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "DiscordUsers",
+                columns: new[] { "DiscordUserId", "ActiveCharacterCharacterId", "ActiveCharacterId", "IsAdmin", "UserName" },
+                values: new object[] { "75968535074967552", null, null, true, "Obi" });
 
             migrationBuilder.InsertData(
                 table: "GameState",
@@ -475,16 +527,6 @@ namespace BabelDatabase.Migrations
                 column: "ActiveCharacterCharacterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DiscordUsers_StaffActionId",
-                table: "DiscordUsers",
-                column: "StaffActionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DiscordUsers_StaffActionId1",
-                table: "DiscordUsers",
-                column: "StaffActionId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PopsimPlanetEthicGroup_PopsimGlobalEthicGroupId",
                 table: "PopsimPlanetEthicGroup",
                 column: "PopsimGlobalEthicGroupId");
@@ -508,6 +550,11 @@ namespace BabelDatabase.Migrations
                 name: "IX_StaffActions_OwnerId",
                 table: "StaffActions",
                 column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StaffStaffAction_StaffActionId",
+                table: "StaffStaffAction",
+                column: "StaffActionId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AlignmentSpendings_Characters_CharacterId",
@@ -556,22 +603,6 @@ namespace BabelDatabase.Migrations
                 principalTable: "Characters",
                 principalColumn: "CharacterId",
                 onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_DiscordUsers_StaffActions_StaffActionId",
-                table: "DiscordUsers",
-                column: "StaffActionId",
-                principalTable: "StaffActions",
-                principalColumn: "StaffActionId",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_DiscordUsers_StaffActions_StaffActionId1",
-                table: "DiscordUsers",
-                column: "StaffActionId1",
-                principalTable: "StaffActions",
-                principalColumn: "StaffActionId",
-                onDelete: ReferentialAction.Restrict);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -579,10 +610,6 @@ namespace BabelDatabase.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_DiscordUsers_Characters_ActiveCharacterCharacterId",
                 table: "DiscordUsers");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_StaffActions_DiscordUsers_OwnerId",
-                table: "StaffActions");
 
             migrationBuilder.DropTable(
                 name: "AlignmentClique");
@@ -606,10 +633,16 @@ namespace BabelDatabase.Migrations
                 name: "GameState");
 
             migrationBuilder.DropTable(
+                name: "PlayerStaffAction");
+
+            migrationBuilder.DropTable(
                 name: "PopsimPlanetEthicGroup");
 
             migrationBuilder.DropTable(
                 name: "StaffActionPosts");
+
+            migrationBuilder.DropTable(
+                name: "StaffStaffAction");
 
             migrationBuilder.DropTable(
                 name: "Alignments");
@@ -624,19 +657,19 @@ namespace BabelDatabase.Migrations
                 name: "PopsimPlanet");
 
             migrationBuilder.DropTable(
+                name: "StaffActions");
+
+            migrationBuilder.DropTable(
                 name: "Characters");
 
             migrationBuilder.DropTable(
                 name: "Committee");
 
             migrationBuilder.DropTable(
-                name: "Species");
-
-            migrationBuilder.DropTable(
                 name: "DiscordUsers");
 
             migrationBuilder.DropTable(
-                name: "StaffActions");
+                name: "Species");
         }
     }
 }

@@ -42,15 +42,25 @@ namespace WOPR.Controllers.DiscordUser
 
 			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
 
-			if (discordUser == null || discordUser.IsAdmin == false)
+			if (discordUser == null)
 			{
 				return Unauthorized();
 			}
 
-			var players = _context.DiscordUsers.Where(du => du.DiscordUserId.ToLower().Contains(search.ToLower())
-					|| du.UserName.ToLower().Contains(search.ToLower()));
-
 			var returnList = new List<PlayerSearchReturn>();
+
+			if (search == null)
+			{
+				return Ok(returnList);
+			}
+
+			var players = _context.DiscordUsers.Where(du => du.DiscordUserId.ToLower().Contains(search.ToLower())
+					|| du.UserName.ToLower().Contains(search.ToLower())).ToList();
+
+			if (players == null || players.Count == 0 )
+			{
+				return Ok(returnList);
+			}
 
 			foreach (var p in players)
 			{
@@ -64,7 +74,48 @@ namespace WOPR.Controllers.DiscordUser
 
 			return Ok(returnList);
 		}
-		
+
+		[HttpGet("search-staff")]
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public IActionResult SearchStaff(string search)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null || discordUser.IsAdmin == false)
+			{
+				return Unauthorized();
+			}
+
+			var returnList = new List<PlayerSearchReturn>();
+
+			if (search == null)
+			{
+				return Ok(returnList);
+			}
+
+			var players = _context.DiscordUsers.Where(du => (du.DiscordUserId.ToLower().Contains(search.ToLower())
+					|| du.UserName.ToLower().Contains(search.ToLower())) && du.IsAdmin == true).ToList();
+
+			if (players == null || players.Count == 0)
+			{
+				return Ok(returnList);
+			}
+
+			foreach (var p in players)
+			{
+				returnList.Add(new PlayerSearchReturn()
+				{
+					DiscordUserId = p.DiscordUserId,
+					DiscordUserName = p.UserName,
+					IsAdmin = p.IsAdmin
+				});
+			}
+
+			return Ok(returnList);
+		}
+
 		[HttpGet("is-admin")]
 		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult IsAdmin()

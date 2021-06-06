@@ -30,7 +30,7 @@ namespace WOPR.Controllers.StaffAction
 			public string StaffActionId { get; set; }
 		}
 
-		[HttpGet("post")]
+		[HttpPost("add-players")]
 		[Authorize(AuthenticationSchemes = "Discord")]
 		public async Task<IActionResult> AddPlayersToStaffAction([FromBody] PlayersToAddForm form)
 		{
@@ -59,9 +59,13 @@ namespace WOPR.Controllers.StaffAction
 			{
 				var playerToAdd = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == id);
 
-				if (playerToAdd != null && !staffAction.Players.Contains(playerToAdd))
+				if (playerToAdd != null && !staffAction.Players.Select(p => p.Player).Contains(playerToAdd))
 				{
-					staffAction.Players.Add(playerToAdd);
+					staffAction.Players.Add(new PlayerStaffAction()
+					{
+						Player = playerToAdd,
+						StaffAction = staffAction
+					});
 				}
 			}
 
@@ -77,7 +81,7 @@ namespace WOPR.Controllers.StaffAction
 			public string StaffActionId { get; set; }
 		}
 
-		[HttpGet("post")]
+		[HttpPost("post")]
 		[Authorize(AuthenticationSchemes = "Discord")]
 		public async Task<IActionResult> NewStaffActionPost([FromBody] NewStaffActionPostForm form)
 		{
@@ -125,7 +129,7 @@ namespace WOPR.Controllers.StaffAction
 				.ThenInclude(sa => sa.Author)
 				.SingleOrDefault(sa => sa.StaffActionId == id);
 
-			if (!staffAction.Players.Contains(discordUser) && !discordUser.IsAdmin)
+			if (!staffAction.Players.Select(p => p.Player).Contains(discordUser) && !discordUser.IsAdmin)
 			{
 				return Unauthorized();
 			}
@@ -140,7 +144,7 @@ namespace WOPR.Controllers.StaffAction
 			public List<string> AddedPlayerIds { get; set; }
 		}
 
-		[HttpGet("create-staff-action")]
+		[HttpPost("create-staff-action")]
 		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult CreateStaffAction([FromBody] StaffActionCreateForm form)
 		{
@@ -153,7 +157,14 @@ namespace WOPR.Controllers.StaffAction
 				return Unauthorized();
 			}
 
-			var addedDiscordUsers = new List<BabelDatabase.DiscordUser>();
+			var newStaffAction = new BabelDatabase.StaffAction()
+			{
+				Title = form.Title,
+				TimeStarted = DateTime.UtcNow,
+				OwnerId = discordUser.DiscordUserId,
+				Players = new List<PlayerStaffAction>(),
+				StaffActionPosts = new List<StaffActionPost>()
+			};
 
 			foreach (var id in form.AddedPlayerIds)
 			{
@@ -161,18 +172,13 @@ namespace WOPR.Controllers.StaffAction
 
 				if (user != null)
 				{
-					addedDiscordUsers.Add(user);
+					newStaffAction.Players.Add(new PlayerStaffAction()
+					{
+						PlayerId = user.DiscordUserId,
+						StaffActionId = newStaffAction.StaffActionId
+					});
 				}
 			}
-
-			var newStaffAction = new BabelDatabase.StaffAction() 
-			{
-				Title = form.Title,
-				TimeStarted = DateTime.UtcNow,
-				OwnerId = discordUser.DiscordUserId,
-				Players = addedDiscordUsers,
-				StaffActionPosts = new List<StaffActionPost>()
-			};
 
 			var firstPost = new StaffActionPost()
 			{
@@ -213,7 +219,9 @@ namespace WOPR.Controllers.StaffAction
 				return Unauthorized();
 			}
 
-			var staffActions = _context.StaffActions.Where(sa => sa.OwnerId == userId || sa.Players.Contains(discordUser) || sa.Staff.Contains(discordUser));
+			var staffActions = _context.StaffActions.Where(sa => sa.OwnerId == userId 
+				|| sa.Players.Select(p => p.Player).Contains(discordUser) 
+				|| sa.Staff.Select(p => p.Staff).Contains(discordUser));
 
 			var returnList = new List<MyStaffActionsReturn>();
 
@@ -231,12 +239,12 @@ namespace WOPR.Controllers.StaffAction
 
 				foreach (var player in sa.Players)
 				{
-					newEntry.Players.Add(player.UserName);
+					newEntry.Players.Add(player.Player.UserName);
 				}
 
 				foreach (var staff in sa.Staff)
 				{
-					newEntry.Staff.Add(staff.UserName);
+					newEntry.Staff.Add(staff.Staff.UserName);
 				}
 
 				returnList.Add(newEntry);
