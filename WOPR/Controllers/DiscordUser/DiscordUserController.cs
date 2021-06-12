@@ -129,8 +129,7 @@ namespace WOPR.Controllers.DiscordUser
                 var newDiscordUser = new BabelDatabase.DiscordUser()
                 {
                     DiscordUserId = userId,
-                    IsAdmin = false,
-                    UserName = User.FindFirstValue(ClaimTypes.Name)
+                    IsAdmin = false
                 };
 
                 _context.Add(newDiscordUser);
