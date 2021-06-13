@@ -8,9 +8,16 @@ namespace BabelDatabase
 {
 	public class BabelContext : DbContext
 	{
+		public IConfiguration Configuration { get; }
+
+		public BabelContext(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
+
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer("Server=192.168.178.34;Database=wopr;User ID=SA;Password=gstenaTI22!!;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
+			optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString"));
 			//optionsBuilder.UseInMemoryDatabase("test");
 			optionsBuilder.UseLazyLoadingProxies();			
 		}

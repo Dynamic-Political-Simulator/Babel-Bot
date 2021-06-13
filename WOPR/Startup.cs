@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.Json;
 using Newtonsoft;
 using WOPR.Services;
+using Microsoft.Net.Http.Headers;
 
 namespace WOPR
 {
@@ -35,7 +36,7 @@ namespace WOPR
 
 			services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 			{
-				builder.WithOrigins("http://localhost:3000")
+				builder.WithOrigins("http://localhost:3000", "https://localhost:3000", "https://discord.com/oauth2", "https://discord.com/api/oauth2", "https://discord.com")
 					.AllowAnyMethod()
 					.AllowAnyHeader()
 					.AllowCredentials();
@@ -144,8 +145,6 @@ namespace WOPR
 			app.UseRouting();
 
 			app.UseAuthorization();
-
-			
 
 			app.UseEndpoints(endpoints =>
 			{

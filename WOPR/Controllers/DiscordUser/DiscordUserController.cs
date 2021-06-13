@@ -136,6 +136,8 @@ namespace WOPR.Controllers.DiscordUser
 				_context.SaveChanges();
 			}
 
+			//Response.Headers.Add("access-control-allow-credentials", "true");
+
 			return Ok(!(discordUser == null || discordUser.IsAdmin == false));
 		}
 
