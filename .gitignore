@@ -366,3 +366,9 @@ MigrationBackup/
 .ionide/
 
 .Development.json
+
+# Saves Directory
+saves/
+
+# Fairly certain this is not supposed to be public
+WOPR/appsettings.Development.json

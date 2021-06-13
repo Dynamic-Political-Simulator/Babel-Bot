@@ -13,15 +13,15 @@ using WOPR.Helpers;
 
 namespace WOPR.Controllers
 {
-	[Route("api/auth")]
-	[ApiController]
-	public class AuthenticationHelp : ControllerBase
-	{
-		[HttpGet("auth")]
-		[Authorize(AuthenticationSchemes = "Discord")]
-		public IActionResult AuthHelp()
-		{
-			return Redirect("http://localhost:3000");
-		}
-	}
+    [Route("api/auth")]
+    [ApiController]
+    public class AuthenticationHelp : ControllerBase
+    {
+        [HttpGet("auth")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult AuthHelp()
+        {
+            return Redirect("http://localhost:3000");
+        }
+    }
 }
