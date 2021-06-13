@@ -39,6 +39,10 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("AlignmentId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("AlignmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CooperationCompetition")
                         .HasColumnType("int");
 
@@ -69,6 +73,36 @@ namespace BabelDatabase.Migrations
                     b.HasKey("AlignmentId");
 
                     b.ToTable("Alignments");
+
+                    b.HasData(
+                        new
+                        {
+                            AlignmentId = "123",
+                            AlignmentName = "ULTRA COMMIE LIBERTARIANS",
+                            CooperationCompetition = 3,
+                            DemocracyAuthority = 1,
+                            FederalismCentralism = 5,
+                            GlobalismIsolationism = 0,
+                            MilitarismPacifism = 8,
+                            MonoculturalismMulticulturalism = 4,
+                            ProgressivismTraditionalism = 9,
+                            SecularismSpiritualism = 7,
+                            SecurityFreedom = 4
+                        },
+                        new
+                        {
+                            AlignmentId = "124",
+                            AlignmentName = "ULTRA LIBERTARIAN COMMIES",
+                            CooperationCompetition = 1,
+                            DemocracyAuthority = 3,
+                            FederalismCentralism = 2,
+                            GlobalismIsolationism = 4,
+                            MilitarismPacifism = 2,
+                            MonoculturalismMulticulturalism = 3,
+                            ProgressivismTraditionalism = 4,
+                            SecularismSpiritualism = 0,
+                            SecurityFreedom = 6
+                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.AlignmentSpending", b =>

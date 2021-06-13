@@ -12,6 +12,7 @@ namespace BabelDatabase.Migrations
                 columns: table => new
                 {
                     AlignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AlignmentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FederalismCentralism = table.Column<int>(type: "int", nullable: false),
                     DemocracyAuthority = table.Column<int>(type: "int", nullable: false),
                     GlobalismIsolationism = table.Column<int>(type: "int", nullable: false),
@@ -424,6 +425,15 @@ namespace BabelDatabase.Migrations
                         principalTable: "StaffActions",
                         principalColumn: "StaffActionId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Alignments",
+                columns: new[] { "AlignmentId", "AlignmentName", "CooperationCompetition", "DemocracyAuthority", "FederalismCentralism", "GlobalismIsolationism", "MilitarismPacifism", "MonoculturalismMulticulturalism", "ProgressivismTraditionalism", "SecularismSpiritualism", "SecurityFreedom" },
+                values: new object[,]
+                {
+                    { "123", "ULTRA COMMIE LIBERTARIANS", 3, 1, 5, 0, 8, 4, 9, 7, 4 },
+                    { "124", "ULTRA LIBERTARIAN COMMIES", 1, 3, 2, 4, 2, 3, 4, 0, 6 }
                 });
 
             migrationBuilder.InsertData(

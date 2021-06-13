@@ -1,0 +1,150 @@
+﻿using BabelDatabase;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web.Http.Cors;
+using WOPR.Helpers;
+
+namespace WOPR.Controllers.Popsim
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	public class PopsimController : ControllerBase
+	{
+		private readonly BabelContext _context;
+
+		public PopsimController(BabelContext context)
+		{
+			_context = context;
+		}
+
+		public struct AlignmentOverviewReturn
+		{
+			public string AlignmentId { get; set; }
+			public string AlignmentName { get; set; }
+			public int FederalismCentralism { get; set; }
+			public int DemocracyAuthority { get; set; }
+			public int GlobalismIsolationism { get; set; }
+			public int MilitarismPacifism { get; set; }
+			public int SecurityFreedom { get; set; }
+			public int CooperationCompetition { get; set; }
+			public int SecularismSpiritualism { get; set; }
+			public int ProgressivismTraditionalism { get; set; }
+			public int MonoculturalismMulticulturalism { get; set; }
+		}
+
+		[HttpGet("alignment-overview")]
+		public IActionResult GetAlignmentOverview()
+		{
+			var alignments = _context.Alignments.ToList();
+
+			var returnList = new List<AlignmentOverviewReturn>();
+
+			foreach (var a in alignments)
+			{
+				returnList.Add(new AlignmentOverviewReturn()
+				{
+					AlignmentId = a.AlignmentId,
+					AlignmentName = a.AlignmentName,
+					FederalismCentralism = a.FederalismCentralism,
+					DemocracyAuthority = a.DemocracyAuthority,
+					GlobalismIsolationism = a.GlobalismIsolationism,
+					MilitarismPacifism = a.MilitarismPacifism,
+					SecurityFreedom = a.SecurityFreedom,
+					CooperationCompetition = a.CooperationCompetition,
+					SecularismSpiritualism = a.SecularismSpiritualism,
+					ProgressivismTraditionalism = a.ProgressivismTraditionalism,
+					MonoculturalismMulticulturalism = a.MonoculturalismMulticulturalism
+				});
+			}
+
+			return Ok(returnList);
+		}
+
+		[HttpGet("get-alignment")]
+		public IActionResult GetAlignment(string id)
+		{
+			var a = _context.Alignments.SingleOrDefault(a => a.AlignmentId == id);
+
+			if (a == null)
+			{
+				return NotFound();
+			}
+
+			var alignmentReturn = new AlignmentOverviewReturn()
+			{
+				AlignmentId = a.AlignmentId,
+				AlignmentName = a.AlignmentName,
+				FederalismCentralism = a.FederalismCentralism,
+				DemocracyAuthority = a.DemocracyAuthority,
+				GlobalismIsolationism = a.GlobalismIsolationism,
+				MilitarismPacifism = a.MilitarismPacifism,
+				SecurityFreedom = a.SecurityFreedom,
+				CooperationCompetition = a.CooperationCompetition,
+				SecularismSpiritualism = a.SecularismSpiritualism,
+				ProgressivismTraditionalism = a.ProgressivismTraditionalism,
+				MonoculturalismMulticulturalism = a.MonoculturalismMulticulturalism
+			};
+
+			return Ok(alignmentReturn);
+		}
+
+		public struct AlignmentEditForm
+		{
+			public string AlignmentId { get; set; }
+			public string AlignmentName { get; set; }
+			public int FederalismCentralism { get; set; }
+			public int DemocracyAuthority { get; set; }
+			public int GlobalismIsolationism { get; set; }
+			public int MilitarismPacifism { get; set; }
+			public int SecurityFreedom { get; set; }
+			public int CooperationCompetition { get; set; }
+			public int SecularismSpiritualism { get; set; }
+			public int ProgressivismTraditionalism { get; set; }
+			public int MonoculturalismMulticulturalism { get; set; }
+		}
+
+		[HttpPost("edit-alignment")]
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public IActionResult EditAlignment([FromBody] AlignmentEditForm form)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null || discordUser.IsAdmin == false)
+			{
+				return Unauthorized();
+			}
+
+			var alignment = _context.Alignments.SingleOrDefault(a => a.AlignmentId == form.AlignmentId);
+
+			if (alignment == null)
+			{
+				return NotFound();
+			}
+
+			alignment.AlignmentName = form.AlignmentName;
+			alignment.FederalismCentralism = form.FederalismCentralism;
+			alignment.DemocracyAuthority = form.DemocracyAuthority;
+			alignment.GlobalismIsolationism = form.GlobalismIsolationism;
+			alignment.MilitarismPacifism = form.MilitarismPacifism;
+			alignment.SecurityFreedom = form.SecurityFreedom;
+			alignment.CooperationCompetition = form.CooperationCompetition;
+			alignment.SecularismSpiritualism = form.SecularismSpiritualism;
+			alignment.ProgressivismTraditionalism = form.ProgressivismTraditionalism;
+			alignment.MonoculturalismMulticulturalism = form.MonoculturalismMulticulturalism;
+
+			_context.Update(alignment);
+			_context.SaveChanges();
+
+			return Ok();
+		}
+	}
+}

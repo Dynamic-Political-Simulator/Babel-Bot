@@ -65,6 +65,37 @@ namespace BabelDatabase
 				}
 			);
 
+			modelBuilder.Entity<Alignment>().HasData(
+				new Alignment
+				{
+					AlignmentId = "123",
+					AlignmentName = "ULTRA COMMIE LIBERTARIANS",
+					FederalismCentralism = 5,
+					DemocracyAuthority = 1,
+					GlobalismIsolationism = 0,
+					MilitarismPacifism = 8,
+					SecurityFreedom = 4,
+					CooperationCompetition = 3,
+					SecularismSpiritualism = 7,
+					ProgressivismTraditionalism = 9,
+					MonoculturalismMulticulturalism = 4
+				},
+				new Alignment
+				{
+					AlignmentId = "124",
+					AlignmentName = "ULTRA LIBERTARIAN COMMIES",
+					FederalismCentralism = 2,
+					DemocracyAuthority = 3,
+					GlobalismIsolationism = 4,
+					MilitarismPacifism = 2,
+					SecurityFreedom = 6,
+					CooperationCompetition = 1,
+					SecularismSpiritualism = 0,
+					ProgressivismTraditionalism = 4,
+					MonoculturalismMulticulturalism = 3
+				}
+			);
+
 			modelBuilder.Entity<GameState>().HasData(
 				new GameState()
 			);
