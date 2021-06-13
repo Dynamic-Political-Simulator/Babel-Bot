@@ -20,137 +20,147 @@ using WOPR.Services;
 
 namespace WOPR
 {
-	public class Startup
-	{
-		public Startup(IConfiguration configuration)
-		{
-			Configuration = configuration;
-		}
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
 
-		public IConfiguration Configuration { get; }
+        public IConfiguration Configuration { get; }
 
-		// This method gets called by the runtime. Use this method to add services to the container.
-		public void ConfigureServices(IServiceCollection services)
-		{
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
 
-			services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-			{
-				builder.WithOrigins("http://localhost:3000")
-					.AllowAnyMethod()
-					.AllowAnyHeader()
-					.AllowCredentials();
-			}));
+            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            {
+                builder.WithOrigins("http://localhost:3000")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            }));
 
-			services.AddControllers().AddNewtonsoftJson(options =>
-				options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-			);
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
 
-			// add context
-			services.AddDbContext<BabelContext>();
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
 
-			//services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-			//{
-			//	builder.AllowAnyOrigin()
-			//		.AllowAnyMethod()
-			//		.AllowAnyHeader()
-			//		.SetIsOriginAllowed(origin => true)
-			//		.WithOrigins("https://localhost:3000");
-			//}));
+            // add context
+            services.AddDbContext<BabelContext>();
 
-			
+            //services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            //{
+            //	builder.AllowAnyOrigin()
+            //		.AllowAnyMethod()
+            //		.AllowAnyHeader()
+            //		.SetIsOriginAllowed(origin => true)
+            //		.WithOrigins("https://localhost:3000");
+            //}));
 
-			
 
-			// add services
-			services.AddScoped<DiscordUserService>();
 
-			services.AddAuthentication(options =>
-			{
-				options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-				options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-			})
-			.AddCookie()
-			.AddJwtBearer(options => 
-			{
-				options.TokenValidationParameters = new TokenValidationParameters
-				{
-					ValidateIssuer = false,
-					ValidateAudience = false,
-					ValidateIssuerSigningKey = true,
-					ValidIssuer = Configuration.GetValue<string>("Jwt:Issuer"),
-					ValidAudience = Configuration.GetValue<string>("Jwt:Audience"),
-					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Jwt:EncryptionKey")))
-				};
-			})
-			.AddOAuth("Discord", options => 
-			{
-				options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
-				options.Scope.Add("identify");
 
-				options.CallbackPath = new PathString("/auth/oauthCallback");
 
-				options.ClientId = Configuration.GetValue<string>("Discord:ClientId");
-				options.ClientSecret = Configuration.GetValue<string>("Discord:ClientSecret");
+            // add services
+            services.AddScoped<DiscordUserService>();
 
-				options.TokenEndpoint = "https://discord.com/api/oauth2/token";
+            services.AddAuthentication(options =>
+            {
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None; // Shoutout to chrome for working well :*
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration.GetValue<string>("Jwt:Issuer"),
+                    ValidAudience = Configuration.GetValue<string>("Jwt:Audience"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Jwt:EncryptionKey")))
+                };
+            })
+            .AddOAuth("Discord", options =>
+            {
+                options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
+                options.Scope.Add("identify");
 
-				options.UserInformationEndpoint = "https://discord.com/api/users/@me";
+                options.CallbackPath = new PathString("/auth/oauthCallback");
 
-				options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-				options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+                options.ClientId = Configuration.GetValue<string>("Discord:ClientId");
+                options.ClientSecret = Configuration.GetValue<string>("Discord:ClientSecret");
 
-				options.AccessDeniedPath = "/api/DiscordAuthFailed";
+                options.TokenEndpoint = "https://discord.com/api/oauth2/token";
 
-				options.Events = new OAuthEvents
-				{
-					OnCreatingTicket = async context =>
-					{
-						var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-						request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-						request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                options.UserInformationEndpoint = "https://discord.com/api/users/@me";
 
-						var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
-						response.EnsureSuccessStatusCode();
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
 
-						var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+                options.AccessDeniedPath = "/api/DiscordAuthFailed";
 
-						context.RunClaimActions(user);
-					}
-				};
-			});
-		}
+                options.Events = new OAuthEvents
+                {
+                    OnCreatingTicket = async context =>
+                    {
+                        var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
 
-		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-		{
-			//app.UseCors(x => x
-			//	.WithOrigins("http://localhost:3000")
-			//	.AllowAnyMethod()
-			//	.AllowAnyHeader()
-			//	.AllowCredentials());
+                        var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                        response.EnsureSuccessStatusCode();
 
-			app.UseCors("MyPolicy");
+                        var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
 
-			app.UseAuthentication();
+                        context.RunClaimActions(user);
+                    }
+                };
+            });
+        }
 
-			if (env.IsDevelopment())
-			{
-				app.UseDeveloperExceptionPage();
-			}
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            //app.UseCors(x => x
+            //	.WithOrigins("http://localhost:3000")
+            //	.AllowAnyMethod()
+            //	.AllowAnyHeader()
+            //	.AllowCredentials());
 
-			app.UseHttpsRedirection();
+            app.UseCors("MyPolicy");
 
-			app.UseRouting();
+            app.UseAuthentication();
 
-			app.UseAuthorization();
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
-			
+            app.UseHttpsRedirection();
 
-			app.UseEndpoints(endpoints =>
-			{
-				endpoints.MapControllers();
-			});
-		}
-	}
+            app.UseRouting();
+
+            app.UseCookiePolicy();
+
+            app.UseAuthorization();
+
+
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+    }
 }
