@@ -216,10 +216,12 @@ namespace BabelDatabase
         public virtual Character Character { get; set; }
     }
 
-    public class Alignment
-    {
-        [Key]
-        public string AlignmentId { get; set; } = Guid.NewGuid().ToString();
+	public class Alignment
+	{
+		[Key]
+		public string AlignmentId { get; set; } = Guid.NewGuid().ToString();
+		[Required]
+		public string AlignmentName { get; set; }
 
         public virtual List<Clique> Cliques { get; set; }
 

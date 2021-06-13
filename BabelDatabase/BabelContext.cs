@@ -63,11 +63,67 @@ namespace BabelDatabase
         public DbSet<VoteMessage> VoteMessages { get; set; }
         public DbSet<VoteEntry> VoteEntries { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<GameState>().HasData(
-                new GameState()
-            );
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
+			{
+				DiscordUserId = "75968535074967552",
+				UserName = "Obi",
+				IsAdmin = true
+			});
+
+			modelBuilder.Entity<Species>().HasData(
+				new Species
+				{
+					SpeciesId = "1",
+					SpeciesName = "Human"
+				},
+				new Species
+				{
+					SpeciesId = "2",
+					SpeciesName = "Zelvan"
+				},
+				new Species
+				{
+					SpeciesId = "3",
+					SpeciesName = "Liaran"
+				}
+			);
+
+			modelBuilder.Entity<Alignment>().HasData(
+				new Alignment
+				{
+					AlignmentId = "123",
+					AlignmentName = "ULTRA COMMIE LIBERTARIANS",
+					FederalismCentralism = 5,
+					DemocracyAuthority = 1,
+					GlobalismIsolationism = 0,
+					MilitarismPacifism = 8,
+					SecurityFreedom = 4,
+					CooperationCompetition = 3,
+					SecularismSpiritualism = 7,
+					ProgressivismTraditionalism = 9,
+					MonoculturalismMulticulturalism = 4
+				},
+				new Alignment
+				{
+					AlignmentId = "124",
+					AlignmentName = "ULTRA LIBERTARIAN COMMIES",
+					FederalismCentralism = 2,
+					DemocracyAuthority = 3,
+					GlobalismIsolationism = 4,
+					MilitarismPacifism = 2,
+					SecurityFreedom = 6,
+					CooperationCompetition = 1,
+					SecularismSpiritualism = 0,
+					ProgressivismTraditionalism = 4,
+					MonoculturalismMulticulturalism = 3
+				}
+			);
+
+			modelBuilder.Entity<GameState>().HasData(
+				new GameState()
+			);
 
             modelBuilder.Entity<DiscordUser>()
                 .HasMany(du => du.Characters)
