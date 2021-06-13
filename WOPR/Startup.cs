@@ -15,9 +15,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using Newtonsoft;
 using WOPR.Services;
-using Microsoft.Net.Http.Headers;
 
 namespace WOPR
 {
