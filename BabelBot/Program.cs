@@ -5,6 +5,7 @@ using BabelDatabase;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Discord.Addons.Interactive;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -71,6 +72,7 @@ namespace BabelBot
             serviceCollection.AddSingleton<IConfiguration>(Configuration); // Worky :)
 
             serviceCollection.AddDbContext<BabelContext>(ServiceLifetime.Transient);
+            serviceCollection.AddSingleton(new InteractiveService(_client));
             serviceCollection.AddSingleton<CommandHandler>();
             serviceCollection.AddSingleton<UpdateHandler>();
 
