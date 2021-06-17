@@ -517,6 +517,30 @@ namespace BabelDatabase.Migrations
                     b.ToTable("StaffStaffAction");
                 });
 
+            modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
+                {
+                    b.Property<decimal>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(20,0)")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+
+                    b.Property<decimal>("ChannelId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<decimal>("CreatorId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<long>("EndTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("MessageId");
+
+                    b.ToTable("VoteMessages");
+                });
+
             modelBuilder.Entity("AlignmentClique", b =>
                 {
                     b.HasOne("BabelDatabase.Alignment", null)

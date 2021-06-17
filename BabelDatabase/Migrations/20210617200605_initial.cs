@@ -114,6 +114,21 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VoteMessages",
+                columns: table => new
+                {
+                    MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    CreatorId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    EndTime = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VoteMessages", x => x.MessageId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AlignmentClique",
                 columns: table => new
                 {
@@ -643,6 +658,9 @@ namespace BabelDatabase.Migrations
 
             migrationBuilder.DropTable(
                 name: "StaffStaffAction");
+
+            migrationBuilder.DropTable(
+                name: "VoteMessages");
 
             migrationBuilder.DropTable(
                 name: "Alignments");
