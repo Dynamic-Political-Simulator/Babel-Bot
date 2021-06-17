@@ -28,11 +28,31 @@ namespace BabelDatabase
         public string DiscordUserId { get; set; }
         public virtual DiscordUser DiscordUser { get; set; }
 
-        public bool IsDead()
-        {
-            return CauseOfDeath != null;
-        }
-    }
+		public bool IsDead()
+		{
+			return CauseOfDeath != null;
+		}
+
+		public int GetAge(int currentYear)
+		{
+			var age = currentYear - YearOfBirth;
+			return age;
+		}
+	}
+
+	public class CharacterDeathTimer
+	{
+		[Key]
+		public string CharacterDeathTimerId { get; set; } = Guid.NewGuid().ToString();
+
+		public string CharacterId { get; set; }
+		public Character Character { get; set; }
+
+		public int YearOfDeath { get; set; }
+
+		[Required]
+		public DateTime DeathTime { get; set; }
+	}
 
     public class DiscordUser
     {
