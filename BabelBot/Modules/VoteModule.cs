@@ -8,6 +8,7 @@ using Discord.Addons.Interactive;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Globalization;
 
@@ -16,6 +17,16 @@ namespace BabelBot.Modules
     public class VoteModule : InteractiveBase<SocketCommandContext>
     {
         private readonly BabelContext _context;
+
+        // Provides the number emotes. Usage: numberEmotes[numberYouWant]
+        private readonly Emoji[] numberEmotes = new Emoji[] { new Emoji("0️⃣"), new Emoji("1️⃣"), new Emoji("2️⃣"), new Emoji("3️⃣"), new Emoji("4️⃣"), new Emoji("5️⃣"), new Emoji("6️⃣"), new Emoji("7️⃣"), new Emoji("8️⃣"), new Emoji("9️⃣") };
+
+        // Types with multiple options
+        private readonly VoteType[] multipleOptions = new VoteType[] {
+            VoteType.FPTP,
+            VoteType.TWOROUND
+        };
+
 
         public VoteModule(BabelContext context)
         {
@@ -30,6 +41,12 @@ namespace BabelBot.Modules
                     return "Majority";
                 case VoteType.TWOTHIRD:
                     return "Two Thirds";
+                case VoteType.FPTP:
+                    return "First Past the Post";
+                case VoteType.TWOROUND:
+                    return "Two Round";
+                case VoteType.TWOROUNDFINAL:
+                    return "Two Round Run-off";
                 default:
                     return "Undefined";
             }
@@ -49,9 +66,49 @@ namespace BabelBot.Modules
             }
         }
 
+        bool isMultipleOption(VoteType type)
+        {
+            return Array.Exists(multipleOptions, (x) => x == type);
+        }
+
+        // Parses the type using regex that allows for a degree of variation on the words
+        VoteType? parseType(string type)
+        {
+            type = type.ToLower(); // Gets rid of the capitalisation, this is not a case sensitive server :rage:
+            switch (type)
+            {
+                case string s when new Regex(@"(majority)").IsMatch(type): // This is art.
+                    return VoteType.MAJORITY;
+                case string s when new Regex(@"(two( |-)?thirds?)").IsMatch(type):
+                    return VoteType.TWOTHIRD;
+                case string s when new Regex(@"(f(irst)?(-| )?p(ast)?(-| )?t(he)?(-| )?p(ost)?)").IsMatch(type):
+                    return VoteType.FPTP;
+                case string s when new Regex(@"(two( |-)?rounds?)").IsMatch(type):
+                    return VoteType.TWOROUND;
+                default:
+                    return null;
+            }
+        }
+
+        // TryParse variation of the function so you don't have to write a check for null every time you use it
+        bool parseType(string type, out VoteType res)
+        {
+            VoteType? tmp = parseType(type); // Call the original function to get the actual type
+            if (tmp == null) // Test if it found something
+            {
+                res = 0; // Feed it some bogus 
+                return false;
+            }
+            else
+            {
+                res = (VoteType)tmp;
+                return true;
+            }
+        }
+
         [Command("makevote", RunMode = RunMode.Async)]
         [RequireNoProfile]
-        public async Task CreateProfile(string type = null, string time = null, string link = null, [Remainder] string title = null)
+        public async Task CreateProfile(string type = null, string time = null, [Remainder] string text = null)
         {
             if (type == null)
             {
@@ -61,7 +118,7 @@ namespace BabelBot.Modules
                 IUserMessage reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
                 conversation.Add(reply);
                 VoteType voteType; // Placeholder value.
-                while (!Enum.TryParse(reply.Content, true, out voteType))
+                while (!parseType(reply.Content, out voteType))
                 {
                     if (reply.Content == "cancel")
                     {
@@ -132,80 +189,142 @@ namespace BabelBot.Modules
                 {
                     x.Embed = emb.Build();
                 });
-                await mid.AddReactionAsync(new Emoji("✅"));
-                await mid.AddReactionAsync(new Emoji("❌"));
-                await mid.AddReactionAsync(new Emoji("🇴"));
+                await mid.AddReactionsAsync(new IEmote[] {
+                                    new Emoji("✅"), // yay
+                                    new Emoji("❌"), // nay
+                                    new Emoji("🇴") // abstain
+                                });
                 VoteMessage message = new VoteMessage();
                 message.MessageId = mid.Id;
                 message.CreatorId = Context.User.Id;
                 message.ChannelId = Context.Channel.Id;
                 message.Type = (int)voteType;
                 message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
+                message.TimeSpan = span.Ticks;
                 _context.VoteMessages.Add(message);
                 await _context.SaveChangesAsync();
                 await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
             }
-            else if (time == null || title == null || link == null)
+            else if (time == null || text == null)
             {
                 await ReplyAsync("Missing parameters, run without parameters to use the wizard.");
             }
             else
             {
+                string[] textArgs = text.Split("|");
                 VoteType voteType; // Placeholder value.
-                if (Enum.TryParse(type, true, out voteType))
+                if (parseType(type, out voteType))
                 {
-                    if (Enum.IsDefined(typeof(VoteType), voteType) | voteType.ToString().Contains(","))
+                    // Vote type is certified epic :)
+                    TimeSpan timeSpan = getTimeSpan(time);
+                    if (timeSpan == TimeSpan.Zero)
                     {
-                        // Vote type is certified epic :)
-                        TimeSpan timeSpan = getTimeSpan(time);
-                        if (timeSpan == TimeSpan.Zero)
-                        {
-                            await ReplyAsync("You have specified an invalid time.");
-                        }
-                        else
-                        {
-                            string timeStr = "In ";
-                            if (timeSpan.Hours != 0)
-                            {
-                                timeStr += timeSpan.Hours + " hour";
-                                if (timeSpan.Hours > 1) timeStr += "s";
-                                timeStr += " ";
-                            }
-                            if (timeSpan.Minutes != 0)
-                            {
-                                timeStr += timeSpan.Minutes + " minute";
-                                if (timeSpan.Minutes > 1) timeStr += "s";
-                                timeStr += " ";
-                            }
-                            EmbedBuilder emb = new EmbedBuilder()
-                                .WithTitle(title)
-                                .WithDescription(link)
-                                .AddField("Ends:", timeStr)
-                                .AddField("Type: ", ConvertVoteTypeToString(voteType))
-                                .WithColor(Color.LightGrey);
-                            RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                            emb.WithFooter("Message ID: " + mid.Id);
-                            await mid.ModifyAsync((x) =>
-                            {
-                                x.Embed = emb.Build();
-                            });
-                            await mid.AddReactionAsync(new Emoji("✅"));
-                            await mid.AddReactionAsync(new Emoji("❌"));
-                            await mid.AddReactionAsync(new Emoji("🇴"));
-                            VoteMessage message = new VoteMessage();
-                            message.MessageId = mid.Id;
-                            message.CreatorId = Context.User.Id;
-                            message.ChannelId = Context.Channel.Id;
-                            message.Type = (int)voteType;
-                            message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
-                            _context.VoteMessages.Add(message);
-                            await _context.SaveChangesAsync();
-                            await Context.Message.DeleteAsync();
-                        }
+                        await ReplyAsync("You have specified an invalid time.");
                     }
                     else
                     {
-                        await ReplyAsync("You specified an invalid vote type.");
+                        if (!isMultipleOption(voteType))
+                        {
+                            // textArg format: [Title] | [Link/Desc]
+                            if (textArgs.Length != 2)
+                            {
+                                await ReplyAsync("You have specified an invalid amount of text arguments");
+                            }
+                            else
+                            {
+                                string timeStr = "In ";
+                                if (timeSpan.Hours != 0)
+                                {
+                                    timeStr += timeSpan.Hours + " hour";
+                                    if (timeSpan.Hours > 1) timeStr += "s";
+                                    timeStr += " ";
+                                }
+                                if (timeSpan.Minutes != 0)
+                                {
+                                    timeStr += timeSpan.Minutes + " minute";
+                                    if (timeSpan.Minutes > 1) timeStr += "s";
+                                    timeStr += " ";
+                                }
+                                EmbedBuilder emb = new EmbedBuilder()
+                                    .WithTitle(textArgs[0])
+                                    .WithDescription(textArgs[1])
+                                    .AddField("Ends:", timeStr)
+                                    .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                                    .WithColor(Color.LightGrey);
+                                RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                                emb.WithFooter("Message ID: " + mid.Id);
+                                await mid.ModifyAsync((x) =>
+                                {
+                                    x.Embed = emb.Build();
+                                });
+                                await mid.AddReactionsAsync(new IEmote[] {
+                                    new Emoji("✅"), // yay
+                                    new Emoji("❌"), // nay
+                                    new Emoji("🇴") // abstain
+                                });
+                                VoteMessage message = new VoteMessage();
+                                message.MessageId = mid.Id;
+                                message.CreatorId = Context.User.Id;
+                                message.ChannelId = Context.Channel.Id;
+                                message.Type = (int)voteType;
+                                message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
+                                message.TimeSpan = timeSpan.Ticks;
+                                _context.VoteMessages.Add(message);
+                                await _context.SaveChangesAsync();
+                                await Context.Message.DeleteAsync();
+                            }
+                        }
+                        else
+                        {
+                            // textArg format: [Title] | [Candidate 1] | [Candidate 2] | ... | [Candidate N], where N <= 9
+                            // If at some point we end up needing more than 9 candidates then I guess it'll automatically go to anon mode
+                            if (textArgs.Length < 2 || textArgs.Length > 10)
+                            {
+                                await ReplyAsync("You have specified an invalid amount of text arguments");
+                            }
+                            else
+                            {
+                                string timeStr = "In ";
+                                if (timeSpan.Hours != 0)
+                                {
+                                    timeStr += timeSpan.Hours + " hour";
+                                    if (timeSpan.Hours > 1) timeStr += "s";
+                                    timeStr += " ";
+                                }
+                                if (timeSpan.Minutes != 0)
+                                {
+                                    timeStr += timeSpan.Minutes + " minute";
+                                    if (timeSpan.Minutes > 1) timeStr += "s";
+                                    timeStr += " ";
+                                }
+                                EmbedBuilder emb = new EmbedBuilder()
+                                    .WithTitle(textArgs[0])
+                                    .AddField("Ends:", timeStr)
+                                    .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                                    .WithColor(Color.LightGrey);
+                                for (int x = 1; x < textArgs.Length; x++)
+                                {
+                                    emb.AddField("Option #" + x + ":", textArgs[x], true);
+                                }
+                                RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                                emb.WithFooter("Message ID: " + mid.Id);
+                                await mid.ModifyAsync((x) =>
+                                {
+                                    x.Embed = emb.Build();
+                                });
+                                await mid.AddReactionsAsync(numberEmotes.AsSpan(1, textArgs.Length - 1).ToArray());
+                                VoteMessage message = new VoteMessage();
+                                message.MessageId = mid.Id;
+                                message.CreatorId = Context.User.Id;
+                                message.ChannelId = Context.Channel.Id;
+                                message.Type = (int)voteType;
+                                message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
+                                message.TimeSpan = timeSpan.Ticks;
+                                _context.VoteMessages.Add(message);
+                                await _context.SaveChangesAsync();
+                                await Context.Message.DeleteAsync();
+                            }
+                        }
                     }
                 }
                 else

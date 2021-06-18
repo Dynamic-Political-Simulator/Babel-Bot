@@ -533,6 +533,9 @@ namespace BabelDatabase.Migrations
                     b.Property<long>("EndTime")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("TimeSpan")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("Type")
                         .HasColumnType("int");
 

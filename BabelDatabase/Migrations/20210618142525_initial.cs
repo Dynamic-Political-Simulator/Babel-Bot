@@ -121,7 +121,8 @@ namespace BabelDatabase.Migrations
                     CreatorId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    EndTime = table.Column<long>(type: "bigint", nullable: false)
+                    EndTime = table.Column<long>(type: "bigint", nullable: false),
+                    TimeSpan = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
