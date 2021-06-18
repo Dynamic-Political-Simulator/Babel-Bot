@@ -13,7 +13,7 @@ else
     echo "Creating a new migration..."
     dotnet ef migrations add initial -c BabelContext -p ./BabelDatabase -s ./WOPR &> /dev/null
     echo "Updating the database..."
-    yes "y" | dotnet ef database drop -c BabelContext -p ./BabelDatabase -s ./WOPR --no-build &> /dev/null
-    dotnet ef database update -c BabelContext -p ./BabelDatabase -s ./WOPR --no-build &> /dev/null
+    yes "y" | dotnet ef database drop -c BabelContext -p ./BabelDatabase -s ./WOPR &> /dev/null
+    dotnet ef database update -c BabelContext -p ./BabelDatabase -s ./WOPR &> /dev/null
     echo "Done."
 fi
