@@ -226,7 +226,7 @@ namespace BabelBot
                                 embo = new EmbedBuilder()
                                 .WithTitle(ogg.Title)
                                 .AddField("Result:", ogg.Fields[a + 2].Value + " and " + ogg.Fields[b + 2].Value + " continue onto the runoff vote.")
-                                .WithColor(Color.DarkBlue);
+                                .WithColor(Color.DarkTeal);
                                 await msg.ModifyAsync((e) =>
                                 {
                                     e.Embed = embo.Build();
@@ -236,7 +236,7 @@ namespace BabelBot
                                     await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
                                             .WithTitle(ogg.Fields[a + 2].Value + " and " + ogg.Fields[b + 2].Value + " have continued onto the runoff vote.")
                                             .WithDescription($"[Jump]({msg.GetJumpUrl()})")
-                                            .WithColor(Color.DarkGreen)
+                                            .WithColor(Color.DarkTeal)
                                             .Build());
                                 }
                                 catch (Exception) { }
@@ -258,7 +258,7 @@ namespace BabelBot
                         EmbedBuilder emb = new EmbedBuilder()
                                 .WithTitle(og.Title)
                                 .AddField("Result:", og.Fields[winner + 2].Value + " has won with " + votes[winner] + " votes.")
-                                .WithColor(Color.DarkBlue);
+                                .WithColor(Color.DarkTeal);
                         await msg.ModifyAsync((e) =>
                         {
                             e.Embed = emb.Build();
@@ -268,7 +268,7 @@ namespace BabelBot
                             await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
                                     .WithTitle(og.Fields[winner + 2].Value + " has won the vote " + og.Title + ".")
                                     .WithDescription($"[Jump]({msg.GetJumpUrl()})")
-                                    .WithColor(Color.DarkGreen)
+                                    .WithColor(Color.DarkTeal)
                                     .Build());
                         }
                         catch (Exception) { }
@@ -337,6 +337,7 @@ namespace BabelBot
                         EmbedBuilder emb = new EmbedBuilder()
                                 .WithTitle(og.Title)
                                 .WithDescription(og.Description)
+                                .WithFooter(og.Footer.Value.Text)
                                 .AddField("Ends:", timeStr)
                                 .AddField("Type: ", og.Fields[1].Value)
                                 .WithColor(og.Color == null ? (Color)og.Color : Color.LightGrey);
