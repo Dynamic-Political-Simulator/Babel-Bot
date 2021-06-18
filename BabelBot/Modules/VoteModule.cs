@@ -114,7 +114,7 @@ namespace BabelBot.Modules
             {
                 List<IUserMessage> conversation = new List<IUserMessage>();
                 conversation.Add(Context.Message);
-                conversation.Add(await ReplyAsync("Welcome to the vote wizard. Type 'cancel' any time to exit.\nWhat type is the vote? (Valid types: Majority, Twothird)"));
+                conversation.Add(await ReplyAsync("Welcome to the vote wizard. Type 'cancel' any time to exit.\nWhat type is the vote? (Valid types: Majority, Two Thirds, First Past The Post, Two Rounds)"));
                 IUserMessage reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
                 conversation.Add(reply);
                 VoteType voteType; // Placeholder value.
@@ -145,65 +145,134 @@ namespace BabelBot.Modules
                     conversation.Add(reply);
                     span = getTimeSpan(reply.Content);
                 }
-                conversation.Add(await ReplyAsync("What should the link/description of the thing being voted on be?"));
-                reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
-                conversation.Add(reply);
-                if (reply.Content == "cancel")
+                if (!isMultipleOption(voteType))
                 {
-                    await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
-                    return;
-                }
-                string linke = reply.Content;
-                conversation.Add(await ReplyAsync("What should the title of the vote be?"));
-                reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
-                conversation.Add(reply);
-                if (reply.Content == "cancel")
-                {
-                    await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
-                    return;
-                }
-                string titlee = reply.Content;
+                    conversation.Add(await ReplyAsync("What should the link/description of the thing being voted on be?"));
+                    reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                    conversation.Add(reply);
+                    if (reply.Content == "cancel")
+                    {
+                        await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                        return;
+                    }
+                    string linke = reply.Content;
+                    conversation.Add(await ReplyAsync("What should the title of the vote be?"));
+                    reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                    conversation.Add(reply);
+                    if (reply.Content == "cancel")
+                    {
+                        await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                        return;
+                    }
+                    string titlee = reply.Content;
 
-                string timeStr = "In ";
-                if (span.Hours != 0)
-                {
-                    timeStr += span.Hours + " hour";
-                    if (span.Hours > 1) timeStr += "s";
-                    timeStr += " ";
-                }
-                if (span.Minutes != 0)
-                {
-                    timeStr += span.Minutes + " minute";
-                    if (span.Minutes > 1) timeStr += "s";
-                    timeStr += " ";
-                }
-                EmbedBuilder emb = new EmbedBuilder()
-                    .WithTitle(titlee)
-                    .WithDescription(linke)
-                    .AddField("Ends:", timeStr)
-                    .AddField("Type: ", ConvertVoteTypeToString(voteType))
-                    .WithColor(Color.LightGrey);
-                RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                emb.WithFooter("Message ID: " + mid.Id);
-                await mid.ModifyAsync((x) =>
-                {
-                    x.Embed = emb.Build();
-                });
-                await mid.AddReactionsAsync(new IEmote[] {
+                    string timeStr = "In ";
+                    if (span.Hours != 0)
+                    {
+                        timeStr += span.Hours + " hour";
+                        if (span.Hours > 1) timeStr += "s";
+                        timeStr += " ";
+                    }
+                    if (span.Minutes != 0)
+                    {
+                        timeStr += span.Minutes + " minute";
+                        if (span.Minutes > 1) timeStr += "s";
+                        timeStr += " ";
+                    }
+                    EmbedBuilder emb = new EmbedBuilder()
+                        .WithTitle(titlee)
+                        .WithDescription(linke)
+                        .AddField("Ends:", timeStr)
+                        .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                        .WithColor(Color.LightGrey);
+                    RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                    emb.WithFooter("Message ID: " + mid.Id);
+                    await mid.ModifyAsync((x) =>
+                    {
+                        x.Embed = emb.Build();
+                    });
+                    await mid.AddReactionsAsync(new IEmote[] {
                                     new Emoji("✅"), // yay
                                     new Emoji("❌"), // nay
                                     new Emoji("🇴") // abstain
                                 });
-                VoteMessage message = new VoteMessage();
-                message.MessageId = mid.Id;
-                message.CreatorId = Context.User.Id;
-                message.ChannelId = Context.Channel.Id;
-                message.Type = (int)voteType;
-                message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
-                message.TimeSpan = span.Ticks;
-                _context.VoteMessages.Add(message);
-                await _context.SaveChangesAsync();
-                await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                    VoteMessage message = new VoteMessage();
+                    message.MessageId = mid.Id;
+                    message.CreatorId = Context.User.Id;
+                    message.ChannelId = Context.Channel.Id;
+                    message.Type = (int)voteType;
+                    message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
+                    message.TimeSpan = span.Ticks;
+                    _context.VoteMessages.Add(message);
+                    await _context.SaveChangesAsync();
+                    await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                }
+                else
+                {
+                    conversation.Add(await ReplyAsync("What should the title of the vote be?"));
+                    reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                    conversation.Add(reply);
+                    if (reply.Content == "cancel")
+                    {
+                        await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                        return;
+                    }
+                    string titlee = reply.Content;
+                    conversation.Add(await ReplyAsync("What should the candidates be? (type 'done' when done)"));
+                    List<string> candidates = new List<string>();
+                    while (candidates.Count < 9)
+                    {
+                        reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                        conversation.Add(reply);
+                        if (reply.Content == "cancel")
+                        {
+                            await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                            return;
+                        }
+                        if (reply.Content == "done") break;
+                        candidates.Add(reply.Content);
+                        await reply.AddReactionAsync(new Emoji("✅"));
+                    }
+                    string timeStr = "In ";
+                    if (span.Hours != 0)
+                    {
+                        timeStr += span.Hours + " hour";
+                        if (span.Hours > 1) timeStr += "s";
+                        timeStr += " ";
+                    }
+                    if (span.Minutes != 0)
+                    {
+                        timeStr += span.Minutes + " minute";
+                        if (span.Minutes > 1) timeStr += "s";
+                        timeStr += " ";
+                    }
+                    EmbedBuilder emb = new EmbedBuilder()
+                        .WithTitle(titlee)
+                        .AddField("Ends:", timeStr)
+                        .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                        .WithColor(Color.LightGrey);
+                    for (int x = 0; x < candidates.Count; x++)
+                    {
+                        emb.AddField("Option #" + (x + 1) + ":", candidates[x], true);
+                    }
+                    RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                    emb.WithFooter("Message ID: " + mid.Id);
+                    await mid.ModifyAsync((x) =>
+                    {
+                        x.Embed = emb.Build();
+                    });
+                    await mid.AddReactionsAsync(numberEmotes.AsSpan(1, candidates.Count).ToArray());
+                    VoteMessage message = new VoteMessage();
+                    message.MessageId = mid.Id;
+                    message.CreatorId = Context.User.Id;
+                    message.ChannelId = Context.Channel.Id;
+                    message.Type = (int)voteType;
+                    message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
+                    message.TimeSpan = span.Ticks;
+                    _context.VoteMessages.Add(message);
+                    await _context.SaveChangesAsync();
+                    await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                }
             }
             else if (time == null || text == null)
             {
