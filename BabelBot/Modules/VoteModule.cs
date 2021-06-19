@@ -137,7 +137,7 @@ namespace BabelBot.Modules
         }
 
         [Command("makevote", RunMode = RunMode.Async)]
-        [RequireProfile]
+        [RequireNoProfile]
         public async Task MakeVote(string type = null, string time = null, bool? anon = null, [Remainder] string text = null)
         {
             if (type == null)
@@ -530,8 +530,7 @@ namespace BabelBot.Modules
         }
 
         [Command("vote", RunMode = RunMode.Async)]
-        // [RequireProfile]
-        [RequireNoProfile]
+        [RequireProfile]
         public async Task Vote(ulong messageId)
         {
             VoteMessage vms = _context.VoteMessages.Find(messageId);
@@ -544,7 +543,14 @@ namespace BabelBot.Modules
                     return;
                 }
                 */
-                IMessage message = await ((ITextChannel)Context.Client.GetChannel(vms.ChannelId)).GetMessageAsync(messageId);
+                ITextChannel channel = (ITextChannel)Context.Client.GetChannel(vms.ChannelId);
+                IEnumerable<IGuildUser> allowedVoters = await channel.GetUsersAsync().FlattenAsync();
+                if (!allowedVoters.Any(x => x.Id == Context.User.Id))
+                {
+                    await ReplyAsync("You are not eligible for this vote.");
+                    return;
+                }
+                IMessage message = await channel.GetMessageAsync(messageId);
                 IEmbed emb = message.Embeds.First();
                 if (isMultipleOption((VoteType)vms.Type))
                 {
