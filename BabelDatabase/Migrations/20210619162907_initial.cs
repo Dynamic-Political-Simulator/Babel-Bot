@@ -121,7 +121,9 @@ namespace BabelDatabase.Migrations
                     CreatorId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    EndTime = table.Column<long>(type: "bigint", nullable: false)
+                    EndTime = table.Column<long>(type: "bigint", nullable: false),
+                    TimeSpan = table.Column<long>(type: "bigint", nullable: false),
+                    Anonymous = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -176,6 +178,26 @@ namespace BabelDatabase.Migrations
                         principalTable: "PopsimPlanet",
                         principalColumn: "PopsimPlanetId",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VoteEntries",
+                columns: table => new
+                {
+                    VoteEntryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    VoteMessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    Vote = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VoteEntries", x => x.VoteEntryId);
+                    table.ForeignKey(
+                        name: "FK_VoteEntries_VoteMessages_VoteMessageId",
+                        column: x => x.VoteMessageId,
+                        principalTable: "VoteMessages",
+                        principalColumn: "MessageId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -571,6 +593,11 @@ namespace BabelDatabase.Migrations
                 table: "StaffStaffAction",
                 column: "StaffActionId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_VoteEntries_VoteMessageId",
+                table: "VoteEntries",
+                column: "VoteMessageId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_AlignmentSpendings_Characters_CharacterId",
                 table: "AlignmentSpendings",
@@ -660,7 +687,7 @@ namespace BabelDatabase.Migrations
                 name: "StaffStaffAction");
 
             migrationBuilder.DropTable(
-                name: "VoteMessages");
+                name: "VoteEntries");
 
             migrationBuilder.DropTable(
                 name: "Alignments");
@@ -676,6 +703,9 @@ namespace BabelDatabase.Migrations
 
             migrationBuilder.DropTable(
                 name: "StaffActions");
+
+            migrationBuilder.DropTable(
+                name: "VoteMessages");
 
             migrationBuilder.DropTable(
                 name: "Characters");

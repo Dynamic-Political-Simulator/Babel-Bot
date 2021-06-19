@@ -307,7 +307,10 @@ namespace BabelDatabase
     public enum VoteType
     {
         MAJORITY,
-        TWOTHIRD
+        TWOTHIRD,
+        FPTP,
+        TWOROUND,
+        TWOROUNDFINAL // For the second part of the two round
     }
     public class VoteMessage
     {
@@ -317,5 +320,20 @@ namespace BabelDatabase
         public ulong ChannelId { get; set; }
         public int Type { get; set; }
         public long EndTime { get; set; } // In FileTime
+        public long TimeSpan { get; set; } // In Ticks
+        public bool Anonymous { get; set; }
+        public virtual List<VoteEntry> Votes { get; set; }
+    }
+
+    public class VoteEntry
+    {
+        [Key]
+        public string VoteEntryId { get; set; } = Guid.NewGuid().ToString();
+
+        public ulong VoteMessageId { get; set; }
+        public virtual VoteMessage VoteMessage { get; set; }
+
+        public int Vote { get; set; }
+        public ulong UserId { get; set; }
     }
 }
