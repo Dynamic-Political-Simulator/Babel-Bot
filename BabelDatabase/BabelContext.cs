@@ -23,9 +23,12 @@ namespace BabelDatabase
 		}
 
 		public DbSet<Alignment> Alignments { get; set; }
+		public DbSet<AlignmentClique> AlignmentCliques { get; set; }
 		public DbSet<AlignmentSpending> AlignmentSpendings { get; set; }
 		public DbSet<Character> Characters { get; set; }
 		public DbSet<Clique> Cliques { get; set; }
+		public DbSet<CliqueMemberCharacter> CliqueMembers { get; set; }
+		public DbSet<CliqueOfficerCharacter> CliqueOfficers { get; set; }
 		public DbSet<CliqueInvite> CliqueInvites { get; set; }
 		public DbSet<CustomSpending> CustomSpendings { get; set; }
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
@@ -129,6 +132,16 @@ namespace BabelDatabase
 			modelBuilder.Entity<CliqueOfficerCharacter>()
 				.HasOne(cmc => cmc.Officer)
 				.WithMany();
+
+			modelBuilder.Entity<AlignmentClique>().HasKey(ac => new { ac.CliqueId, ac.AlignmentId });
+
+			modelBuilder.Entity<AlignmentClique>()
+				.HasOne(ac => ac.Alignment)
+				.WithMany(a => a.Cliques);
+
+			modelBuilder.Entity<AlignmentClique>()
+				.HasOne(ac => ac.Clique)
+				.WithMany(c => c.Alignments);
 
 			// Staff action stuff
 
