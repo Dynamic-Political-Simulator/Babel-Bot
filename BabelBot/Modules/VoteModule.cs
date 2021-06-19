@@ -137,7 +137,7 @@ namespace BabelBot.Modules
         }
 
         [Command("makevote", RunMode = RunMode.Async)]
-        [RequireNoProfile]
+        [RequireProfile]
         public async Task MakeVote(string type = null, string time = null, bool? anon = null, [Remainder] string text = null)
         {
             if (type == null)
