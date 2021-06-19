@@ -270,24 +270,55 @@ namespace BabelBot
                                 winner = 0;
                                 break;
                         }
-                        EmbedBuilder emb = new EmbedBuilder()
-                                .WithTitle(og.Title)
-                                .WithDescription(results)
-                                .AddField("Result:", og.Fields[winner + 2].Value + " has won with " + votes[winner] + " votes.")
-                                .WithColor(Color.DarkTeal);
-                        await msg.ModifyAsync((e) =>
+                        int num = votes.Count(x => x == votes.Max());
+                        if (num > 1)
                         {
-                            e.Embed = emb.Build();
-                        });
-                        try
-                        {
-                            await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
-                                    .WithTitle(og.Fields[winner + 2].Value + " has won the vote " + og.Title + ".")
-                                    .WithDescription($"[Jump]({msg.GetJumpUrl()})")
-                                    .WithColor(Color.DarkTeal)
-                                    .Build());
+                            string res = "The vote has ended with ";
+                            for (int x = 0; x < votes.Count(); x++)
+                            {
+                                if (votes[x] == votes.Max()) res += og.Fields[x + 2].Value + ", ";
+                            }
+                            res = res.Substring(0, res.Length - 2) + " obtaining an equal amount of votes.";
+                            EmbedBuilder emb = new EmbedBuilder()
+                                    .WithTitle(og.Title)
+                                    .WithDescription(results)
+                                    .AddField("Result:", res)
+                                    .WithColor(Color.DarkTeal);
+                            await msg.ModifyAsync((e) =>
+                            {
+                                e.Embed = emb.Build();
+                            });
+                            try
+                            {
+                                await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
+                                        .WithTitle("The vote " + og.Title + " has ended in a tie.")
+                                        .WithDescription($"[Jump]({msg.GetJumpUrl()})")
+                                        .WithColor(Color.DarkTeal)
+                                        .Build());
+                            }
+                            catch (Exception) { }
                         }
-                        catch (Exception) { }
+                        else
+                        {
+                            EmbedBuilder emb = new EmbedBuilder()
+                                    .WithTitle(og.Title)
+                                    .WithDescription(results)
+                                    .AddField("Result:", og.Fields[winner + 2].Value + " has won with " + votes[winner] + " votes.")
+                                    .WithColor(Color.DarkTeal);
+                            await msg.ModifyAsync((e) =>
+                            {
+                                e.Embed = emb.Build();
+                            });
+                            try
+                            {
+                                await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
+                                        .WithTitle(og.Fields[winner + 2].Value + " has won the vote " + og.Title + ".")
+                                        .WithDescription($"[Jump]({msg.GetJumpUrl()})")
+                                        .WithColor(Color.DarkTeal)
+                                        .Build());
+                            }
+                            catch (Exception) { }
+                        }
                     }
                     _context.VoteMessages.Remove(vms);
                 }
