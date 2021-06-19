@@ -183,6 +183,11 @@ namespace BabelBot
                                 votes.Add(vms.Votes.Count(c => c.Vote == (x + 1)));
                             }
                         }
+                        string results = "";
+                        for (int x = 0; x < votes.Count(); x++)
+                        {
+                            results += og.Fields[x + 2].Value + ": " + votes[x] + " votes\n";
+                        }
                         int winner = 0;
                         switch ((VoteType)vms.Type)
                         {
@@ -239,9 +244,10 @@ namespace BabelBot
                                 _context.VoteMessages.Add(message);
 
                                 embo = new EmbedBuilder()
-                                .WithTitle(og.Title)
-                                .AddField("Result:", og.Fields[a + 2].Value + " and " + og.Fields[b + 2].Value + " continue onto the runoff vote.")
-                                .WithColor(Color.DarkTeal);
+                                    .WithTitle(og.Title)
+                                    .WithDescription(results)
+                                    .AddField("Result:", og.Fields[a + 2].Value + " and " + og.Fields[b + 2].Value + " continue onto the runoff vote.")
+                                    .WithColor(Color.DarkTeal);
                                 await msg.ModifyAsync((e) =>
                                 {
                                     e.Embed = embo.Build();
@@ -266,6 +272,7 @@ namespace BabelBot
                         }
                         EmbedBuilder emb = new EmbedBuilder()
                                 .WithTitle(og.Title)
+                                .WithDescription(results)
                                 .AddField("Result:", og.Fields[winner + 2].Value + " has won with " + votes[winner] + " votes.")
                                 .WithColor(Color.DarkTeal);
                         await msg.ModifyAsync((e) =>
