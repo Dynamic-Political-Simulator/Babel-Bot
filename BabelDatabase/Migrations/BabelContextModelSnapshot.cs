@@ -517,12 +517,36 @@ namespace BabelDatabase.Migrations
                     b.ToTable("StaffStaffAction");
                 });
 
+            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
+                {
+                    b.Property<string>("VoteEntryId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<int>("Vote")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("VoteMessageId")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.HasKey("VoteEntryId");
+
+                    b.HasIndex("VoteMessageId");
+
+                    b.ToTable("VoteEntries");
+                });
+
             modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
                 {
                     b.Property<decimal>("MessageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(20,0)")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+
+                    b.Property<bool>("Anonymous")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("ChannelId")
                         .HasColumnType("decimal(20,0)");
@@ -787,6 +811,17 @@ namespace BabelDatabase.Migrations
                     b.Navigation("StaffAction");
                 });
 
+            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
+                {
+                    b.HasOne("BabelDatabase.VoteMessage", "VoteMessage")
+                        .WithMany("Votes")
+                        .HasForeignKey("VoteMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VoteMessage");
+                });
+
             modelBuilder.Entity("BabelDatabase.Character", b =>
                 {
                     b.Navigation("Cliques");
@@ -821,6 +856,11 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("StaffActionPosts");
+                });
+
+            modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
+                {
+                    b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618
         }

@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Linq;
 
 namespace BabelBot.Modules
 {
@@ -77,13 +78,13 @@ namespace BabelBot.Modules
             type = type.ToLower(); // Gets rid of the capitalisation, this is not a case sensitive server :rage:
             switch (type)
             {
-                case string s when new Regex(@"(majority)").IsMatch(type): // This is art.
+                case string s when new Regex(@"^(majority)").IsMatch(type): // This is art.
                     return VoteType.MAJORITY;
-                case string s when new Regex(@"(two( |-)?thirds?)").IsMatch(type):
+                case string s when new Regex(@"^(two( |-)?thirds?)").IsMatch(type):
                     return VoteType.TWOTHIRD;
-                case string s when new Regex(@"(f(irst)?(-| )?p(ast)?(-| )?t(he)?(-| )?p(ost)?)").IsMatch(type):
+                case string s when new Regex(@"^(f(irst)?(-| )?p(ast)?(-| )?t(he)?(-| )?p(ost)?)").IsMatch(type):
                     return VoteType.FPTP;
-                case string s when new Regex(@"(two( |-)?rounds?)").IsMatch(type):
+                case string s when new Regex(@"^(two( |-)?rounds?)").IsMatch(type):
                     return VoteType.TWOROUND;
                 default:
                     return null;
@@ -106,9 +107,38 @@ namespace BabelBot.Modules
             }
         }
 
+        bool? parseBool(string text)
+        {
+            text = text.ToLower();
+            switch (text)
+            {
+                case string s when new Regex(@"^((y(es|ay)?)|(a(ye|ffirmative)?)|(t(rue)?))").IsMatch(text):
+                    return true;
+                case string s when new Regex(@"^((n(o|ay|egative)?)|(f(alse)?))").IsMatch(text):
+                    return false;
+                default:
+                    return null;
+            }
+        }
+
+        bool parseBool(string text, out bool res)
+        {
+            bool? tmp = parseBool(text);
+            if (tmp == null)
+            {
+                res = false;
+                return false;
+            }
+            else
+            {
+                res = (bool)tmp;
+                return true;
+            }
+        }
+
         [Command("makevote", RunMode = RunMode.Async)]
         [RequireNoProfile]
-        public async Task CreateProfile(string type = null, string time = null, [Remainder] string text = null)
+        public async Task MakeVote(string type = null, string time = null, bool? anon = null, [Remainder] string text = null)
         {
             if (type == null)
             {
@@ -144,6 +174,21 @@ namespace BabelBot.Modules
                     reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
                     conversation.Add(reply);
                     span = getTimeSpan(reply.Content);
+                }
+                conversation.Add(await ReplyAsync("Should the vote be anonymous?"));
+                reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                conversation.Add(reply);
+                bool anonymouse;
+                while (!parseBool(reply.Content, out anonymouse))
+                {
+                    if (reply.Content == "cancel")
+                    {
+                        await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
+                        return;
+                    }
+                    conversation.Add(await ReplyAsync("Sorry, that isn't a valid response."));
+                    reply = (IUserMessage)await NextMessageAsync(timeout: TimeSpan.FromMinutes(5));
+                    conversation.Add(reply);
                 }
                 if (!isMultipleOption(voteType))
                 {
@@ -186,16 +231,26 @@ namespace BabelBot.Modules
                         .AddField("Type: ", ConvertVoteTypeToString(voteType))
                         .WithColor(Color.LightGrey);
                     RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                    emb.WithFooter("Message ID: " + mid.Id);
+                    if (!anonymouse)
+                    {
+                        emb.WithFooter("Message ID: " + mid.Id);
+                    }
+                    else
+                    {
+                        emb.WithFooter("Use `;;vote " + mid.Id + "` to vote.");
+                    }
                     await mid.ModifyAsync((x) =>
                     {
                         x.Embed = emb.Build();
                     });
-                    await mid.AddReactionsAsync(new IEmote[] {
-                                    new Emoji("✅"), // yay
-                                    new Emoji("❌"), // nay
-                                    new Emoji("🇴") // abstain
-                                });
+                    if (!anonymouse)
+                    {
+                        await mid.AddReactionsAsync(new IEmote[] {
+                                            new Emoji("✅"), // yay
+                                            new Emoji("❌"), // nay
+                                            new Emoji("🇴") // abstain
+                                        });
+                    }
                     VoteMessage message = new VoteMessage();
                     message.MessageId = mid.Id;
                     message.CreatorId = Context.User.Id;
@@ -203,6 +258,7 @@ namespace BabelBot.Modules
                     message.Type = (int)voteType;
                     message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
                     message.TimeSpan = span.Ticks;
+                    message.Anonymous = anonymouse;
                     _context.VoteMessages.Add(message);
                     await _context.SaveChangesAsync();
                     await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
@@ -256,12 +312,22 @@ namespace BabelBot.Modules
                         emb.AddField("Option #" + (x + 1) + ":", candidates[x], true);
                     }
                     RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                    emb.WithFooter("Message ID: " + mid.Id);
+                    if (!anonymouse)
+                    {
+                        emb.WithFooter("Message ID: " + mid.Id);
+                    }
+                    else
+                    {
+                        emb.WithFooter("Use `;;vote " + mid.Id + "` to vote.");
+                    }
                     await mid.ModifyAsync((x) =>
                     {
                         x.Embed = emb.Build();
                     });
-                    await mid.AddReactionsAsync(numberEmotes.AsSpan(1, candidates.Count).ToArray());
+                    if (!anonymouse)
+                    {
+                        await mid.AddReactionsAsync(numberEmotes.AsSpan(1, candidates.Count).ToArray());
+                    }
                     VoteMessage message = new VoteMessage();
                     message.MessageId = mid.Id;
                     message.CreatorId = Context.User.Id;
@@ -269,12 +335,13 @@ namespace BabelBot.Modules
                     message.Type = (int)voteType;
                     message.EndTime = DateTime.Now.AddHours(span.Hours).AddMinutes(span.Minutes).ToFileTime();
                     message.TimeSpan = span.Ticks;
+                    message.Anonymous = anonymouse;
                     _context.VoteMessages.Add(message);
                     await _context.SaveChangesAsync();
                     await ((SocketTextChannel)Context.Channel).DeleteMessagesAsync(conversation);
                 }
             }
-            else if (time == null || text == null)
+            else if (time == null || text == null || anon == null)
             {
                 await ReplyAsync("Missing parameters, run without parameters to use the wizard.");
             }
@@ -292,106 +359,136 @@ namespace BabelBot.Modules
                     }
                     else
                     {
-                        if (!isMultipleOption(voteType))
+                        if (anon == null)
                         {
-                            // textArg format: [Title] | [Link/Desc]
-                            if (textArgs.Length != 2)
-                            {
-                                await ReplyAsync("You have specified an invalid amount of text arguments");
-                            }
-                            else
-                            {
-                                string timeStr = "In ";
-                                if (timeSpan.Hours != 0)
-                                {
-                                    timeStr += timeSpan.Hours + " hour";
-                                    if (timeSpan.Hours > 1) timeStr += "s";
-                                    timeStr += " ";
-                                }
-                                if (timeSpan.Minutes != 0)
-                                {
-                                    timeStr += timeSpan.Minutes + " minute";
-                                    if (timeSpan.Minutes > 1) timeStr += "s";
-                                    timeStr += " ";
-                                }
-                                EmbedBuilder emb = new EmbedBuilder()
-                                    .WithTitle(textArgs[0])
-                                    .WithDescription(textArgs[1])
-                                    .AddField("Ends:", timeStr)
-                                    .AddField("Type: ", ConvertVoteTypeToString(voteType))
-                                    .WithColor(Color.LightGrey);
-                                RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                                emb.WithFooter("Message ID: " + mid.Id);
-                                await mid.ModifyAsync((x) =>
-                                {
-                                    x.Embed = emb.Build();
-                                });
-                                await mid.AddReactionsAsync(new IEmote[] {
-                                    new Emoji("✅"), // yay
-                                    new Emoji("❌"), // nay
-                                    new Emoji("🇴") // abstain
-                                });
-                                VoteMessage message = new VoteMessage();
-                                message.MessageId = mid.Id;
-                                message.CreatorId = Context.User.Id;
-                                message.ChannelId = Context.Channel.Id;
-                                message.Type = (int)voteType;
-                                message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
-                                message.TimeSpan = timeSpan.Ticks;
-                                _context.VoteMessages.Add(message);
-                                await _context.SaveChangesAsync();
-                                await Context.Message.DeleteAsync();
-                            }
+                            await ReplyAsync("You have no specified whether the vote is anonymouse");
                         }
                         else
                         {
-                            // textArg format: [Title] | [Candidate 1] | [Candidate 2] | ... | [Candidate N], where N <= 9
-                            // If at some point we end up needing more than 9 candidates then I guess it'll automatically go to anon mode
-                            if (textArgs.Length < 2 || textArgs.Length > 10)
+                            bool anonymous = (bool)anon;
+                            if (!isMultipleOption(voteType))
                             {
-                                await ReplyAsync("You have specified an invalid amount of text arguments");
+                                // textArg format: [Title] | [Link/Desc]
+                                if (textArgs.Length != 2)
+                                {
+                                    await ReplyAsync("You have specified an invalid amount of text arguments");
+                                }
+                                else
+                                {
+                                    string timeStr = "In ";
+                                    if (timeSpan.Hours != 0)
+                                    {
+                                        timeStr += timeSpan.Hours + " hour";
+                                        if (timeSpan.Hours > 1) timeStr += "s";
+                                        timeStr += " ";
+                                    }
+                                    if (timeSpan.Minutes != 0)
+                                    {
+                                        timeStr += timeSpan.Minutes + " minute";
+                                        if (timeSpan.Minutes > 1) timeStr += "s";
+                                        timeStr += " ";
+                                    }
+                                    EmbedBuilder emb = new EmbedBuilder()
+                                        .WithTitle(textArgs[0])
+                                        .WithDescription(textArgs[1])
+                                        .AddField("Ends:", timeStr)
+                                        .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                                        .WithColor(Color.LightGrey);
+                                    RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                                    if (!anonymous)
+                                    {
+                                        emb.WithFooter("Message ID: " + mid.Id);
+                                    }
+                                    else
+                                    {
+                                        emb.WithFooter("Use `;;vote " + mid.Id + "` to vote.");
+                                    }
+                                    await mid.ModifyAsync((x) =>
+                                    {
+                                        x.Embed = emb.Build();
+                                    });
+                                    if (!anonymous)
+                                    {
+                                        await mid.AddReactionsAsync(new IEmote[] {
+                                            new Emoji("✅"), // yay
+                                            new Emoji("❌"), // nay
+                                            new Emoji("🇴") // abstain
+                                        });
+                                    }
+                                    VoteMessage message = new VoteMessage();
+                                    message.MessageId = mid.Id;
+                                    message.CreatorId = Context.User.Id;
+                                    message.ChannelId = Context.Channel.Id;
+                                    message.Type = (int)voteType;
+                                    message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
+                                    message.TimeSpan = timeSpan.Ticks;
+                                    message.Anonymous = anonymous;
+                                    _context.VoteMessages.Add(message);
+                                    await _context.SaveChangesAsync();
+                                    await Context.Message.DeleteAsync();
+                                }
                             }
                             else
                             {
-                                string timeStr = "In ";
-                                if (timeSpan.Hours != 0)
+                                // textArg format: [Title] | [Candidate 1] | [Candidate 2] | ... | [Candidate N], where N <= 9
+                                // If at some point we end up needing more than 9 candidates then I guess it'll automatically go to anon mode
+                                if (textArgs.Length < 2 || textArgs.Length > 10)
                                 {
-                                    timeStr += timeSpan.Hours + " hour";
-                                    if (timeSpan.Hours > 1) timeStr += "s";
-                                    timeStr += " ";
+                                    await ReplyAsync("You have specified an invalid amount of text arguments");
                                 }
-                                if (timeSpan.Minutes != 0)
+                                else
                                 {
-                                    timeStr += timeSpan.Minutes + " minute";
-                                    if (timeSpan.Minutes > 1) timeStr += "s";
-                                    timeStr += " ";
+                                    string timeStr = "In ";
+                                    if (timeSpan.Hours != 0)
+                                    {
+                                        timeStr += timeSpan.Hours + " hour";
+                                        if (timeSpan.Hours > 1) timeStr += "s";
+                                        timeStr += " ";
+                                    }
+                                    if (timeSpan.Minutes != 0)
+                                    {
+                                        timeStr += timeSpan.Minutes + " minute";
+                                        if (timeSpan.Minutes > 1) timeStr += "s";
+                                        timeStr += " ";
+                                    }
+                                    EmbedBuilder emb = new EmbedBuilder()
+                                        .WithTitle(textArgs[0])
+                                        .AddField("Ends:", timeStr)
+                                        .AddField("Type: ", ConvertVoteTypeToString(voteType))
+                                        .WithColor(Color.LightGrey);
+                                    for (int x = 1; x < textArgs.Length; x++)
+                                    {
+                                        emb.AddField("Option #" + x + ":", textArgs[x], true);
+                                    }
+                                    RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
+                                    if (!anonymous)
+                                    {
+                                        emb.WithFooter("Message ID: " + mid.Id);
+                                    }
+                                    else
+                                    {
+                                        emb.WithFooter("Use `;;vote " + mid.Id + "` to vote.");
+                                    }
+                                    await mid.ModifyAsync((x) =>
+                                    {
+                                        x.Embed = emb.Build();
+                                    });
+                                    if (!anonymous)
+                                    {
+                                        await mid.AddReactionsAsync(numberEmotes.AsSpan(1, textArgs.Length - 1).ToArray());
+                                    }
+                                    VoteMessage message = new VoteMessage();
+                                    message.MessageId = mid.Id;
+                                    message.CreatorId = Context.User.Id;
+                                    message.ChannelId = Context.Channel.Id;
+                                    message.Type = (int)voteType;
+                                    message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
+                                    message.TimeSpan = timeSpan.Ticks;
+                                    message.Anonymous = anonymous;
+                                    _context.VoteMessages.Add(message);
+                                    await _context.SaveChangesAsync();
+                                    await Context.Message.DeleteAsync();
                                 }
-                                EmbedBuilder emb = new EmbedBuilder()
-                                    .WithTitle(textArgs[0])
-                                    .AddField("Ends:", timeStr)
-                                    .AddField("Type: ", ConvertVoteTypeToString(voteType))
-                                    .WithColor(Color.LightGrey);
-                                for (int x = 1; x < textArgs.Length; x++)
-                                {
-                                    emb.AddField("Option #" + x + ":", textArgs[x], true);
-                                }
-                                RestUserMessage mid = await Context.Channel.SendMessageAsync("", false, emb.Build());
-                                emb.WithFooter("Message ID: " + mid.Id);
-                                await mid.ModifyAsync((x) =>
-                                {
-                                    x.Embed = emb.Build();
-                                });
-                                await mid.AddReactionsAsync(numberEmotes.AsSpan(1, textArgs.Length - 1).ToArray());
-                                VoteMessage message = new VoteMessage();
-                                message.MessageId = mid.Id;
-                                message.CreatorId = Context.User.Id;
-                                message.ChannelId = Context.Channel.Id;
-                                message.Type = (int)voteType;
-                                message.EndTime = DateTime.Now.AddHours(timeSpan.Hours).AddMinutes(timeSpan.Minutes).ToFileTime();
-                                message.TimeSpan = timeSpan.Ticks;
-                                _context.VoteMessages.Add(message);
-                                await _context.SaveChangesAsync();
-                                await Context.Message.DeleteAsync();
                             }
                         }
                     }
@@ -400,6 +497,145 @@ namespace BabelBot.Modules
                 {
                     await ReplyAsync("You specified an invalid vote type.");
                 }
+            }
+        }
+
+        int parseVoteReply(string text)
+        {
+            text = text.ToLower();
+            switch (text)
+            {
+                case string x when new Regex(@"^(y(ay|es)?)").IsMatch(text):
+                    return 0;
+                case string x when new Regex(@"^(n(ay|o)?)").IsMatch(text):
+                    return 1;
+                case string x when new Regex(@"^(a(bstain)?)").IsMatch(text):
+                    return 2;
+                default:
+                    return -1;
+            }
+        }
+
+        bool parseVoteReply(string text, out int result)
+        {
+            result = parseVoteReply(text);
+            if (result == -1)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        [Command("vote", RunMode = RunMode.Async)]
+        // [RequireProfile]
+        [RequireNoProfile]
+        public async Task Vote(ulong messageId)
+        {
+            VoteMessage vms = _context.VoteMessages.Find(messageId);
+            if (vms != null)
+            {
+                /*
+                if (vms.Votes.FirstOrDefault(x => x.UserId == Context.User.Id) != null)
+                {
+                    await ReplyAsync("Sorry, but you have already voted on this vote.");
+                    return;
+                }
+                */
+                IMessage message = await ((ITextChannel)Context.Client.GetChannel(vms.ChannelId)).GetMessageAsync(messageId);
+                IEmbed emb = message.Embeds.First();
+                if (isMultipleOption((VoteType)vms.Type))
+                {
+                    int choices = emb.Fields.Count() - 2;
+                    string options = "";
+                    for (int x = 2; x < emb.Fields.Count(); x++)
+                    {
+                        options += (x - 1) + " - " + emb.Fields[x].Value + "\n";
+                    }
+                    try
+                    {
+                        IMessage og = await Context.User.SendMessageAsync("Vote " + emb.Title + "\nVote options (reply with the number corresponding to the option you want):\n" + options);
+                        await Context.Message.AddReactionAsync(new Emoji("✅"));
+                        int parsed;
+                        IMessage reply = await NextMessageAsync(new EnsureFromChannelCriterion(og.Channel), TimeSpan.FromMinutes(5));
+                        if (reply.Content == "cancel") return;
+                        while (!Int32.TryParse(reply.Content, out parsed) || !(parsed <= choices && parsed > 0))
+                        {
+                            await Context.User.SendMessageAsync("Please select a valid option or `cancel` if you wish to cancel the vote.");
+                            reply = await NextMessageAsync(new EnsureFromChannelCriterion(og.Channel), TimeSpan.FromMinutes(5));
+                            if (reply.Content == "cancel") return;
+                        }
+                        VoteEntry vote = vms.Votes.FirstOrDefault(x => x.UserId == Context.User.Id);
+                        if (vote == null)
+                        {
+                            vote = new VoteEntry();
+                            vote.UserId = Context.User.Id;
+                            vote.Vote = parsed;
+                            // vote.VoteMessage = vms.MessageId;
+                            vms.Votes.Add(vote);
+                            _context.VoteMessages.Update(vms);
+                        }
+                        else
+                        {
+                            vote.Vote = parsed;
+                            _context.VoteEntries.Update(vote);
+                        }
+                        await Context.User.SendMessageAsync("Vote successful!");
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+                        await Context.Message.AddReactionAsync(new Emoji("❌"));
+                        await ReplyAsync("You seem to have disabled DMs on this server. Please enable them to vote.");
+                    }
+
+                }
+                else
+                {
+                    try
+                    {
+                        IMessage og = await Context.User.SendMessageAsync("Vote " + emb.Title + ": " + emb.Description + "\nReply with `yay`, `nay` or `abstain` to vote.");
+                        await Context.Message.AddReactionAsync(new Emoji("✅"));
+                        int parsed;
+                        IMessage reply = await NextMessageAsync(new EnsureFromChannelCriterion(og.Channel), TimeSpan.FromMinutes(5));
+                        if (reply.Content == "cancel") return;
+                        while (!parseVoteReply(reply.Content, out parsed))
+                        {
+                            await Context.User.SendMessageAsync("Please select a valid option or `cancel` if you wish to cancel the vote.");
+                            reply = await NextMessageAsync(new EnsureFromChannelCriterion(og.Channel), TimeSpan.FromMinutes(5));
+                            if (reply.Content == "cancel") return;
+                        }
+                        VoteEntry vote = vms.Votes.FirstOrDefault(x => x.UserId == Context.User.Id);
+                        if (vote == null)
+                        {
+                            vote = new VoteEntry();
+                            vote.UserId = Context.User.Id;
+                            vote.Vote = parsed;
+                            // vote.VoteMessage = vms.MessageId;
+                            vms.Votes.Add(vote);
+                            _context.VoteMessages.Update(vms);
+                        }
+                        else
+                        {
+                            vote.Vote = parsed;
+                            _context.VoteEntries.Update(vote);
+                        }
+                        await Context.User.SendMessageAsync("Vote successful!");
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+                        // Console.WriteLine(e); // Uncomment this if there's an actual error, this only serves to detect that the user has their DMs off.
+                        await Context.Message.AddReactionAsync(new Emoji("❌"));
+                        await ReplyAsync("You seem to have disabled DMs on this server. Please enable them to vote.");
+                    }
+                }
+            }
+            else
+            {
+                await ReplyAsync("Invalid message id.");
             }
         }
     }

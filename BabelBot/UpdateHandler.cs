@@ -70,13 +70,22 @@ namespace BabelBot
                         int yesVotes = 0;
                         int noVotes = 0;
                         int abstainVotes = 0;
-                        try
+                        if (!vms.Anonymous)
                         {
-                            yesVotes = msg.Reactions[new Emoji("✅")].ReactionCount - 1;
-                            noVotes = msg.Reactions[new Emoji("❌")].ReactionCount - 1;
-                            abstainVotes = msg.Reactions[new Emoji("🇴")].ReactionCount - 1;
+                            try
+                            {
+                                yesVotes = msg.Reactions[new Emoji("✅")].ReactionCount - 1;
+                                noVotes = msg.Reactions[new Emoji("❌")].ReactionCount - 1;
+                                abstainVotes = msg.Reactions[new Emoji("🇴")].ReactionCount - 1;
+                            }
+                            catch (Exception) { }
                         }
-                        catch (Exception) { }
+                        else
+                        {
+                            yesVotes = vms.Votes.Count(x => x.Vote == 0);
+                            noVotes = vms.Votes.Count(x => x.Vote == 1);
+                            abstainVotes = vms.Votes.Count(x => x.Vote == 2);
+                        }
 
                         bool pass = false;
                         switch ((VoteType)vms.Type)
@@ -150,16 +159,28 @@ namespace BabelBot
                     else
                     {
                         List<int> votes = new List<int>();
-                        for (int x = 1; x < numberEmotes.Length; x++)
+                        Embed og = msg.Embeds.First();
+                        if (!vms.Anonymous)
                         {
-                            try
+                            for (int x = 1; x < numberEmotes.Length; x++)
                             {
-                                int tmp = msg.Reactions[numberEmotes[x]].ReactionCount - 1;
-                                votes.Add(tmp);
+                                try
+                                {
+                                    int tmp = msg.Reactions[numberEmotes[x]].ReactionCount - 1;
+                                    votes.Add(tmp);
+                                }
+                                catch (Exception)
+                                {
+                                    break; // If we get an exception, it must mean we have gone through all the existing options, so we should just end the loop.
+                                }
                             }
-                            catch (Exception)
+                        }
+                        else
+                        {
+                            int options = og.Fields.Count() - 2;
+                            for (int x = 0; x < options; x++)
                             {
-                                break; // If we get an exception, it must mean we have gone through all the existing options, so we should just end the loop.
+                                votes.Add(vms.Votes.Count(c => c.Vote == (x + 1)));
                             }
                         }
                         int winner = 0;
@@ -179,12 +200,6 @@ namespace BabelBot
                                 int b = votes.IndexOf(votes.Max());
                                 if (b >= a) b++; // Jank, but makes sense.
                                 // start run-off with a and b
-                                Embed ogg = null;
-                                foreach (Embed e in msg.Embeds)
-                                {
-                                    ogg = e;
-                                    break;
-                                }
                                 TimeSpan timeSpan = new TimeSpan(vms.TimeSpan);
                                 string timeStr = "In ";
                                 if (timeSpan.Hours != 0)
@@ -200,13 +215,13 @@ namespace BabelBot
                                     timeStr += " ";
                                 }
                                 EmbedBuilder embo = new EmbedBuilder()
-                                    .WithTitle(ogg.Title)
+                                    .WithTitle(og.Title)
                                     .AddField("Ends:", timeStr)
                                     .AddField("Type: ", "Two Round Runoff")
                                     .WithColor(Color.LightGrey);
-                                for (int x = 2; x < ogg.Fields.Length; x++)
+                                for (int x = 2; x < og.Fields.Length; x++)
                                 {
-                                    embo.AddField("Option #" + x + ":", ogg.Fields[x].Value, true);
+                                    embo.AddField("Option #" + x + ":", og.Fields[x].Value, true);
                                 }
                                 RestUserMessage mid = (RestUserMessage)await ((ITextChannel)_discordSocketClient.GetChannel(vms.ChannelId)).SendMessageAsync("", false, embo.Build());
                                 embo.WithFooter("Message ID: " + mid.Id);
@@ -214,7 +229,7 @@ namespace BabelBot
                                 {
                                     x.Embed = embo.Build();
                                 });
-                                await mid.AddReactionsAsync(numberEmotes.AsSpan(1, ogg.Fields.Length - 2).ToArray());
+                                await mid.AddReactionsAsync(numberEmotes.AsSpan(1, og.Fields.Length - 2).ToArray());
                                 VoteMessage message = new VoteMessage();
                                 message.MessageId = mid.Id;
                                 message.CreatorId = vms.CreatorId;
@@ -224,8 +239,8 @@ namespace BabelBot
                                 _context.VoteMessages.Add(message);
 
                                 embo = new EmbedBuilder()
-                                .WithTitle(ogg.Title)
-                                .AddField("Result:", ogg.Fields[a + 2].Value + " and " + ogg.Fields[b + 2].Value + " continue onto the runoff vote.")
+                                .WithTitle(og.Title)
+                                .AddField("Result:", og.Fields[a + 2].Value + " and " + og.Fields[b + 2].Value + " continue onto the runoff vote.")
                                 .WithColor(Color.DarkTeal);
                                 await msg.ModifyAsync((e) =>
                                 {
@@ -234,7 +249,7 @@ namespace BabelBot
                                 try
                                 {
                                     await _discordSocketClient.GetUser(vms.CreatorId).SendMessageAsync(embed: new EmbedBuilder()
-                                            .WithTitle(ogg.Fields[a + 2].Value + " and " + ogg.Fields[b + 2].Value + " have continued onto the runoff vote.")
+                                            .WithTitle(og.Fields[a + 2].Value + " and " + og.Fields[b + 2].Value + " have continued onto the runoff vote.")
                                             .WithDescription($"[Jump]({msg.GetJumpUrl()})")
                                             .WithColor(Color.DarkTeal)
                                             .Build());
@@ -248,12 +263,6 @@ namespace BabelBot
                             default:
                                 winner = 0;
                                 break;
-                        }
-                        Embed og = null;
-                        foreach (Embed e in msg.Embeds)
-                        {
-                            og = e;
-                            break; // I fucking hate IReadOnlyCollection.
                         }
                         EmbedBuilder emb = new EmbedBuilder()
                                 .WithTitle(og.Title)
@@ -273,7 +282,7 @@ namespace BabelBot
                         }
                         catch (Exception) { }
                     }
-                    _context.Remove(vms);
+                    _context.VoteMessages.Remove(vms);
                 }
                 else
                 {
@@ -305,6 +314,7 @@ namespace BabelBot
                                 .WithDescription(og.Description)
                                 .AddField("Ends:", timeStr)
                                 .AddField("Type: ", og.Fields[1].Value)
+                                .WithFooter((string)(og.Footer != null ? og.Footer.Value.Text : " "))
                                 .WithColor(og.Color == null ? (Color)og.Color : Color.LightGrey);
                         await msg.ModifyAsync((e) =>
                             {
@@ -363,6 +373,7 @@ namespace BabelBot
             VoteMessage vms = _context.VoteMessages.Find(msg.Id);
             if (vms != null)
             {
+                if (vms.Anonymous) return; // Ideally, in the future, it would be nice to have some sort of a prompt on react that is sent to the user which then lets them do the entire voting thing but that requires more thought.
                 if (!isMultipleOption((VoteType)vms.Type)
                     && (react.Emote.Name == (new Emoji("✅")).Name
                         || react.Emote.Name == (new Emoji("❌")).Name
