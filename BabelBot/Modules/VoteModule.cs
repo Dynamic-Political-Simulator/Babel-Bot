@@ -78,13 +78,13 @@ namespace BabelBot.Modules
             type = type.ToLower(); // Gets rid of the capitalisation, this is not a case sensitive server :rage:
             switch (type)
             {
-                case string s when new Regex(@"^(majority)").IsMatch(type): // This is art.
+                case string s when new Regex(@"^(majority)\b").IsMatch(type): // This is art.
                     return VoteType.MAJORITY;
-                case string s when new Regex(@"^(two( |-)?thirds?)").IsMatch(type):
+                case string s when new Regex(@"^(two( |-)?thirds?)\b").IsMatch(type):
                     return VoteType.TWOTHIRD;
-                case string s when new Regex(@"^(f(irst)?(-| )?p(ast)?(-| )?t(he)?(-| )?p(ost)?)").IsMatch(type):
+                case string s when new Regex(@"^(f(irst)?(-| )?p(ast)?(-| )?t(he)?(-| )?p(ost)?)\b").IsMatch(type):
                     return VoteType.FPTP;
-                case string s when new Regex(@"^(two( |-)?rounds?)").IsMatch(type):
+                case string s when new Regex(@"^(two( |-)?rounds?)\b").IsMatch(type):
                     return VoteType.TWOROUND;
                 default:
                     return null;
@@ -112,9 +112,9 @@ namespace BabelBot.Modules
             text = text.ToLower();
             switch (text)
             {
-                case string s when new Regex(@"^((y(es|ay)?)|(a(ye|ffirmative)?)|(t(rue)?))").IsMatch(text):
+                case string s when new Regex(@"^((y(es|ay|ea?)?)|(a(ye|ffirmative)?)|(t(rue)?))\b").IsMatch(text):
                     return true;
-                case string s when new Regex(@"^((n(o|ay|egative)?)|(f(alse)?))").IsMatch(text):
+                case string s when new Regex(@"^((n(o|ay|egative|ah)?)|(f(alse)?))\b").IsMatch(text):
                     return false;
                 default:
                     return null;
