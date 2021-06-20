@@ -200,5 +200,30 @@ namespace WOPR.Controllers.Popsim
 
 			return Ok();
 		}
+
+		public struct AlignmentSearchReturn
+		{
+			public string AlignmentId { get; set; }
+			public string AlignmentName { get; set; }
+		}
+
+		[HttpGet("search-alignment")]
+		public IActionResult SearchAlignment(string search)
+		{
+			var alignments = _context.Alignments.Where(a => a.AlignmentName.ToLower().Contains(search.ToLower())).ToList();
+
+			var returnList = new List<AlignmentSearchReturn>();
+
+			foreach(var a in alignments)
+			{
+				returnList.Add(new AlignmentSearchReturn
+				{
+					AlignmentId = a.AlignmentId,
+					AlignmentName = a.AlignmentName
+				});
+			}
+
+			return Ok(returnList);
+		}
 	}
 }

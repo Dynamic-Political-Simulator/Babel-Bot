@@ -59,7 +59,13 @@ namespace WOPR.Controllers.Spending
 
 			var alignment = _context.Alignments.SingleOrDefault(a => a.AlignmentId == form.AlignmentId);
 
-			alignment.Cliques.Add(clique);
+			var alignmentClique = new AlignmentClique
+			{
+				Alignment = alignment,
+				Clique = clique
+			};
+
+			alignment.Cliques.Add(alignmentClique);
 
 			_context.Alignments.Update(alignment);
 			_context.SaveChanges();
@@ -188,7 +194,6 @@ namespace WOPR.Controllers.Spending
 
 		public struct CreateCliqueForm
 		{
-			public string CharacterId { get; set; }
 			public string CliqueName { get; set; }
 			public List<string> AlignmentIds { get; set; }
 		}
@@ -204,6 +209,11 @@ namespace WOPR.Controllers.Spending
 			if (userId == null || discordUser == null)
 			{
 				return Unauthorized();
+			}
+
+			if (discordUser.ActiveCharacter == null)
+			{
+				return BadRequest();
 			}
 
 			var alignmentsToJoin = new List<Alignment>();
@@ -229,7 +239,7 @@ namespace WOPR.Controllers.Spending
 				Money = 0,
 				CliqueMembers = new List<BabelDatabase.CliqueMemberCharacter>(),
 				CliqueOfficers = new List<BabelDatabase.CliqueOfficerCharacter>(),
-				Alignments = new List<Alignment>()
+				Alignments = new List<AlignmentClique>()
 			};
 
 			newClique.CliqueMembers.Add(new CliqueMemberCharacter()

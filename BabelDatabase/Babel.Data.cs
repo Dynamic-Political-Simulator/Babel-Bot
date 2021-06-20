@@ -219,10 +219,10 @@ namespace BabelDatabase
 	public class AlignmentClique
 	{
 		public string AlignmentId { get; set; }
-		public Alignment Alignment { get; set; }
+		public virtual Alignment Alignment { get; set; }
 
 		public string CliqueId { get; set; }
-		public Clique Clique { get; set; }
+		public virtual Clique Clique { get; set; }
 	}
 
 	public class Alignment

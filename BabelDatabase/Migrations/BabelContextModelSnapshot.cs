@@ -19,21 +19,6 @@ namespace BabelDatabase.Migrations
                 .HasAnnotation("ProductVersion", "5.0.5")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("AlignmentClique", b =>
-                {
-                    b.Property<string>("AlignmentsAlignmentId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CliquesCliqueId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("AlignmentsAlignmentId", "CliquesCliqueId");
-
-                    b.HasIndex("CliquesCliqueId");
-
-                    b.ToTable("AlignmentClique");
-                });
-
             modelBuilder.Entity("BabelDatabase.Alignment", b =>
                 {
                     b.Property<string>("AlignmentId")
@@ -112,6 +97,21 @@ namespace BabelDatabase.Migrations
                             SecularismSpiritualism = 0,
                             SecurityFreedom = 6
                         });
+                });
+
+            modelBuilder.Entity("BabelDatabase.AlignmentClique", b =>
+                {
+                    b.Property<string>("CliqueId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AlignmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CliqueId", "AlignmentId");
+
+                    b.HasIndex("AlignmentId");
+
+                    b.ToTable("AlignmentCliques");
                 });
 
             modelBuilder.Entity("BabelDatabase.AlignmentSpending", b =>
@@ -322,7 +322,7 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("MemberId");
 
-                    b.ToTable("CliqueMemberCharacter");
+                    b.ToTable("CliqueMembers");
                 });
 
             modelBuilder.Entity("BabelDatabase.CliqueOfficerCharacter", b =>
@@ -337,7 +337,7 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("OfficerId");
 
-                    b.ToTable("CliqueOfficerCharacter");
+                    b.ToTable("CliqueOfficers");
                 });
 
             modelBuilder.Entity("BabelDatabase.Committee", b =>
@@ -1002,17 +1002,21 @@ namespace BabelDatabase.Migrations
 
             modelBuilder.Entity("AlignmentClique", b =>
                 {
-                    b.HasOne("BabelDatabase.Alignment", null)
-                        .WithMany()
-                        .HasForeignKey("AlignmentsAlignmentId")
+                    b.HasOne("BabelDatabase.Alignment", "Alignment")
+                        .WithMany("Cliques")
+                        .HasForeignKey("AlignmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BabelDatabase.Clique", null)
-                        .WithMany()
-                        .HasForeignKey("CliquesCliqueId")
+                    b.HasOne("BabelDatabase.Clique", "Clique")
+                        .WithMany("Alignments")
+                        .HasForeignKey("CliqueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Alignment");
+
+                    b.Navigation("Clique");
                 });
 
             modelBuilder.Entity("BabelDatabase.AlignmentSpending", b =>
@@ -1377,28 +1381,6 @@ namespace BabelDatabase.Migrations
                     b.Navigation("StaffAction");
                 });
 
-            modelBuilder.Entity("BabelDatabase.Starbase", b =>
-                {
-                    b.HasOne("BabelDatabase.Fleet", "StarbaseFleet")
-                        .WithOne()
-                        .HasForeignKey("BabelDatabase.Starbase", "FleetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StarbaseFleet");
-                });
-
-            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
-                {
-                    b.HasOne("BabelDatabase.VoteMessage", "VoteMessage")
-                        .WithMany("Votes")
-                        .HasForeignKey("VoteMessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("VoteMessage");
-                });
-
             modelBuilder.Entity("BabelDatabase.Character", b =>
                 {
                     b.Navigation("Cliques");
@@ -1406,6 +1388,8 @@ namespace BabelDatabase.Migrations
 
             modelBuilder.Entity("BabelDatabase.Clique", b =>
                 {
+                    b.Navigation("Alignments");
+
                     b.Navigation("CliqueMembers");
 
                     b.Navigation("CliqueOfficers");

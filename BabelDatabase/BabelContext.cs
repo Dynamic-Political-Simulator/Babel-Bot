@@ -218,14 +218,10 @@ namespace BabelDatabase
             modelBuilder.Entity<Committee>()
                 .HasMany(c => c.CommitteeMembers);
 
-            modelBuilder.Entity<Clique>()
-                .HasMany(c => c.Alignments)
-                .WithMany(a => a.Cliques);
-
-            modelBuilder.Entity<CliqueInvite>()
-                .HasOne(ci => ci.Clique)
-                .WithMany()
-                .HasForeignKey(ci => ci.CliqueId);
+			modelBuilder.Entity<CliqueInvite>()
+				.HasOne(ci => ci.Clique)
+				.WithMany()
+				.HasForeignKey(ci => ci.CliqueId);
 
             modelBuilder.Entity<AlignmentSpending>()
                 .HasOne(alsp => alsp.Clique)
