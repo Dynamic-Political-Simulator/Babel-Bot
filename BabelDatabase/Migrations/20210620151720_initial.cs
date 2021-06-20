@@ -115,24 +115,24 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AlignmentClique",
+                name: "AlignmentCliques",
                 columns: table => new
                 {
-                    AlignmentsAlignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CliquesCliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    AlignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AlignmentClique", x => new { x.AlignmentsAlignmentId, x.CliquesCliqueId });
+                    table.PrimaryKey("PK_AlignmentCliques", x => new { x.CliqueId, x.AlignmentId });
                     table.ForeignKey(
-                        name: "FK_AlignmentClique_Alignments_AlignmentsAlignmentId",
-                        column: x => x.AlignmentsAlignmentId,
+                        name: "FK_AlignmentCliques_Alignments_AlignmentId",
+                        column: x => x.AlignmentId,
                         principalTable: "Alignments",
                         principalColumn: "AlignmentId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AlignmentClique_Cliques_CliquesCliqueId",
-                        column: x => x.CliquesCliqueId,
+                        name: "FK_AlignmentCliques_Cliques_CliqueId",
+                        column: x => x.CliqueId,
                         principalTable: "Cliques",
                         principalColumn: "CliqueId",
                         onDelete: ReferentialAction.Cascade);
@@ -225,7 +225,7 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CliqueMemberCharacter",
+                name: "CliqueMembers",
                 columns: table => new
                 {
                     CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -233,9 +233,9 @@ namespace BabelDatabase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CliqueMemberCharacter", x => new { x.CliqueId, x.MemberId });
+                    table.PrimaryKey("PK_CliqueMembers", x => new { x.CliqueId, x.MemberId });
                     table.ForeignKey(
-                        name: "FK_CliqueMemberCharacter_Cliques_CliqueId",
+                        name: "FK_CliqueMembers_Cliques_CliqueId",
                         column: x => x.CliqueId,
                         principalTable: "Cliques",
                         principalColumn: "CliqueId",
@@ -243,7 +243,7 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CliqueOfficerCharacter",
+                name: "CliqueOfficers",
                 columns: table => new
                 {
                     CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -251,9 +251,9 @@ namespace BabelDatabase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CliqueOfficerCharacter", x => new { x.CliqueId, x.OfficerId });
+                    table.PrimaryKey("PK_CliqueOfficers", x => new { x.CliqueId, x.OfficerId });
                     table.ForeignKey(
-                        name: "FK_CliqueOfficerCharacter_Cliques_CliqueId",
+                        name: "FK_CliqueOfficers_Cliques_CliqueId",
                         column: x => x.CliqueId,
                         principalTable: "Cliques",
                         principalColumn: "CliqueId",
@@ -457,9 +457,9 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AlignmentClique_CliquesCliqueId",
-                table: "AlignmentClique",
-                column: "CliquesCliqueId");
+                name: "IX_AlignmentCliques_AlignmentId",
+                table: "AlignmentCliques",
+                column: "AlignmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AlignmentSpendings_AlignmentId",
@@ -512,13 +512,13 @@ namespace BabelDatabase.Migrations
                 column: "CliqueId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CliqueMemberCharacter_MemberId",
-                table: "CliqueMemberCharacter",
+                name: "IX_CliqueMembers_MemberId",
+                table: "CliqueMembers",
                 column: "MemberId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CliqueOfficerCharacter_OfficerId",
-                table: "CliqueOfficerCharacter",
+                name: "IX_CliqueOfficers_OfficerId",
+                table: "CliqueOfficers",
                 column: "OfficerId");
 
             migrationBuilder.CreateIndex(
@@ -583,16 +583,16 @@ namespace BabelDatabase.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CliqueMemberCharacter_Characters_MemberId",
-                table: "CliqueMemberCharacter",
+                name: "FK_CliqueMembers_Characters_MemberId",
+                table: "CliqueMembers",
                 column: "MemberId",
                 principalTable: "Characters",
                 principalColumn: "CharacterId",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CliqueOfficerCharacter_Characters_OfficerId",
-                table: "CliqueOfficerCharacter",
+                name: "FK_CliqueOfficers_Characters_OfficerId",
+                table: "CliqueOfficers",
                 column: "OfficerId",
                 principalTable: "Characters",
                 principalColumn: "CharacterId",
@@ -622,7 +622,7 @@ namespace BabelDatabase.Migrations
                 table: "DiscordUsers");
 
             migrationBuilder.DropTable(
-                name: "AlignmentClique");
+                name: "AlignmentCliques");
 
             migrationBuilder.DropTable(
                 name: "AlignmentSpendings");
@@ -631,10 +631,10 @@ namespace BabelDatabase.Migrations
                 name: "CliqueInvites");
 
             migrationBuilder.DropTable(
-                name: "CliqueMemberCharacter");
+                name: "CliqueMembers");
 
             migrationBuilder.DropTable(
-                name: "CliqueOfficerCharacter");
+                name: "CliqueOfficers");
 
             migrationBuilder.DropTable(
                 name: "CustomSpendings");

@@ -122,6 +122,54 @@ namespace WOPR.Controllers
 			return Ok(paginatedListings);
 		}
 
+		public struct SimpleCharacterSearchReturn
+		{
+			public string CharacterId { get; set; }
+			public string CharacterName { get; set; }
+		}
+
+		[HttpPost("search-for-clique")]
+		public IActionResult SearchCharactersClique(string search, string id = null)
+		{
+			var results = _context.Characters.Where(c => c.CauseOfDeath == null 
+												&& c.CharacterName.ToLower().Contains(search));
+
+			var returnList = new List<SimpleCharacterSearchReturn>();
+
+			if (id != null)
+			{
+				var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == id);
+
+				var members = clique.CliqueMembers.Select(cm => cm.MemberId);
+				var officers = clique.CliqueOfficers.Select(co => co.OfficerId);
+
+				foreach (var result in results)
+				{
+					if (!members.Contains(result.CharacterId) && !officers.Contains(result.CharacterId))
+					{
+						returnList.Add(new SimpleCharacterSearchReturn
+						{
+							CharacterId = result.CharacterId,
+							CharacterName = result.CharacterName
+						});
+					}
+				}
+			}
+			else
+			{
+				foreach (var result in results)
+				{
+					returnList.Add(new SimpleCharacterSearchReturn
+					{
+						CharacterId = result.CharacterId,
+						CharacterName = result.CharacterName
+					});
+				}
+			}
+
+			return Ok(returnList);
+		}
+
 		[HttpGet("my-characters")]
 		[Authorize(AuthenticationSchemes = "Discord")]
 		public IActionResult GetMyCharacters()
@@ -180,6 +228,13 @@ namespace WOPR.Controllers
 		{
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null)
+			{
+				return Unauthorized();
+			}
+
 			var hasActiveCharacter = _context.Characters.AsQueryable().Where(c => c.DiscordUserId == userId && c.YearOfDeath != 0).ToList();
 
 			if(hasActiveCharacter.Count > 0)
@@ -207,6 +262,9 @@ namespace WOPR.Controllers
 				YearOfBirth = yearOfBirth
 			};
 
+			discordUser.ActiveCharacter = newCharacter;
+
+			_context.Update(discordUser);
 			_context.Characters.Add(newCharacter);
 			_context.SaveChanges();
 
