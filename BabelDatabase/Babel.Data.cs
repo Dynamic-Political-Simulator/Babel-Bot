@@ -336,4 +336,18 @@ namespace BabelDatabase
         public int Vote { get; set; }
         public ulong UserId { get; set; }
     }
+
+    // Galactic Map ------------------------------------------
+    public class PlanetarySystem
+    {
+        [Key]
+        public string SystemId { get; set; } = Guid.NewGuid().ToString();
+
+        public float Lat { get; set; }
+        public float Lng { get; set; }
+        public string Colour { get; set; }
+
+        public string PopsimPlanetId { get; set; }
+        public virtual PopsimPlanet Planet { get; set; }
+    }
 }

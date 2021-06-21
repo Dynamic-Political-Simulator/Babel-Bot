@@ -328,6 +328,32 @@ namespace BabelDatabase.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+                {
+                    b.Property<string>("SystemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Colour")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Lat")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Lng")
+                        .HasColumnType("real");
+
+                    b.Property<string>("PopsimPlanetId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SystemId");
+
+                    b.HasIndex("PopsimPlanetId")
+                        .IsUnique()
+                        .HasFilter("[PopsimPlanetId] IS NOT NULL");
+
+                    b.ToTable("PlanetarySystems");
+                });
+
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
                 {
                     b.Property<string>("PlayerId")
@@ -394,7 +420,7 @@ namespace BabelDatabase.Migrations
 
                     b.HasKey("PopsimPlanetId");
 
-                    b.ToTable("PopsimPlanet");
+                    b.ToTable("PopsimPlanets");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimPlanetEthicGroup", b =>
@@ -726,6 +752,15 @@ namespace BabelDatabase.Migrations
                         .HasForeignKey("ActiveCharacterCharacterId");
 
                     b.Navigation("ActiveCharacter");
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+                {
+                    b.HasOne("BabelDatabase.PopsimPlanet", "Planet")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.PlanetarySystem", "PopsimPlanetId");
+
+                    b.Navigation("Planet");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>

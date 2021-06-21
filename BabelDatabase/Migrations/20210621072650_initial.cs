@@ -89,7 +89,7 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PopsimPlanet",
+                name: "PopsimPlanets",
                 columns: table => new
                 {
                     PopsimPlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -98,7 +98,7 @@ namespace BabelDatabase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PopsimPlanet", x => x.PopsimPlanetId);
+                    table.PrimaryKey("PK_PopsimPlanets", x => x.PopsimPlanetId);
                 });
 
             migrationBuilder.CreateTable(
@@ -155,6 +155,27 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PlanetarySystems",
+                columns: table => new
+                {
+                    SystemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Lat = table.Column<float>(type: "real", nullable: false),
+                    Lng = table.Column<float>(type: "real", nullable: false),
+                    Colour = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PopsimPlanetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlanetarySystems", x => x.SystemId);
+                    table.ForeignKey(
+                        name: "FK_PlanetarySystems_PopsimPlanets_PopsimPlanetId",
+                        column: x => x.PopsimPlanetId,
+                        principalTable: "PopsimPlanets",
+                        principalColumn: "PopsimPlanetId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PopsimPlanetEthicGroup",
                 columns: table => new
                 {
@@ -173,9 +194,9 @@ namespace BabelDatabase.Migrations
                         principalColumn: "PopsimGlobalEthicGroupId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_PopsimPlanetEthicGroup_PopsimPlanet_PopsimPlanetId",
+                        name: "FK_PopsimPlanetEthicGroup_PopsimPlanets_PopsimPlanetId",
                         column: x => x.PopsimPlanetId,
-                        principalTable: "PopsimPlanet",
+                        principalTable: "PopsimPlanets",
                         principalColumn: "PopsimPlanetId",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -564,6 +585,13 @@ namespace BabelDatabase.Migrations
                 column: "ActiveCharacterCharacterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlanetarySystems_PopsimPlanetId",
+                table: "PlanetarySystems",
+                column: "PopsimPlanetId",
+                unique: true,
+                filter: "[PopsimPlanetId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PopsimPlanetEthicGroup_PopsimGlobalEthicGroupId",
                 table: "PopsimPlanetEthicGroup",
                 column: "PopsimGlobalEthicGroupId");
@@ -675,6 +703,9 @@ namespace BabelDatabase.Migrations
                 name: "GameState");
 
             migrationBuilder.DropTable(
+                name: "PlanetarySystems");
+
+            migrationBuilder.DropTable(
                 name: "PlayerStaffAction");
 
             migrationBuilder.DropTable(
@@ -699,7 +730,7 @@ namespace BabelDatabase.Migrations
                 name: "PopsimGlobalEthicGroup");
 
             migrationBuilder.DropTable(
-                name: "PopsimPlanet");
+                name: "PopsimPlanets");
 
             migrationBuilder.DropTable(
                 name: "StaffActions");

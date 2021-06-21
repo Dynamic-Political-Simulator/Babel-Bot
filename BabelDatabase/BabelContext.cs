@@ -39,6 +39,8 @@ namespace BabelDatabase
         //public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
         public DbSet<VoteMessage> VoteMessages { get; set; }
         public DbSet<VoteEntry> VoteEntries { get; set; }
+        public DbSet<PopsimPlanet> PopsimPlanets { get; set; }
+        public DbSet<PlanetarySystem> PlanetarySystems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -194,6 +196,11 @@ namespace BabelDatabase
                 .HasOne(ve => ve.VoteMessage)
                 .WithMany(vm => vm.Votes)
                 .HasForeignKey(vm => vm.VoteMessageId);
+
+            modelBuilder.Entity<PlanetarySystem>()
+                .HasOne(ps => ps.Planet)
+                .WithOne()
+                .HasForeignKey<PlanetarySystem>(ps => ps.PopsimPlanetId);
         }
     }
 }
