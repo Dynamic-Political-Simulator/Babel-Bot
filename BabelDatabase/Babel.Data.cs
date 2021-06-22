@@ -318,7 +318,6 @@ namespace BabelDatabase
 		public InfraStructureData InfraStructureData { get; set; }
 		public Dictionary<string, float> GmData { get; set; } = new Dictionary<string, float>();
 		public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
-		public Military Military { get; set; }
 	}
 	//celestial objects-----------------------------------
 	public class GalacticObject
@@ -349,9 +348,7 @@ namespace BabelDatabase
 		public string PlanetName { get; set; }
 		public string PlanetDescription { get; set; }
 		public string PlanetClass { get; set; }
-		[Required]
 		public int Owner { get; set; }
-		[Required]
 		public int Controller { get; set; }
 		public List<Pop> Pops { get; set; }
 		public List<Building> Buildings { get; set; } 
