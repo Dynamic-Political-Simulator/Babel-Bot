@@ -38,6 +38,22 @@ namespace BabelDatabase
 		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
 		public DbSet<GameState> GameState { get; set; }
 
+		public DbSet<Empire> Empires { get; set; }
+		public DbSet<GalacticObject> GalacticObjects { get; set; }
+		public DbSet<Planet> Planets { get; set; }
+		public DbSet<District> Districts { get; set; }
+		public DbSet<Building> Buildings { get; set; }
+		public DbSet<Pop> Pops { get; set; }
+		public DbSet<Starbase> Starbases { get; set; }
+		public DbSet<Fleet> Fleets { get; set; }
+		public DbSet<Ship> Ships { get; set; }
+		public DbSet<Army> Armies { get; set; }
+		public DbSet<Party> Parties { get; set; }
+		public DbSet<Military> Militaries { get; set; }
+		public DbSet<InfrastructureData> InfrastructureData { get; set; }
+		public DbSet<Data> Data { get; set; }
+
+
 		//public DbSet<PopsimReport> PopsimReports { get; set; }
 
 		//public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
@@ -187,96 +203,210 @@ namespace BabelDatabase
 				.WithOne(ppeg => ppeg.PopsimGlobalEthicGroup)
 				.HasForeignKey(ppeg => ppeg.PopsimGlobalEthicGroupId);
 
-			modelBuilder.Entity<PopsimPlanetEthicGroup>()
-				.HasOne(ppeg => ppeg.PopsimPlanet)
-				.WithMany()
-				.HasForeignKey(ppeg => ppeg.PopsimPlanetId);
+			modelBuilder.Entity<GalacticObject>()
+				.HasMany(go => go.Planets)
+				.WithOne(p => p.GalacticObject)
+				.HasForeignKey(p => p.GalacticObjectId);
 
-			modelBuilder.Entity<InfraStructureData>()
+			modelBuilder.Entity<GalacticObject>()
+				.HasOne(go => go.Starbase)
+				.WithOne()
+				.HasForeignKey<GalacticObject>(go => go.StarbaseId);
+
+			modelBuilder.Entity<Planet>()
+				.HasOne(p => p.Owner)
+				.WithMany()
+				.HasForeignKey(p => p.OwnerId);
+
+			modelBuilder.Entity<Planet>()
+				.HasOne(p => p.Controller)
+				.WithMany()
+				.HasForeignKey(p => p.ControllerId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Pops)
+				.WithOne(p => p.Planet)
+				.HasForeignKey(p => p.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Buildings)
+				.WithOne(b => b.Planet)
+				.HasForeignKey(b => b.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Districts)
+				.WithOne(d => d.Planet)
+				.HasForeignKey(d => d.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.PlanetGroups)
+				.WithOne(ppeg => ppeg.Planet)
+				.HasForeignKey(ppeg => ppeg.PlanetId);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.GalacticObjects)
+				.WithOne();
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.Fleets)
+				.WithOne(f => f.Owner)
+				.HasForeignKey(f => f.OwnerID);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.Armies)
+				.WithOne(a => a.Owner)
+				.HasForeignKey(a => a.OwnerId);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.MiningStations)
+				.WithOne();
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.ResearchStations)
+				.WithOne();
+
+			modelBuilder.Entity<Fleet>()
+				.HasMany(f => f.Ships)
+				.WithOne(s => s.Fleet)
+				.HasForeignKey(s => s.FleetId);
+
+			modelBuilder.Entity<Fleet>()
+				.HasOne(f => f.System)
+				.WithMany()
+				.HasForeignKey(f => f.SystemId);
+
+			modelBuilder.Entity<Army>()
+				.HasOne(a => a.Planet)
+				.WithMany()
+				.HasForeignKey(a => a.PlanetId);
+
+			modelBuilder.Entity<Starbase>()
+				.HasOne(s => s.StarbaseFleet)
+				.WithOne()
+				.HasForeignKey<Starbase>(s => s.FleetId);
+
+
+			// -------
+
+			modelBuilder.Entity<InfrastructureData>()
 				.Property(b => b.Infrastructures)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, Infrastructure>>(v));
+
 			modelBuilder.Entity<Data>()
 				.Property(b => b.Stratas)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<List<Strata>>(v));
+
 			modelBuilder.Entity<Empire>()
 				.Property(b => b.NationalOutput)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, ulong>>(v));
+
 			modelBuilder.Entity<Empire>()
 				.Property(b => b.EconGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));
+
 			modelBuilder.Entity<Empire>()
 				.Property(b => b.PopsimGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>>(v));
+
 			modelBuilder.Entity<Empire>()
 				.Property(b => b.GeneralAssembly)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<Alignment, int>>(v));
+
 			modelBuilder.Entity<Planet>()
 				.Property(b => b.Output)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, ulong>>(v));
-			modelBuilder.Entity<Planet>()
-				.Property(b => b.PlanetGroups)
-				.HasConversion(
-					v => JsonConvert.SerializeObject(v),
-					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, float>>(v));
+
 			modelBuilder.Entity<Planet>()
 				.Property(b => b.EconGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));
+
 			modelBuilder.Entity<Planet>()
 				.Property(b => b.PopsimGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment,float>>>(v));
+
 			modelBuilder.Entity<Party>()
 				.Property(b => b.PopGroupEnlistment)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+
 			modelBuilder.Entity<Party>()
 				.Property(b => b.UpperPartyMembership)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+
 			modelBuilder.Entity<Party>()
 				.Property(b => b.LowerPartyMembership)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+
 			modelBuilder.Entity<Party>()
 				.Property(b => b.UpperPartyAffinity)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+
 			modelBuilder.Entity<Party>()
 				.Property(b => b.LowerPartyAffinity)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+
 			modelBuilder.Entity<Military>()
 				.Property(b => b.MilitaryGroups)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+
 			modelBuilder.Entity<Military>()
 				.Property(b => b.MilitaryFactions)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+
+			modelBuilder.Entity<GalacticObject>()
+				.Property(go => go.Hyperlanes)
+				.HasConversion(
+					h => JsonConvert.SerializeObject(h),
+					h => JsonConvert.DeserializeObject<Dictionary<string, float>>(h));
+
+			modelBuilder.Entity<Data>()
+				.Property(d => d.Stratas)
+				.HasConversion(
+					d => JsonConvert.SerializeObject(d),
+					d => JsonConvert.DeserializeObject<List<Strata>>(d));
+
+			modelBuilder.Entity<Starbase>()
+				.Property(s => s.Modules)
+				.HasConversion(
+					s => JsonConvert.SerializeObject(s),
+					s => JsonConvert.DeserializeObject<List<string>>(s));
+
+			modelBuilder.Entity<Starbase>()
+				.Property(s => s.Buildings)
+				.HasConversion(
+					b => JsonConvert.SerializeObject(b),
+					b => JsonConvert.DeserializeObject<List<string>>(b));
 		}
 	}
 }

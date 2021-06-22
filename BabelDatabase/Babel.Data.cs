@@ -293,11 +293,13 @@ namespace BabelDatabase
 
 		public long MembersOnPlanet { get; set; }
 
+		public float Percentage { get; set; }
+
 		public string PopsimGlobalEthicGroupId { get; set; }
 		public virtual PopsimGlobalEthicGroup PopsimGlobalEthicGroup { get; set; }
 
-		public string PopsimPlanetId { get; set; }
-		public virtual Planet PopsimPlanet { get; set; }
+		public string PlanetId { get; set; }
+		public virtual Planet Planet { get; set; }
 	}
 
 	// Simulation -------------------------------------------
@@ -309,17 +311,18 @@ namespace BabelDatabase
 		public string Name { get; set; }
 		[Required]
 		public int GameId { get; set; }
-		public List<GalacticObject> GalacticObjects { get; set; } = new List<GalacticObject>();
-		public List<Fleet> Fleets { get; set; } = new List<Fleet>();
-		public List<Army> Armies { get; set; } = new List<Army>();
-		public List<Fleet> MiningStations { get; set; } = new List<Fleet>();
-		public List<Fleet> ResearchStations { get; set; } = new List<Fleet>();
+		public virtual List<GalacticObject> GalacticObjects { get; set; } = new List<GalacticObject>();
+		public virtual List<Fleet> Fleets { get; set; } = new List<Fleet>();
+		public virtual List<Army> Armies { get; set; } = new List<Army>();
+		public virtual List<Fleet> MiningStations { get; set; } = new List<Fleet>();
+		public virtual List<Fleet> ResearchStations { get; set; } = new List<Fleet>();
+
 		public Dictionary<string, ulong> NationalOutput { get; set; } = new Dictionary<string, ulong>();
-		public InfraStructureData InfraStructureData { get; set; }
 		public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
 		public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
 		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
 	}
+
 	//celestial objects-----------------------------------
 	public class GalacticObject
 	{
@@ -328,36 +331,40 @@ namespace BabelDatabase
 		public float PosY { get; set; }
 		public string Type { get; set; }
 		public string Name { get; set; }
-		public List<Planet> Planets { get; set; } = new List<Planet>();
-		public List<Hyperlane> Hyperlanes { get; set; } = new List<Hyperlane>();
-		public Starbase Starbase { get; set; }
+		public virtual List<Planet> Planets { get; set; } = new List<Planet>();
+		public Dictionary<string, float> Hyperlanes { get; set; }
+		//public List<Hyperlane> Hyperlanes { get; set; } = new List<Hyperlane>();
+
+		public string StarbaseId { get; set; }
+		public virtual Starbase Starbase { get; set; }
 	}
-	public class Hyperlane
-    {
-		[Key]
-		public string HyperlaneId { get; set; } = Guid.NewGuid().ToString();
-		public string TargetId { get; set; }
-		public float Distance { get; set; }
-    }
+
 	public class Planet
 	{
 		[Key]
 		public string PlanetId { get; set; } = Guid.NewGuid().ToString();
-		[Required]
-		public virtual string GalacticObjectId { get; set; }
-		public virtual GalacticObject GalacticObject { get; set; }
+
 		public string PlanetName { get; set; }
 		public string PlanetDescription { get; set; }
 		public string PlanetClass { get; set; }
-		public string OwnerId { get; set; }
-		public string ControllerId { get; set; }
-		public List<Pop> Pops { get; set; }
-		public List<Building> Buildings { get; set; } 
-		public List<District> Districts { get; set; }
 		public ulong Population { get; set; }
+
+		public string OwnerId { get; set; }
+		public virtual Empire Owner { get; set; }
+
+		public string ControllerId { get; set; }
+		public virtual Empire Controller { get; set; }
+
+		[Required]
+		public virtual string GalacticObjectId { get; set; }
+		public virtual GalacticObject GalacticObject { get; set; }
+		
+		public virtual List<Pop> Pops { get; set; }
+		public virtual List<Building> Buildings { get; set; } 
+		public virtual List<District> Districts { get; set; }
+		public virtual List<PopsimPlanetEthicGroup> PlanetGroups { get; set; } = new List<PopsimPlanetEthicGroup>();
+
 		public Dictionary<string, ulong> Output { get; set; } = new Dictionary<string, ulong>();
-		public Data Data { get; set; }
-		public Dictionary<PopsimPlanetEthicGroup, float> PlanetGroups { get; set; } = new Dictionary<PopsimPlanetEthicGroup, float>();
 		public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
 		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
 	}
@@ -402,11 +409,11 @@ namespace BabelDatabase
 		public string StarbaseId { get; set; } = Guid.NewGuid().ToString();
 		public string Owner { get; set; }
 		public string Level { get; set; }
-		public List<string> Modules { get; set; }
-		public List<string> Buildings { get; set; }
+		public virtual List<string> Modules { get; set; }
+		public virtual List<string> Buildings { get; set; }
 		[Required]
 		public string FleetId { get; set; }
-		public Fleet Starbasefleet { get; set; }
+		public virtual Fleet StarbaseFleet { get; set; }
     }
 	public class Fleet
     {
@@ -415,12 +422,12 @@ namespace BabelDatabase
 		public string Name { get; set; }
 		[Required]
 		public string OwnerID { get; set; }
-		public Empire Owner { get; set; }
+		public virtual Empire Owner { get; set; }
 		public double MilitaryPower { get; set; }
 		[Required]
 		public string SystemId { get; set; }
-		public GalacticObject System { get; set; }
-		public List<Ship> Ships { get; set; } = new List<Ship>();
+		public virtual GalacticObject System { get; set; }
+		public virtual List<Ship> Ships { get; set; } = new List<Ship>();
     }
 	public class Ship
     {
@@ -428,7 +435,7 @@ namespace BabelDatabase
 		public string ShipId { get; set; } = Guid.NewGuid().ToString();
 		[Required]
 		public string FleetId { get; set; }
-		public Fleet Fleet { get; set; }
+		public virtual Fleet Fleet { get; set; }
 		public string ShipName { get; set; }
 		public string Type { get; set; }
     }
@@ -440,9 +447,9 @@ namespace BabelDatabase
 		public string Type { get; set; }
 		[Required]
 		public string OwnerId { get; set; }
-		public Empire Owner { get; set; }
+		public virtual Empire Owner { get; set; }
 		public string PlanetId { get; set; }
-		public Planet Planet { get; set; }
+		public virtual Planet Planet { get; set; }
     }
 	//Popsim exclusive entities-----------------------------------------
 	public class Party
@@ -466,10 +473,10 @@ namespace BabelDatabase
 		public Dictionary<Alignment, float> MilitaryFactions { get; set; }
 	}
 	//Data-------------------------------------------------------
-	public class InfraStructureData
+	public class InfrastructureData
     {
 		[Key]
-		public string InfraStructureDataId = Guid.NewGuid().ToString();
+		public string InfraStructureDataId { get; set; }  = Guid.NewGuid().ToString();
 		public ulong GdpPerInfrastructure { get; set; }
 		public Dictionary<string, Infrastructure> Infrastructures { get; set; } = new Dictionary<string, Infrastructure>();
 	}
@@ -477,8 +484,8 @@ namespace BabelDatabase
 	public class Data
     {
 		[Key]
-		public string DataId = Guid.NewGuid().ToString();
-		public List<Strata> Stratas = new List<Strata>();
-		public int BaseGdpPerPop;
+		public string DataId { get; set; } =  Guid.NewGuid().ToString();
+		public List<Strata> Stratas { get; set; } = new List<Strata>();
+		public int BaseGdpPerPop { get; set; }
     }
 }
