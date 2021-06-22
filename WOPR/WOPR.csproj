@@ -30,4 +30,10 @@
     <ProjectReference Include="..\BabelDatabase\BabelDatabase.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="DPSSimulation">
+      <HintPath>..\BabelDatabase\library\DPSSimulation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
