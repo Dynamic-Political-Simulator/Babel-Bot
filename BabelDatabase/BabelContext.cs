@@ -223,10 +223,15 @@ namespace BabelDatabase
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, ulong>>(v));
 			modelBuilder.Entity<Empire>()
-				.Property(b => b.GmData)
+				.Property(b => b.EconGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));
+			modelBuilder.Entity<Empire>()
+				.Property(b => b.PopsimGmData)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>>(v));
 			modelBuilder.Entity<Empire>()
 				.Property(b => b.GeneralAssembly)
 				.HasConversion(
@@ -243,7 +248,7 @@ namespace BabelDatabase
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, float>>(v));
 			modelBuilder.Entity<Planet>()
-				.Property(b => b.GmData)
+				.Property(b => b.EconGmData)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),
 					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));

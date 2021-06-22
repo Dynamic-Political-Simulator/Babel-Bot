@@ -353,8 +353,9 @@ namespace BabelDatabase
 		public List<Fleet> ResearchStations { get; set; } = new List<Fleet>();
 		public Dictionary<string, ulong> NationalOutput { get; set; } = new Dictionary<string, ulong>();
 		public InfraStructureData InfraStructureData { get; set; }
-		public Dictionary<string, float> GmData { get; set; } = new Dictionary<string, float>();
+		public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
 		public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
+		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
 	}
 	//celestial objects-----------------------------------
 	public class GalacticObject
@@ -385,8 +386,8 @@ namespace BabelDatabase
 		public string PlanetName { get; set; }
 		public string PlanetDescription { get; set; }
 		public string PlanetClass { get; set; }
-		public int Owner { get; set; }
-		public int Controller { get; set; }
+		public string OwnerId { get; set; }
+		public string ControllerId { get; set; }
 		public List<Pop> Pops { get; set; }
 		public List<Building> Buildings { get; set; } 
 		public List<District> Districts { get; set; }
@@ -394,8 +395,8 @@ namespace BabelDatabase
 		public Dictionary<string, ulong> Output { get; set; } = new Dictionary<string, ulong>();
 		public Data Data { get; set; }
 		public Dictionary<PopsimPlanetEthicGroup, float> PlanetGroups { get; set; } = new Dictionary<PopsimPlanetEthicGroup, float>();
-		public Dictionary<string, float> GmData { get; set; } = new Dictionary<string, float>();
-		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
+		public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
+		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
 	}
 	
 	public class District
