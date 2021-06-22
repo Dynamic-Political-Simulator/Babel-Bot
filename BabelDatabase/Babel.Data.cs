@@ -4,6 +4,10 @@ using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.ComponentModel.DataAnnotations.Schema;
+using DPSSimulation.Classes;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace BabelDatabase
 {
@@ -280,14 +284,7 @@ namespace BabelDatabase
 	}
 
 	// Planets ------------------------------------------
-	public class PopsimPlanet
-	{
-		[Key]
-		public string PopsimPlanetId { get; set; } = Guid.NewGuid().ToString();
-
-		public string PlanetName { get; set; }
-		public string PlanetDescription { get; set; }
-	}
+	
 
 	public class PopsimPlanetEthicGroup
 	{
@@ -300,7 +297,190 @@ namespace BabelDatabase
 		public virtual PopsimGlobalEthicGroup PopsimGlobalEthicGroup { get; set; }
 
 		public string PopsimPlanetId { get; set; }
-		public virtual PopsimPlanet PopsimPlanet { get; set; }
+		public virtual Planet PopsimPlanet { get; set; }
 	}
 
+	// Simulation -------------------------------------------
+	public class Empire
+	{
+		[Key]
+		public string EmpireId { get; set; } = Guid.NewGuid().ToString();
+		[Required]
+		public string Name { get; set; }
+		[Required]
+		public int GameId { get; set; }
+		public List<GalacticObject> GalacticObjects { get; set; } = new List<GalacticObject>();
+		public List<Fleet> Fleets { get; set; } = new List<Fleet>();
+		public List<Army> Armies { get; set; } = new List<Army>();
+		public List<Fleet> MiningStations { get; set; } = new List<Fleet>();
+		public List<Fleet> ResearchStations { get; set; } = new List<Fleet>();
+		public Dictionary<string, ulong> NationalOutput { get; set; } = new Dictionary<string, ulong>();
+		public InfraStructureData InfraStructureData { get; set; }
+		public Dictionary<string, float> GmData { get; set; } = new Dictionary<string, float>();
+		public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
+		public Military Military { get; set; }
+	}
+	//celestial objects-----------------------------------
+	public class GalacticObject
+	{
+		public string GalacticObjectId { get; set; } = Guid.NewGuid().ToString();
+		public float PosX { get; set; }
+		public float PosY { get; set; }
+		public string Type { get; set; }
+		public string Name { get; set; }
+		public List<Planet> Planets { get; set; } = new List<Planet>();
+		public List<Hyperlane> Hyperlanes { get; set; } = new List<Hyperlane>();
+		public Starbase Starbase { get; set; }
+	}
+	public class Hyperlane
+    {
+		[Key]
+		public string HyperlaneId { get; set; } = Guid.NewGuid().ToString();
+		public string TargetId { get; set; }
+		public float Distance { get; set; }
+    }
+	public class Planet
+	{
+		[Key]
+		public string PlanetId { get; set; } = Guid.NewGuid().ToString();
+		[Required]
+		public virtual string GalacticObjectId { get; set; }
+		public virtual GalacticObject GalacticObject { get; set; }
+		public string PlanetName { get; set; }
+		public string PlanetDescription { get; set; }
+		public string PlanetClass { get; set; }
+		[Required]
+		public int Owner { get; set; }
+		[Required]
+		public int Controller { get; set; }
+		public List<Pop> Pops { get; set; }
+		public List<Building> Buildings { get; set; } 
+		public List<District> Districts { get; set; }
+		public ulong Population { get; set; }
+		public Dictionary<string, ulong> Output { get; set; } = new Dictionary<string, ulong>();
+		public Data Data { get; set; }
+		public Dictionary<PopsimPlanetEthicGroup, float> PlanetGroups { get; set; } = new Dictionary<PopsimPlanetEthicGroup, float>();
+		public Dictionary<string, float> GmData { get; set; } = new Dictionary<string, float>();
+		public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
+	}
+	
+	public class District
+    {
+		[Key]
+		public string DistrictId { get; set; } = Guid.NewGuid().ToString();
+		public string Type { get; set; }
+		[Required]
+		public virtual string PlanetId { get; set; }
+		public virtual Planet Planet { get; set; }
+	}
+	public class Building
+    {
+		[Key]
+		public string BuildingId { get; set; } = Guid.NewGuid().ToString();
+		public string Type { get; set; }
+		public bool Ruined { get; set; }
+		[Required]
+		public virtual string PlanetId { get; set; }
+		public virtual Planet Planet { get; set; }
+    }
+
+	public class Pop
+    {
+		public string PopId { get; set; } = Guid.NewGuid().ToString();
+		[Required]
+		public virtual string PlanetId { get; set; }
+		public virtual Planet Planet { get; set; }
+
+		public string Job { get; set; }
+		public string Strata { get; set; }
+		public float Power { get; set; }
+		public float Happiness { get; set; }
+
+	}
+	//military stuff -----------------------------------------------------------
+	public class Starbase
+    {
+		[Key]
+		public string StarbaseId { get; set; } = Guid.NewGuid().ToString();
+		public string Owner { get; set; }
+		public string Level { get; set; }
+		public List<string> Modules { get; set; }
+		public List<string> Buildings { get; set; }
+		[Required]
+		public string FleetId { get; set; }
+		public Fleet Starbasefleet { get; set; }
+    }
+	public class Fleet
+    {
+		[Key]
+		public string FleetId { get; set; } = Guid.NewGuid().ToString();
+		public string Name { get; set; }
+		[Required]
+		public string OwnerID { get; set; }
+		public Empire Owner { get; set; }
+		public double MilitaryPower { get; set; }
+		[Required]
+		public string SystemId { get; set; }
+		public GalacticObject System { get; set; }
+		public List<Ship> Ships { get; set; } = new List<Ship>();
+    }
+	public class Ship
+    {
+		[Key]
+		public string ShipId { get; set; } = Guid.NewGuid().ToString();
+		[Required]
+		public string FleetId { get; set; }
+		public Fleet Fleet { get; set; }
+		public string ShipName { get; set; }
+		public string Type { get; set; }
+    }
+	public class Army
+    {
+		[Key]
+		public string ArmyId { get; set; } = Guid.NewGuid().ToString();
+		public string Name { get; set; }
+		public string Type { get; set; }
+		[Required]
+		public string OwnerId { get; set; }
+		public Empire Owner { get; set; }
+		public string PlanetId { get; set; }
+		public Planet Planet { get; set; }
+    }
+	//Popsim exclusive entities-----------------------------------------
+	public class Party
+    {
+		[Key]
+		public string PartyId { get; set; } = Guid.NewGuid().ToString();
+		public Dictionary<PopsimGlobalEthicGroup, float> PopGroupEnlistment { get; set; } = new Dictionary<PopsimGlobalEthicGroup, float>();
+		public Dictionary<PopsimGlobalEthicGroup, float> UpperPartyMembership { get; set; } = new Dictionary<PopsimGlobalEthicGroup, float>();
+		public Dictionary<PopsimGlobalEthicGroup, float> LowerPartyMembership { get; set; } = new Dictionary<PopsimGlobalEthicGroup, float>();
+		public Dictionary<Alignment, float> UpperPartyAffinity { get; set; } = new Dictionary<Alignment, float>();
+		public Dictionary<Alignment, float> LowerPartyAffinity { get; set; } = new Dictionary<Alignment, float>();
+		public float UpperPartyPercentage { get; set; }
+	}
+
+	public class Military
+    {
+		[Key]
+		public string RevolutionaryGuardId { get; set; } = Guid.NewGuid().ToString();
+		public float MilitaryPoliticisation { get; set; }
+		public Dictionary<PopsimGlobalEthicGroup, float> MilitaryGroups { get; set; }
+		public Dictionary<Alignment, float> MilitaryFactions { get; set; }
+	}
+	//Data-------------------------------------------------------
+	public class InfraStructureData
+    {
+		[Key]
+		public string InfraStructureDataId = Guid.NewGuid().ToString();
+		public ulong GdpPerInfrastructure { get; set; }
+		public Dictionary<string, Infrastructure> Infrastructures { get; set; } = new Dictionary<string, Infrastructure>();
+	}
+
+	public class Data
+    {
+		[Key]
+		public string DataId = Guid.NewGuid().ToString();
+		public List<Strata> Stratas = new List<Strata>();
+		public int BaseGdpPerPop;
+    }
 }

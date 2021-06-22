@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+using DPSSimulation.Classes;
 
 namespace BabelDatabase
 {
@@ -187,6 +191,87 @@ namespace BabelDatabase
 				.HasOne(ppeg => ppeg.PopsimPlanet)
 				.WithMany()
 				.HasForeignKey(ppeg => ppeg.PopsimPlanetId);
+
+			modelBuilder.Entity<InfraStructureData>()
+				.Property(b => b.Infrastructures)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<string, Infrastructure>>(v));
+			modelBuilder.Entity<Data>()
+				.Property(b => b.Stratas)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<List<Strata>>(v));
+			modelBuilder.Entity<Empire>()
+				.Property(b => b.NationalOutput)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<string, ulong>>(v));
+			modelBuilder.Entity<Empire>()
+				.Property(b => b.GmData)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));
+			modelBuilder.Entity<Empire>()
+				.Property(b => b.GeneralAssembly)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<Alignment, int>>(v));
+			modelBuilder.Entity<Planet>()
+				.Property(b => b.Output)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<string, ulong>>(v));
+			modelBuilder.Entity<Planet>()
+				.Property(b => b.PlanetGroups)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, float>>(v));
+			modelBuilder.Entity<Planet>()
+				.Property(b => b.GmData)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<string, float>>(v));
+			modelBuilder.Entity<Planet>()
+				.Property(b => b.PopsimGmData)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment,float>>>(v));
+			modelBuilder.Entity<Party>()
+				.Property(b => b.PopGroupEnlistment)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+			modelBuilder.Entity<Party>()
+				.Property(b => b.UpperPartyMembership)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+			modelBuilder.Entity<Party>()
+				.Property(b => b.LowerPartyMembership)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+			modelBuilder.Entity<Party>()
+				.Property(b => b.UpperPartyAffinity)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+			modelBuilder.Entity<Party>()
+				.Property(b => b.LowerPartyAffinity)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+			modelBuilder.Entity<Military>()
+				.Property(b => b.MilitaryGroups)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
+			modelBuilder.Entity<Military>()
+				.Property(b => b.MilitaryFactions)
+				.HasConversion(
+					v => JsonConvert.SerializeObject(v),
+					v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
 		}
 	}
 }
