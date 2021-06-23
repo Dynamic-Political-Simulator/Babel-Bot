@@ -342,11 +342,9 @@ namespace BabelDatabase
 	public class Empire
 	{
 		[Key]
-		public string EmpireId { get; set; } = Guid.NewGuid().ToString();
+		public int EmpireId { get; set; }
 		[Required]
 		public string Name { get; set; }
-		[Required]
-		public int GameId { get; set; }
 		public virtual List<GalacticObject> GalacticObjects { get; set; } = new List<GalacticObject>();
 		public virtual List<Fleet> Fleets { get; set; } = new List<Fleet>();
 		public virtual List<Army> Armies { get; set; } = new List<Army>();
@@ -362,37 +360,36 @@ namespace BabelDatabase
 	//celestial objects-----------------------------------
 	public class GalacticObject
 	{
-		public string GalacticObjectId { get; set; } = Guid.NewGuid().ToString();
+		public int GalacticObjectId { get; set; } 
 		public float PosX { get; set; }
 		public float PosY { get; set; }
 		public string Type { get; set; }
 		public string Name { get; set; }
 		public virtual List<Planet> Planets { get; set; } = new List<Planet>();
-		public Dictionary<string, float> Hyperlanes { get; set; }
+		public Dictionary<int, float> Hyperlanes { get; set; }
 		//public List<Hyperlane> Hyperlanes { get; set; } = new List<Hyperlane>();
 
-		public string StarbaseId { get; set; }
+		public int StarbaseId { get; set; }
 		public virtual Starbase Starbase { get; set; }
 	}
 
 	public class Planet
 	{
 		[Key]
-		public string PlanetId { get; set; } = Guid.NewGuid().ToString();
-
+		public int PlanetId { get; set; }
 		public string PlanetName { get; set; }
 		public string PlanetDescription { get; set; }
 		public string PlanetClass { get; set; }
 		public ulong Population { get; set; }
 
-		public string OwnerId { get; set; }
+		public int OwnerId { get; set; }
 		public virtual Empire Owner { get; set; }
 
-		public string ControllerId { get; set; }
+		public int ControllerId { get; set; }
 		public virtual Empire Controller { get; set; }
 
 		[Required]
-		public virtual string GalacticObjectId { get; set; }
+		public virtual int GalacticObjectId { get; set; }
 		public virtual GalacticObject GalacticObject { get; set; }
 		
 		public virtual List<Pop> Pops { get; set; }
@@ -408,28 +405,29 @@ namespace BabelDatabase
 	public class District
     {
 		[Key]
-		public string DistrictId { get; set; } = Guid.NewGuid().ToString();
+		public int DistrictId { get; set; }
 		public string Type { get; set; }
 		[Required]
-		public virtual string PlanetId { get; set; }
+		public virtual int PlanetId { get; set; }
 		public virtual Planet Planet { get; set; }
 	}
 	public class Building
     {
 		[Key]
-		public string BuildingId { get; set; } = Guid.NewGuid().ToString();
+		public int BuildingId { get; set; }
 		public string Type { get; set; }
 		public bool Ruined { get; set; }
 		[Required]
-		public virtual string PlanetId { get; set; }
+		public virtual int PlanetId { get; set; }
 		public virtual Planet Planet { get; set; }
     }
 
 	public class Pop
     {
-		public string PopId { get; set; } = Guid.NewGuid().ToString();
+		[Key]
+		public int PopId { get; set; }
 		[Required]
-		public virtual string PlanetId { get; set; }
+		public virtual int PlanetId { get; set; }
 		public virtual Planet Planet { get; set; }
 
 		public string Job { get; set; }
@@ -442,35 +440,35 @@ namespace BabelDatabase
 	public class Starbase
     {
 		[Key]
-		public string StarbaseId { get; set; } = Guid.NewGuid().ToString();
-		public string Owner { get; set; }
+		public int StarbaseId { get; set; }
+		public int Owner { get; set; }
 		public string Level { get; set; }
 		public virtual List<string> Modules { get; set; }
 		public virtual List<string> Buildings { get; set; }
 		[Required]
-		public string FleetId { get; set; }
+		public int FleetId { get; set; }
 		public virtual Fleet StarbaseFleet { get; set; }
     }
 	public class Fleet
     {
 		[Key]
-		public string FleetId { get; set; } = Guid.NewGuid().ToString();
+		public int FleetId { get; set; } 
 		public string Name { get; set; }
 		[Required]
-		public string OwnerID { get; set; }
+		public int OwnerID { get; set; }
 		public virtual Empire Owner { get; set; }
 		public double MilitaryPower { get; set; }
 		[Required]
-		public string SystemId { get; set; }
+		public int SystemId { get; set; }
 		public virtual GalacticObject System { get; set; }
 		public virtual List<Ship> Ships { get; set; } = new List<Ship>();
     }
 	public class Ship
     {
 		[Key]
-		public string ShipId { get; set; } = Guid.NewGuid().ToString();
+		public int ShipId { get; set; }
 		[Required]
-		public string FleetId { get; set; }
+		public int FleetId { get; set; }
 		public virtual Fleet Fleet { get; set; }
 		public string ShipName { get; set; }
 		public string Type { get; set; }
@@ -478,13 +476,13 @@ namespace BabelDatabase
 	public class Army
     {
 		[Key]
-		public string ArmyId { get; set; } = Guid.NewGuid().ToString();
+		public int ArmyId { get; set; }
 		public string Name { get; set; }
 		public string Type { get; set; }
 		[Required]
-		public string OwnerId { get; set; }
+		public int OwnerId { get; set; }
 		public virtual Empire Owner { get; set; }
-		public string PlanetId { get; set; }
+		public int PlanetId { get; set; }
 		public virtual Planet Planet { get; set; }
     }
 	//Popsim exclusive entities-----------------------------------------

@@ -403,7 +403,7 @@ namespace BabelDatabase
 				.Property(go => go.Hyperlanes)
 				.HasConversion(
 					h => JsonConvert.SerializeObject(h),
-					h => JsonConvert.DeserializeObject<Dictionary<string, float>>(h));
+					h => JsonConvert.DeserializeObject<Dictionary<int, float>>(h));
 
 			modelBuilder.Entity<Data>()
 				.Property(d => d.Stratas)
