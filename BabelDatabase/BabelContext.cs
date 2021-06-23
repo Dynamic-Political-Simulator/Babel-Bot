@@ -33,6 +33,7 @@ namespace BabelDatabase
         public DbSet<StaffAction> StaffActions { get; set; }
         public DbSet<StaffActionPost> StaffActionPosts { get; set; }
         public DbSet<GameState> GameState { get; set; }
+        public DbSet<CharacterDeathTimer> CharacterDeathTimers { get; set; }
 
         //public DbSet<PopsimReport> PopsimReports { get; set; }
 
