@@ -124,5 +124,72 @@ namespace BabelBot.Modules
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
+
+		[Command("create character")]
+		[RequireProfile]
+		public async Task CreateCharacter(string name)
+		{
+			var userId = Context.Message.Author.Id.ToString();
+
+			var hasActiveCharacter = _context.Characters.AsQueryable().Where(c => c.DiscordUserId == userId && c.YearOfDeath != 0).ToList();
+
+			if (hasActiveCharacter.Count > 0)
+			{
+				await ReplyAsync("You still have a living character, can't creare a new one.");
+				return;
+			}
+
+			if (name.Length < 3)
+			{
+				await ReplyAsync("Name must be at least 3 characters long.");
+				return;
+			}
+
+			if (name.Length > 64)
+			{
+				await ReplyAsync("Name has a maximum length of 64 characters.");
+				return;
+			}
+
+			var currentYear = _context.GameState.First().CurrentYear;
+
+			var rand = new Random();
+
+			var age = rand.Next(18, 26);
+
+			var yearOfBirth = currentYear - age;
+
+			var human = _context.Species.AsQueryable().First(s => s.SpeciesName == "Human");
+
+			var newCharacter = new BabelDatabase.Character()
+			{
+				CharacterName = name,
+				DiscordUserId = userId,
+				SpeciesId = human.SpeciesId,
+				CharacterBio = "",
+				YearOfBirth = yearOfBirth
+			};
+
+			_context.Characters.Add(newCharacter);
+			_context.SaveChanges();
+
+			await ReplyAsync("Character created.");
+		}
+
+		[Command("bio")]
+		[RequireLivingActiveCharacter]
+		public async Task SetBio(string bio)
+		{
+			var activeCharacter =
+				_context.Characters
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == 0);
+
+			activeCharacter.CharacterBio = bio;
+
+			_context.Characters.Update(activeCharacter);
+			await _context.SaveChangesAsync();
+
+			await ReplyAsync("Bio set.");
+		}
 	}
 }
