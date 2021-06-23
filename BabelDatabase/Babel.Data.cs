@@ -54,6 +54,13 @@ namespace BabelDatabase
 		public DateTime DeathTime { get; set; }
 	}
 
+    public class Graveyard
+    {
+        [Key]
+        public string ChannelId { get; set; }
+        public string ServerId { get; set; }
+    }
+
     public class DiscordUser
     {
         [Key]

@@ -29,6 +29,7 @@ namespace BabelDatabase
 		public DbSet<CliqueInvite> CliqueInvites { get; set; }
 		public DbSet<CustomSpending> CustomSpendings { get; set; }
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
+        public DbSet<Graveyard> Graveyards { get; set; }
 		public DbSet<Species> Species { get; set; }
 		public DbSet<StaffAction> StaffActions { get; set; }
 		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
