@@ -188,7 +188,7 @@ namespace WOPR.Controllers
 			}
 
 			//var currentYear = _context.Year.FirstOrDefault();
-			var currentYear = 2400;
+			var currentYear = _context.GameState.First().CurrentYear;
 
 			var rand = new Random();
 
