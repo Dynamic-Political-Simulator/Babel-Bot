@@ -223,16 +223,18 @@ namespace BabelDatabase
 
         public virtual List<Clique> Cliques { get; set; }
 
-        public int FederalismCentralism { get; set; }
-        public int DemocracyAuthority { get; set; }
-        public int GlobalismIsolationism { get; set; }
-        public int MilitarismPacifism { get; set; }
-        public int SecurityFreedom { get; set; }
-        public int CooperationCompetition { get; set; }
-        public int SecularismSpiritualism { get; set; }
-        public int ProgressivismTraditionalism { get; set; }
-        public int MonoculturalismMulticulturalism { get; set; }
-    }
+		public float Establishment { get; set; }
+
+		public int FederalismCentralism { get; set; }
+		public int DemocracyAuthority { get; set; }
+		public int GlobalismIsolationism { get; set; }
+		public int MilitarismPacifism { get; set; }
+		public int SecurityFreedom { get; set; }
+		public int CooperationCompetition { get; set; }
+		public int SecularismSpiritualism { get; set; }
+		public int ProgressivismTraditionalism { get; set; }
+		public int MonoculturalismMulticulturalism { get; set; }
+	}
 
     public class CustomSpending
     {
@@ -295,9 +297,13 @@ namespace BabelDatabase
         [Key]
         public string PopsimGlobalEthicGroupId { get; set; } = Guid.NewGuid().ToString();
 
-        public string PopsimGlobalEthicGroupName { get; set; }
+		public string PopsimGlobalEthicGroupName { get; set; }
+		
+		public int PartyInvolvementFactor { get; set; }
+		public float Radicalisation { get; set; }
 
-        public virtual List<PopsimPlanetEthicGroup> PlanetaryEthicGroups { get; set; }
+
+		public virtual List<PopsimPlanetEthicGroup> PlanetaryEthicGroups { get; set; }
 
         public int FederalismCentralism { get; set; }
         public int DemocracyAuthority { get; set; }
