@@ -200,6 +200,8 @@ namespace BabelDatabase
 
 		public virtual List<Clique> Cliques { get; set; }
 
+		public float Establishment { get; set; }
+
 		public int FederalismCentralism { get; set; }
 		public int DemocracyAuthority { get; set; }
 		public int GlobalismIsolationism { get; set; }
@@ -274,6 +276,10 @@ namespace BabelDatabase
 
 		public string PopsimGlobalEthicGroupName { get; set; }
 		
+		public int PartyInvolvementFactor { get; set; }
+		public float Radicalisation { get; set; }
+
+
 		public virtual List<PopsimPlanetEthicGroup> PlanetaryEthicGroups { get; set; }
 
 		public int FederalismCentralism { get; set; }

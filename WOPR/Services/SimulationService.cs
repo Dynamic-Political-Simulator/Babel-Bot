@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DPSSimulation.Classes;
 using System.IO;
 using System.Xml;
+using WOPR.Services;
 
 namespace WOPR.Services
 {
