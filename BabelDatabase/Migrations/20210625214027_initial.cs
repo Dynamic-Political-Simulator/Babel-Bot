@@ -70,6 +70,20 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DiscordUsers",
+                columns: table => new
+                {
+                    DiscordUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    ActiveCharacterId = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DiscordUsers", x => x.DiscordUserId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Empires",
                 columns: table => new
                 {
@@ -234,169 +248,22 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "VoteEntries",
+                name: "StaffActions",
                 columns: table => new
                 {
-                    VoteEntryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    VoteMessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    Vote = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                    StaffActionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TimeStarted = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VoteEntries", x => x.VoteEntryId);
+                    table.PrimaryKey("PK_StaffActions", x => x.StaffActionId);
                     table.ForeignKey(
-                        name: "FK_VoteEntries_VoteMessages_VoteMessageId",
-                        column: x => x.VoteMessageId,
-                        principalTable: "VoteMessages",
-                        principalColumn: "MessageId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AlignmentSpendings",
-                columns: table => new
-                {
-                    AlignmentSpendingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AlignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PlanetTargetId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    GlobalTargetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AlignmentSpendings", x => x.AlignmentSpendingId);
-                    table.ForeignKey(
-                        name: "FK_AlignmentSpendings_Alignments_AlignmentId",
-                        column: x => x.AlignmentId,
-                        principalTable: "Alignments",
-                        principalColumn: "AlignmentId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AlignmentSpendings_Cliques_CliqueId",
-                        column: x => x.CliqueId,
-                        principalTable: "Cliques",
-                        principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AlignmentSpendings_PopsimGlobalEthicGroups_GlobalTargetId",
-                        column: x => x.GlobalTargetId,
-                        principalTable: "PopsimGlobalEthicGroups",
-                        principalColumn: "PopsimGlobalEthicGroupId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_AlignmentSpendings_PopsimGlobalEthicGroups_PlanetTargetId",
-                        column: x => x.PlanetTargetId,
-                        principalTable: "PopsimGlobalEthicGroups",
-                        principalColumn: "PopsimGlobalEthicGroupId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CharacterDeathTimers",
-                columns: table => new
-                {
-                    CharacterDeathTimerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    YearOfDeath = table.Column<int>(type: "int", nullable: false),
-                    DeathTime = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CharacterDeathTimers", x => x.CharacterDeathTimerId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CliqueInvites",
-                columns: table => new
-                {
-                    CliqueInviteId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CliqueInvites", x => x.CliqueInviteId);
-                    table.ForeignKey(
-                        name: "FK_CliqueInvites_Cliques_CliqueId",
-                        column: x => x.CliqueId,
-                        principalTable: "Cliques",
-                        principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CliqueMemberCharacter",
-                columns: table => new
-                {
-                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    MemberId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CliqueMemberCharacter", x => new { x.CliqueId, x.MemberId });
-                    table.ForeignKey(
-                        name: "FK_CliqueMemberCharacter_Cliques_CliqueId",
-                        column: x => x.CliqueId,
-                        principalTable: "Cliques",
-                        principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CliqueOfficerCharacter",
-                columns: table => new
-                {
-                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    OfficerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CliqueOfficerCharacter", x => new { x.CliqueId, x.OfficerId });
-                    table.ForeignKey(
-                        name: "FK_CliqueOfficerCharacter_Cliques_CliqueId",
-                        column: x => x.CliqueId,
-                        principalTable: "Cliques",
-                        principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CustomSpendings",
-                columns: table => new
-                {
-                    CustomSpendingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SpendingDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CustomSpendings", x => x.CustomSpendingId);
-                    table.ForeignKey(
-                        name: "FK_CustomSpendings_Cliques_CliqueId",
-                        column: x => x.CliqueId,
-                        principalTable: "Cliques",
-                        principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DiscordUsers",
-                columns: table => new
-                {
-                    DiscordUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
-                    ActiveCharacterId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ActiveCharacterCharacterId = table.Column<string>(type: "nvarchar(450)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DiscordUsers", x => x.DiscordUserId);
+                        name: "FK_StaffActions_DiscordUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "DiscordUsers",
+                        principalColumn: "DiscordUserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -437,22 +304,23 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StaffActions",
+                name: "VoteEntries",
                 columns: table => new
                 {
-                    StaffActionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TimeStarted = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    VoteEntryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    VoteMessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    Vote = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StaffActions", x => x.StaffActionId);
+                    table.PrimaryKey("PK_VoteEntries", x => x.VoteEntryId);
                     table.ForeignKey(
-                        name: "FK_StaffActions_DiscordUsers_OwnerId",
-                        column: x => x.OwnerId,
-                        principalTable: "DiscordUsers",
-                        principalColumn: "DiscordUserId");
+                        name: "FK_VoteEntries_VoteMessages_VoteMessageId",
+                        column: x => x.VoteMessageId,
+                        principalTable: "VoteMessages",
+                        principalColumn: "MessageId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -531,6 +399,173 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AlignmentSpendings",
+                columns: table => new
+                {
+                    AlignmentSpendingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AlignmentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PlanetTargetId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    GlobalTargetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlignmentSpendings", x => x.AlignmentSpendingId);
+                    table.ForeignKey(
+                        name: "FK_AlignmentSpendings_Alignments_AlignmentId",
+                        column: x => x.AlignmentId,
+                        principalTable: "Alignments",
+                        principalColumn: "AlignmentId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlignmentSpendings_Characters_CharacterId",
+                        column: x => x.CharacterId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlignmentSpendings_Cliques_CliqueId",
+                        column: x => x.CliqueId,
+                        principalTable: "Cliques",
+                        principalColumn: "CliqueId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlignmentSpendings_PopsimGlobalEthicGroups_GlobalTargetId",
+                        column: x => x.GlobalTargetId,
+                        principalTable: "PopsimGlobalEthicGroups",
+                        principalColumn: "PopsimGlobalEthicGroupId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AlignmentSpendings_PopsimGlobalEthicGroups_PlanetTargetId",
+                        column: x => x.PlanetTargetId,
+                        principalTable: "PopsimGlobalEthicGroups",
+                        principalColumn: "PopsimGlobalEthicGroupId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CharacterDeathTimers",
+                columns: table => new
+                {
+                    CharacterDeathTimerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    YearOfDeath = table.Column<int>(type: "int", nullable: false),
+                    DeathTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CharacterDeathTimers", x => x.CharacterDeathTimerId);
+                    table.ForeignKey(
+                        name: "FK_CharacterDeathTimers_Characters_CharacterId",
+                        column: x => x.CharacterId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CliqueInvites",
+                columns: table => new
+                {
+                    CliqueInviteId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CliqueInvites", x => x.CliqueInviteId);
+                    table.ForeignKey(
+                        name: "FK_CliqueInvites_Characters_CharacterId",
+                        column: x => x.CharacterId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CliqueInvites_Cliques_CliqueId",
+                        column: x => x.CliqueId,
+                        principalTable: "Cliques",
+                        principalColumn: "CliqueId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CliqueMemberCharacter",
+                columns: table => new
+                {
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MemberId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CliqueMemberCharacter", x => new { x.CliqueId, x.MemberId });
+                    table.ForeignKey(
+                        name: "FK_CliqueMemberCharacter_Characters_MemberId",
+                        column: x => x.MemberId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CliqueMemberCharacter_Cliques_CliqueId",
+                        column: x => x.CliqueId,
+                        principalTable: "Cliques",
+                        principalColumn: "CliqueId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CliqueOfficerCharacter",
+                columns: table => new
+                {
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    OfficerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CliqueOfficerCharacter", x => new { x.CliqueId, x.OfficerId });
+                    table.ForeignKey(
+                        name: "FK_CliqueOfficerCharacter_Characters_OfficerId",
+                        column: x => x.OfficerId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CliqueOfficerCharacter_Cliques_CliqueId",
+                        column: x => x.CliqueId,
+                        principalTable: "Cliques",
+                        principalColumn: "CliqueId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CustomSpendings",
+                columns: table => new
+                {
+                    CustomSpendingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SpendingDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    CliqueId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CharacterId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomSpendings", x => x.CustomSpendingId);
+                    table.ForeignKey(
+                        name: "FK_CustomSpendings_Characters_CharacterId",
+                        column: x => x.CharacterId,
+                        principalTable: "Characters",
+                        principalColumn: "CharacterId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CustomSpendings_Cliques_CliqueId",
+                        column: x => x.CliqueId,
+                        principalTable: "Cliques",
+                        principalColumn: "CliqueId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Armies",
                 columns: table => new
                 {
@@ -548,8 +583,7 @@ namespace BabelDatabase.Migrations
                         name: "FK_Armies_Empires_OwnerId",
                         column: x => x.OwnerId,
                         principalTable: "Empires",
-                        principalColumn: "EmpireId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "EmpireId");
                 });
 
             migrationBuilder.CreateTable(
@@ -584,8 +618,7 @@ namespace BabelDatabase.Migrations
                         name: "FK_Fleets_Empires_OwnerID",
                         column: x => x.OwnerID,
                         principalTable: "Empires",
-                        principalColumn: "EmpireId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "EmpireId");
                 });
 
             migrationBuilder.CreateTable(
@@ -687,14 +720,12 @@ namespace BabelDatabase.Migrations
                         name: "FK_Planets_Empires_ControllerId",
                         column: x => x.ControllerId,
                         principalTable: "Empires",
-                        principalColumn: "EmpireId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "EmpireId");
                     table.ForeignKey(
                         name: "FK_Planets_Empires_OwnerId",
                         column: x => x.OwnerId,
                         principalTable: "Empires",
-                        principalColumn: "EmpireId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "EmpireId");
                     table.ForeignKey(
                         name: "FK_Planets_GalacticObjects_GalacticObjectId",
                         column: x => x.GalacticObjectId,
@@ -796,8 +827,8 @@ namespace BabelDatabase.Migrations
 
             migrationBuilder.InsertData(
                 table: "DiscordUsers",
-                columns: new[] { "DiscordUserId", "ActiveCharacterCharacterId", "ActiveCharacterId", "IsAdmin", "UserName" },
-                values: new object[] { "75968535074967552", null, null, true, "Obi" });
+                columns: new[] { "DiscordUserId", "ActiveCharacterId", "IsAdmin", "UserName" },
+                values: new object[] { "75968535074967552", null, true, "Obi" });
 
             migrationBuilder.InsertData(
                 table: "GameState",
@@ -862,7 +893,9 @@ namespace BabelDatabase.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_CharacterDeathTimers_CharacterId",
                 table: "CharacterDeathTimers",
-                column: "CharacterId");
+                column: "CharacterId",
+                unique: true,
+                filter: "[CharacterId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Characters_CommitteeId",
@@ -908,11 +941,6 @@ namespace BabelDatabase.Migrations
                 name: "IX_CustomSpendings_CliqueId",
                 table: "CustomSpendings",
                 column: "CliqueId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DiscordUsers_ActiveCharacterCharacterId",
-                table: "DiscordUsers",
-                column: "ActiveCharacterCharacterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Districts_PlanetId",
@@ -1017,62 +1045,6 @@ namespace BabelDatabase.Migrations
                 column: "VoteMessageId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_AlignmentSpendings_Characters_CharacterId",
-                table: "AlignmentSpendings",
-                column: "CharacterId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CharacterDeathTimers_Characters_CharacterId",
-                table: "CharacterDeathTimers",
-                column: "CharacterId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CliqueInvites_Characters_CharacterId",
-                table: "CliqueInvites",
-                column: "CharacterId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CliqueMemberCharacter_Characters_MemberId",
-                table: "CliqueMemberCharacter",
-                column: "MemberId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CliqueOfficerCharacter_Characters_OfficerId",
-                table: "CliqueOfficerCharacter",
-                column: "OfficerId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CustomSpendings_Characters_CharacterId",
-                table: "CustomSpendings",
-                column: "CharacterId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_DiscordUsers_Characters_ActiveCharacterCharacterId",
-                table: "DiscordUsers",
-                column: "ActiveCharacterCharacterId",
-                principalTable: "Characters",
-                principalColumn: "CharacterId",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
                 name: "FK_Armies_Planets_PlanetId",
                 table: "Armies",
                 column: "PlanetId",
@@ -1085,16 +1057,11 @@ namespace BabelDatabase.Migrations
                 table: "Fleets",
                 column: "SystemId",
                 principalTable: "GalacticObjects",
-                principalColumn: "GalacticObjectId",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "GalacticObjectId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_DiscordUsers_Characters_ActiveCharacterCharacterId",
-                table: "DiscordUsers");
-
             migrationBuilder.DropForeignKey(
                 name: "FK_Fleets_Empires_EmpireId",
                 table: "Fleets");
@@ -1188,6 +1155,9 @@ namespace BabelDatabase.Migrations
                 name: "Alignments");
 
             migrationBuilder.DropTable(
+                name: "Characters");
+
+            migrationBuilder.DropTable(
                 name: "Cliques");
 
             migrationBuilder.DropTable(
@@ -1203,16 +1173,13 @@ namespace BabelDatabase.Migrations
                 name: "VoteMessages");
 
             migrationBuilder.DropTable(
-                name: "Characters");
-
-            migrationBuilder.DropTable(
                 name: "Committee");
 
             migrationBuilder.DropTable(
-                name: "DiscordUsers");
+                name: "Species");
 
             migrationBuilder.DropTable(
-                name: "Species");
+                name: "DiscordUsers");
 
             migrationBuilder.DropTable(
                 name: "Empires");

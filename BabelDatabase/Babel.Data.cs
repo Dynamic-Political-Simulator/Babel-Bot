@@ -34,7 +34,7 @@ namespace BabelDatabase
 
 		public bool IsDead()
 		{
-			return CauseOfDeath != null;
+			return YearOfDeath != 0;
 		}
 
 		public int GetAge(int currentYear)
@@ -75,7 +75,6 @@ namespace BabelDatabase
         public bool IsAdmin { get; set; }
 
         public string ActiveCharacterId { get; set; }
-        public virtual Character ActiveCharacter { get; set; }
 
         public virtual List<Character> Characters { get; set; }
     }
@@ -553,6 +552,7 @@ namespace BabelDatabase
         public int Vote { get; set; }
         public ulong UserId { get; set; }
     }
+
 	public class Data
     {
 		[Key]

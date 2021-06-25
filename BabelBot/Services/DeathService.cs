@@ -35,16 +35,18 @@ namespace BabelBot.Services
 
 			foreach (var characterTimer in charactersToKill)
 			{
-				characterTimer.Character.YearOfDeath = characterTimer.YearOfDeath;
+				var character = _context.Characters.SingleOrDefault(c => c.CharacterId == characterTimer.CharacterId);
+				character.YearOfDeath = characterTimer.YearOfDeath;
+				character.DiscordUser.ActiveCharacterId = null;
 
-				_context.Characters.Update(characterTimer.Character);
+				_context.Characters.Update(character);
 				_context.CharacterDeathTimers.Remove(characterTimer);
 
 				try
 				{
-					var discordUser = _client.GetUser(ulong.Parse(characterTimer.Character.DiscordUserId));
+					var discordUser = await _client.Rest.GetUserAsync(ulong.Parse(character.DiscordUserId));
 
-					await discordUser.SendMessageAsync($"Your 24 hours are up. {characterTimer.Character.CharacterName} is dead.");
+					await discordUser.SendMessageAsync($"Your 24 hours are up. {character.CharacterName} is dead.");
 				}
 				catch (Exception ex)
 				{
@@ -88,7 +90,7 @@ namespace BabelBot.Services
 
 					try
 					{
-						var discordUser = _client.GetUser(ulong.Parse(character.DiscordUserId));
+						var discordUser = await _client.Rest.GetUserAsync(ulong.Parse(character.DiscordUserId));
 						await discordUser.SendMessageAsync(
 							$"You feel your life force waning. You are certain you only have 24 hours left, it is best to deal with everything undone now before it's too late.");
 					}
@@ -128,18 +130,17 @@ namespace BabelBot.Services
 		{
 			var user = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == id.ToString());
 
-			var activeCharacter = user.ActiveCharacter;
-
-			if (activeCharacter == null || activeCharacter.IsDead())
+			if (user.ActiveCharacterId == null)
 			{
 				await channel.SendMessageAsync("This user does not have an active character.");
 				return;
 			}
 
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == user.ActiveCharacterId);
+
 			var year = _context.GameState.SingleOrDefault();
 
 			activeCharacter.YearOfDeath = year.CurrentYear;
-			user.ActiveCharacter = null;
 			user.ActiveCharacterId = null;
 
 			if (graveyardMessage)
@@ -150,6 +151,8 @@ namespace BabelBot.Services
 			_context.Characters.Update(activeCharacter);
 			_context.DiscordUsers.Update(user);
 			await _context.SaveChangesAsync();
+
+			await channel.SendMessageAsync("Press F.");
 		}
 	}
 }

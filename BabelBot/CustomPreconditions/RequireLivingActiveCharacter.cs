@@ -14,9 +14,9 @@ namespace BabelBot.CustomPreconditions
 		{
 			var db = services.GetService(typeof(BabelContext)) as BabelContext;
 
-			var activeCharacter = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == context.User.Id.ToString()).ActiveCharacter;
+			var user = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == context.User.Id.ToString());
 
-			return Task.FromResult(activeCharacter == null || activeCharacter.IsDead() ? PreconditionResult.FromError("You need a living active character to use this command.") : PreconditionResult.FromSuccess());
+			return Task.FromResult(user.ActiveCharacterId == null ? PreconditionResult.FromError("You need a living active character to use this command.") : PreconditionResult.FromSuccess());
 		}
 	}
 }

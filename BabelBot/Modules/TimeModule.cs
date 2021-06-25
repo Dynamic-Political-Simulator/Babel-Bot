@@ -15,9 +15,10 @@ namespace BabelBot.Modules
 		private readonly BabelContext _context;
 		private readonly DeathService _deathService;
 
-		public TimeModule(BabelContext context)
+		public TimeModule(BabelContext context, DeathService deathService)
 		{
 			_context = context;
+			_deathService = deathService;
 		}
 
 		[Command("year")]
@@ -52,7 +53,7 @@ namespace BabelBot.Modules
 			_context.GameState.Update(gameState);
 			await _context.SaveChangesAsync();
 
-			await ReplyAsync($"The is now {gameState.CurrentYear}");
+			await ReplyAsync($"The year is now {gameState.CurrentYear}");
 		}
 	}
 }

@@ -230,7 +230,9 @@ namespace BabelDatabase.Migrations
 
                     b.HasKey("CharacterDeathTimerId");
 
-                    b.HasIndex("CharacterId");
+                    b.HasIndex("CharacterId")
+                        .IsUnique()
+                        .HasFilter("[CharacterId] IS NOT NULL");
 
                     b.ToTable("CharacterDeathTimers");
                 });
@@ -371,9 +373,6 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("DiscordUserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ActiveCharacterCharacterId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("ActiveCharacterId")
                         .HasColumnType("nvarchar(max)");
 
@@ -385,8 +384,6 @@ namespace BabelDatabase.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DiscordUserId");
-
-                    b.HasIndex("ActiveCharacterCharacterId");
 
                     b.ToTable("DiscordUsers");
 
@@ -1050,7 +1047,7 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany("Armies")
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BabelDatabase.Planet", "Planet")
@@ -1099,8 +1096,8 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.CharacterDeathTimer", b =>
                 {
                     b.HasOne("BabelDatabase.Character", "Character")
-                        .WithMany()
-                        .HasForeignKey("CharacterId");
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.CharacterDeathTimer", "CharacterId");
 
                     b.Navigation("Character");
                 });
@@ -1181,15 +1178,6 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Clique");
                 });
 
-            modelBuilder.Entity("BabelDatabase.DiscordUser", b =>
-                {
-                    b.HasOne("BabelDatabase.Character", "ActiveCharacter")
-                        .WithMany()
-                        .HasForeignKey("ActiveCharacterCharacterId");
-
-                    b.Navigation("ActiveCharacter");
-                });
-
             modelBuilder.Entity("BabelDatabase.District", b =>
                 {
                     b.HasOne("BabelDatabase.Planet", "Planet")
@@ -1214,13 +1202,13 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany("Fleets")
                         .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BabelDatabase.GalacticObject", "System")
                         .WithMany()
                         .HasForeignKey("SystemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Owner");
@@ -1248,7 +1236,7 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Controller")
                         .WithMany()
                         .HasForeignKey("ControllerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BabelDatabase.GalacticObject", "GalacticObject")
@@ -1260,7 +1248,7 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Controller");

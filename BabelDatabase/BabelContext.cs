@@ -104,6 +104,11 @@ namespace BabelDatabase
                 .WithMany()
                 .HasForeignKey(c => c.SpeciesId);
 
+			modelBuilder.Entity<CharacterDeathTimer>()
+				.HasOne(cdt => cdt.Character)
+				.WithOne()
+				.HasForeignKey<CharacterDeathTimer>(cdt => cdt.CharacterId);
+
             modelBuilder.Entity<CliqueMemberCharacter>().HasKey(cmc => new { cmc.CliqueId, cmc.MemberId });
 
             modelBuilder.Entity<CliqueMemberCharacter>()
@@ -221,12 +226,14 @@ namespace BabelDatabase
 			modelBuilder.Entity<Planet>()
 				.HasOne(p => p.Owner)
 				.WithMany()
-				.HasForeignKey(p => p.OwnerId);
+				.HasForeignKey(p => p.OwnerId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<Planet>()
 				.HasOne(p => p.Controller)
 				.WithMany()
-				.HasForeignKey(p => p.ControllerId);
+				.HasForeignKey(p => p.ControllerId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<Planet>()
 				.HasMany(p => p.Pops)
@@ -255,12 +262,14 @@ namespace BabelDatabase
 			modelBuilder.Entity<Empire>()
 				.HasMany(e => e.Fleets)
 				.WithOne(f => f.Owner)
-				.HasForeignKey(f => f.OwnerID);
+				.HasForeignKey(f => f.OwnerID)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<Empire>()
 				.HasMany(e => e.Armies)
 				.WithOne(a => a.Owner)
-				.HasForeignKey(a => a.OwnerId);
+				.HasForeignKey(a => a.OwnerId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<Empire>()
 				.HasMany(e => e.MiningStations)
@@ -278,7 +287,8 @@ namespace BabelDatabase
 			modelBuilder.Entity<Fleet>()
 				.HasOne(f => f.System)
 				.WithMany()
-				.HasForeignKey(f => f.SystemId);
+				.HasForeignKey(f => f.SystemId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 			modelBuilder.Entity<Army>()
 				.HasOne(a => a.Planet)
@@ -289,82 +299,6 @@ namespace BabelDatabase
 				.HasOne(s => s.StarbaseFleet)
 				.WithOne()
 				.HasForeignKey<Starbase>(s => s.FleetId);
-
-
-			// -------
-
-            modelBuilder.Entity<VoteEntry>()
-                .HasOne(ve => ve.VoteMessage)
-                .WithMany(vm => vm.Votes)
-                .HasForeignKey(vm => vm.VoteMessageId);
-      
-			modelBuilder.Entity<Planet>()
-				.HasOne(p => p.Controller)
-				.WithMany()
-				.HasForeignKey(p => p.ControllerId);
-
-			modelBuilder.Entity<Planet>()
-				.HasMany(p => p.Pops)
-				.WithOne(p => p.Planet)
-				.HasForeignKey(p => p.PlanetId);
-
-			modelBuilder.Entity<Planet>()
-				.HasMany(p => p.Buildings)
-				.WithOne(b => b.Planet)
-				.HasForeignKey(b => b.PlanetId);
-
-			modelBuilder.Entity<Planet>()
-				.HasMany(p => p.Districts)
-				.WithOne(d => d.Planet)
-				.HasForeignKey(d => d.PlanetId);
-
-			modelBuilder.Entity<Planet>()
-				.HasMany(p => p.PlanetGroups)
-				.WithOne(ppeg => ppeg.Planet)
-				.HasForeignKey(ppeg => ppeg.PlanetId);
-
-			modelBuilder.Entity<Empire>()
-				.HasMany(e => e.GalacticObjects)
-				.WithOne();
-
-			modelBuilder.Entity<Empire>()
-				.HasMany(e => e.Fleets)
-				.WithOne(f => f.Owner)
-				.HasForeignKey(f => f.OwnerID);
-
-			modelBuilder.Entity<Empire>()
-				.HasMany(e => e.Armies)
-				.WithOne(a => a.Owner)
-				.HasForeignKey(a => a.OwnerId);
-
-			modelBuilder.Entity<Empire>()
-				.HasMany(e => e.MiningStations)
-				.WithOne();
-
-			modelBuilder.Entity<Empire>()
-				.HasMany(e => e.ResearchStations)
-				.WithOne();
-
-			modelBuilder.Entity<Fleet>()
-				.HasMany(f => f.Ships)
-				.WithOne(s => s.Fleet)
-				.HasForeignKey(s => s.FleetId);
-
-			modelBuilder.Entity<Fleet>()
-				.HasOne(f => f.System)
-				.WithMany()
-				.HasForeignKey(f => f.SystemId);
-
-			modelBuilder.Entity<Army>()
-				.HasOne(a => a.Planet)
-				.WithMany()
-				.HasForeignKey(a => a.PlanetId);
-
-			modelBuilder.Entity<Starbase>()
-				.HasOne(s => s.StarbaseFleet)
-				.WithOne()
-				.HasForeignKey<Starbase>(s => s.FleetId);
-
 
 			// -------
 

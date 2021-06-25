@@ -35,17 +35,19 @@ namespace BabelBot.Modules
 				await ReplyAsync("User does not have a profile.");
 			}
 
-			if (pingedUser.ActiveCharacter == null)
+			if (pingedUser.ActiveCharacterId == null)
 			{
 				await ReplyAsync("Could not find a living character.");
 				return;
 			}
 
-			var oldName = pingedUser.ActiveCharacter.CharacterName;
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
 
-			pingedUser.ActiveCharacter.CharacterName = newName;
+			var oldName = activeCharacter.CharacterName;
 
-			_context.Characters.Update(pingedUser.ActiveCharacter);
+			activeCharacter.CharacterName = newName;
+
+			_context.Characters.Update(activeCharacter);
 			await _context.SaveChangesAsync();
 
 			await ReplyAsync($"Changed name from {oldName} to {newName}.");
@@ -96,6 +98,11 @@ namespace BabelBot.Modules
 			{
 				await ReplyAsync("Could not find character.");
 				return;
+			}
+
+			if (character.DiscordUser.ActiveCharacterId == character.CharacterId)
+			{
+				character.DiscordUser.ActiveCharacterId = null;
 			}
 
 			_context.Characters.Remove(character);
@@ -159,7 +166,6 @@ namespace BabelBot.Modules
 		public async Task Kill([Remainder] SocketGuildUser mention)
 		{
 			await _deathService.Kill(mention.Id, true, Context.Channel);
-			await ReplyAsync("Press F.");
 		}
 
 		[Command("set age")]
@@ -185,13 +191,13 @@ namespace BabelBot.Modules
 				await ReplyAsync("User does not have a profile.");
 			}
 
-			var activeCharacter = pingedUser.ActiveCharacter;
-
-			if (activeCharacter == null)
+			if (pingedUser.ActiveCharacterId == null)
 			{
 				await ReplyAsync("Could not find a living character.");
 				return;
 			}
+
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
 
 			var year = _context.GameState.First();
 
@@ -207,7 +213,7 @@ namespace BabelBot.Modules
 
 		[Command("revive")]
 		[RequiresAdmin]
-		public async Task revive(string characterId)
+		public async Task Revive(string characterId)
 		{
 			var deadCharacter =
 				_context.Characters.SingleOrDefault(c => c.CharacterId == characterId);
@@ -235,7 +241,7 @@ namespace BabelBot.Modules
 			deadCharacter.YearOfDeath = 0;
 			deadCharacter.CauseOfDeath = null;
 
-			deadCharacter.DiscordUser.ActiveCharacter = deadCharacter;
+			deadCharacter.DiscordUser.ActiveCharacterId = deadCharacter.CharacterId;
 
 			_context.Characters.Update(deadCharacter);
 			_context.DiscordUsers.Update(deadCharacter.DiscordUser);
