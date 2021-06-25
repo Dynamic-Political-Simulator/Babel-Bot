@@ -37,6 +37,7 @@ namespace BabelDatabase
 		public DbSet<StaffAction> StaffActions { get; set; }
 		public DbSet<StaffActionPost> StaffActionPosts { get; set; }
 		public DbSet<GameState> GameState { get; set; }
+		public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
 
 		public DbSet<Empire> Empires { get; set; }
 		public DbSet<GalacticObject> GalacticObjects { get; set; }
