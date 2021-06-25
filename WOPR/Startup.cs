@@ -67,6 +67,8 @@ namespace WOPR
 
             // add services
             services.AddScoped<DiscordUserService>();
+            services.AddScoped<EconPopsimServices>();
+            services.AddScoped<SimulationService>();
 
             services.AddAuthentication(options =>
             {

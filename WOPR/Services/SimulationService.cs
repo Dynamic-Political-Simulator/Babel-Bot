@@ -29,7 +29,7 @@ namespace WOPR.Services
 			var data = new DPSSimulation.Classes.Data(Xmldata);
 			var infradata = new InfraStructureData(XmlInfradata);
 
-			if(_context.Data.Count() == 0)
+			if(_context.Data.ToList().Count() == 0)
             {
 				_context.Data.Add(new BabelDatabase.Data()
 				{
@@ -44,7 +44,7 @@ namespace WOPR.Services
 				Data.Stratas = data.Stratas;
             }
 
-            if (_context.InfrastructureData.Count() == 0)
+            if (_context.InfrastructureData.ToList().Count() == 0)
             {
 				_context.InfrastructureData.Add(new BabelDatabase.InfrastructureData()
 				{
@@ -318,6 +318,7 @@ namespace WOPR.Services
         {
 			BabelDatabase.Planet NewPlanet = _context.Planets.FirstOrDefault(p => p.PlanetId == planet.PlanetGameId);
 			bool IsPlanetNew = false;
+
 			if(NewPlanet == null)
             {
 				NewPlanet = new BabelDatabase.Planet()
