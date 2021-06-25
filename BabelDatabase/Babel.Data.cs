@@ -224,6 +224,8 @@ namespace BabelDatabase
         public virtual List<Clique> Cliques { get; set; }
 
 		public float Establishment { get; set; }
+		public float UpperPartyModifier { get; set; }
+		public float LowerPartyModiifer { get; set; }
 
 		public int FederalismCentralism { get; set; }
 		public int DemocracyAuthority { get; set; }
@@ -301,7 +303,7 @@ namespace BabelDatabase
 		
 		public int PartyInvolvementFactor { get; set; }
 		public float Radicalisation { get; set; }
-
+		public float PartyEnlistmentModifier { get; set; }
 
 		public virtual List<PopsimPlanetEthicGroup> PlanetaryEthicGroups { get; set; }
 
@@ -501,7 +503,7 @@ namespace BabelDatabase
 		public Dictionary<PopsimGlobalEthicGroup, float> LowerPartyMembership { get; set; } = new Dictionary<PopsimGlobalEthicGroup, float>();
 		public Dictionary<Alignment, float> UpperPartyAffinity { get; set; } = new Dictionary<Alignment, float>();
 		public Dictionary<Alignment, float> LowerPartyAffinity { get; set; } = new Dictionary<Alignment, float>();
-		public float UpperPartyPercentage { get; set; }
+		public float UpperPartyPercentage { get; set; }	
 	}
 
 	public class Military

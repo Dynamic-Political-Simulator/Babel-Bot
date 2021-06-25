@@ -20,6 +20,8 @@ namespace WOPR.Services
             _context = context;
         }
 
+        //econ
+
         public async void CalculateEmpireEcon(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
@@ -58,6 +60,256 @@ namespace WOPR.Services
 
             await _context.SaveChangesAsync();
         }
+
+        //popsim
+
+        public async void CalculateNationalAssembly(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            empire1.SetParliament();
+
+            Dictionary<Alignment, int> GeneralAssembly = new Dictionary<Alignment, int>();
+            foreach (KeyValuePair<Faction, int> faction in empire1.GeneralAssembly)
+            {
+                Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
+                if (alignment == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    GeneralAssembly.Add(alignment, faction.Value);
+                }
+            }
+
+            empire.GeneralAssembly = GeneralAssembly;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public Dictionary<Alignment,float> CalculateNationalPopularity(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            Dictionary<Faction, float> Factions = empire1.CalculateGlobalPopularity();
+            Dictionary<Alignment, float> Alignements = new Dictionary<Alignment, float>();
+            foreach (KeyValuePair<Faction, float> faction in Factions)
+            {
+                Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
+                if (alignment == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    Alignements.Add(alignment, faction.Value);
+                }
+            }
+
+            return Alignements;
+        }
+
+        public Dictionary<Alignment,float> CalculatePlanetPopularity(BabelDatabase.Planet planet)
+        {
+            DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
+
+            Dictionary<Group, Dictionary<Faction, float>> PopsimGmData = new Dictionary<Group, Dictionary<Faction, float>>();
+
+            foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.Owner.PopsimGmData)
+            {
+                Dictionary<Faction, float> factionStuff = new Dictionary<Faction, float>();
+                foreach (KeyValuePair<Alignment, float> faction in popsimGmData.Value)
+                {
+                    factionStuff.Add(CreateFaction(faction.Key), faction.Value);
+                }
+                PopsimGmData.Add(CreateGroup(popsimGmData.Key.PopsimGlobalEthicGroup), factionStuff);
+            }
+
+            planet1.CalculatePopularity(PopsimGmData);
+            Dictionary<Faction, float> Factions = planet1.PlanetFactions;
+            Dictionary<Alignment, float> Alignements = new Dictionary<Alignment, float>();
+            foreach(KeyValuePair<Faction,float> faction in Factions)
+            {
+                Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
+                if(alignment == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    Alignements.Add(alignment, faction.Value);
+                }
+            }
+
+            return Alignements;
+        }
+
+        //Party
+        public async void CalculateParty(BabelDatabase.Party party, BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Party party1 = new DPSSimulation.Classes.Party();
+
+            Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
+            foreach(PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
+            {
+                EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
+            }
+            party1.SetPopGroupEnlistment(EnlistmentGroupsAndJeremy);
+
+            foreach (KeyValuePair<Group, float> group in party1.PopGroupEnlistment)
+            {
+                PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
+                if ( NewGroup == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    party.PopGroupEnlistment.Add(NewGroup, group.Value);
+                }
+            }
+
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            Dictionary<Faction, float> ModifierUpper = new Dictionary<Faction, float>();
+            Dictionary<Faction, float> ModifierLower = new Dictionary<Faction, float>();
+            foreach(Alignment alignment in _context.Alignments)
+            {
+                ModifierUpper.Add(CreateFaction(alignment), alignment.UpperPartyModifier);
+                ModifierLower.Add(CreateFaction(alignment), alignment.LowerPartyModiifer);
+
+            }
+
+            party1.PartyUpperAndLowerCalculation(ModifierUpper, ModifierLower, empire1.GetGlobalPopulation(), empire1.CalculateGlobalGroupSize());
+
+            Dictionary<PopsimGlobalEthicGroup, float> PopGroupEnlistment = new Dictionary<PopsimGlobalEthicGroup, float>();
+            Dictionary<PopsimGlobalEthicGroup, float> UpperPartyMembership = new Dictionary<PopsimGlobalEthicGroup, float>();
+            Dictionary<PopsimGlobalEthicGroup, float> LowerPartyMembership = new Dictionary<PopsimGlobalEthicGroup, float>();
+            Dictionary<Alignment, float> UpperPartyAffinity = new Dictionary<Alignment, float>();
+            Dictionary<Alignment, float> LowerPartyAffinity = new Dictionary<Alignment, float>();
+
+            foreach(PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
+            {
+                PopGroupEnlistment.Add(group, party1.PopGroupEnlistment.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
+                UpperPartyMembership.Add(group, party1.UpperPartyMembership.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
+                LowerPartyMembership.Add(group, party1.LowerPartyMembership.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
+            }
+            foreach(Alignment alignment1 in _context.Alignments)
+            {
+                UpperPartyAffinity.Add(alignment1, party1.UpperPartyAffinity.FirstOrDefault(a => a.Key.FactionId == alignment1.AlignmentId).Value);
+                LowerPartyAffinity.Add(alignment1, party1.LowerPartyAffinity.FirstOrDefault(a => a.Key.FactionId == alignment1.AlignmentId).Value);
+            }
+
+            party.PopGroupEnlistment = PopGroupEnlistment;
+            party.UpperPartyMembership = UpperPartyMembership;
+            party.LowerPartyMembership = LowerPartyMembership;
+            party.UpperPartyAffinity = UpperPartyAffinity;
+            party.LowerPartyAffinity = LowerPartyAffinity;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public Dictionary<PopsimGlobalEthicGroup,float> GetPartyGroupSize(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Party party = new DPSSimulation.Classes.Party();
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
+            {
+                EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
+            }
+            party.SetPopGroupEnlistment(EnlistmentGroupsAndJeremy);
+
+            Dictionary<Group, float> PartyGroupSize = party.GroupPercentageOfParty(empire1.CalculateGlobalGroupSize());
+            Dictionary<PopsimGlobalEthicGroup, float> NewPartyGroupSize = new Dictionary<PopsimGlobalEthicGroup, float>();
+
+            foreach (KeyValuePair<Group, float> group in PartyGroupSize)
+            {
+                PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
+                if (NewGroup == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    NewPartyGroupSize.Add(NewGroup, group.Value);
+                }
+            }
+
+            return NewPartyGroupSize;
+        }
+
+        public float GetNationalEnlistment(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Party party = new DPSSimulation.Classes.Party();
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
+            {
+                EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
+            }
+            party.SetPopGroupEnlistment(EnlistmentGroupsAndJeremy);
+
+            return party.NationalEnlistment(empire1.CalculateGlobalGroupSize());
+        }
+
+        //Military
+
+        public async void CalculateMilitary(BabelDatabase.Military military, BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Military military1 = new DPSSimulation.Classes.Military()
+            {
+                MilitaryPoliticisation = military.MilitaryPoliticisation
+            };
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            military1.SetMilitaryGroups(empire1.CalculateGlobalGroupSize());
+
+            List<Faction> factions = new List<Faction>();
+            foreach(Alignment alignment in _context.Alignments)
+            {
+                factions.Add(CreateFaction(alignment));
+            }
+
+            military1.SetMilitaryFactions(factions);
+
+            Dictionary<PopsimGlobalEthicGroup, float> MilitaryGroups = new Dictionary<PopsimGlobalEthicGroup, float>();
+            Dictionary<Alignment, float> MilitaryFactions = new Dictionary<Alignment, float>();
+
+            foreach(KeyValuePair<Group,float> group in military1.MilitaryGroups)
+            {
+                PopsimGlobalEthicGroup popsimGlobalEthicGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(p => p.PopsimGlobalEthicGroupId == group.Key.GroupId);
+                if(popsimGlobalEthicGroup== null)
+                {
+                    //bad
+                }
+                else
+                {
+                    MilitaryGroups.Add(popsimGlobalEthicGroup, group.Value);
+                }
+            }
+            foreach(KeyValuePair<Faction,float> faction in military1.MilitaryFactions)
+            {
+                Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
+                if(alignment == null)
+                {
+                    //bad
+                }
+                else
+                {
+                    MilitaryFactions.Add(alignment, faction.Value);
+                }
+            }
+
+            military.MilitaryFactions = MilitaryFactions;
+            military.MilitaryGroups = MilitaryGroups;
+
+            await _context.SaveChangesAsync();
+        }
+
+        //Conversions
 
         public DPSSimulation.Classes.Empire CreateEmpire (BabelDatabase.Empire empire)
         {
@@ -199,6 +451,7 @@ namespace WOPR.Services
         {
             Group NewGroup = new Group()
             {
+                GroupId = group.PopsimGlobalEthicGroupId,
                 PartyInvolvementFactor = group.PartyInvolvementFactor,
                 Radicalisation = group.Radicalisation
             };
@@ -212,6 +465,7 @@ namespace WOPR.Services
         {
             Faction NewFaction = new Faction()
             {
+                FactionId = faction.AlignmentId,
                 Establishment = faction.Establishment
             };
 
@@ -295,5 +549,7 @@ namespace WOPR.Services
 
             return NewData;
         }
+
+        
     }
 }
