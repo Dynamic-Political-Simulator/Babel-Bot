@@ -297,13 +297,7 @@ namespace BabelDatabase
                 .HasOne(ve => ve.VoteMessage)
                 .WithMany(vm => vm.Votes)
                 .HasForeignKey(vm => vm.VoteMessageId);
-        }
-    }
-			modelBuilder.Entity<PopsimPlanetEthicGroup>()
-				.HasOne(ppeg => ppeg.PopsimPlanet)
-				.WithMany()
-				.HasForeignKey(p => p.OwnerId);
-
+      
 			modelBuilder.Entity<Planet>()
 				.HasOne(p => p.Controller)
 				.WithMany()
