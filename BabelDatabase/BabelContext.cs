@@ -302,9 +302,79 @@ namespace BabelDatabase
 			modelBuilder.Entity<PopsimPlanetEthicGroup>()
 				.HasOne(ppeg => ppeg.PopsimPlanet)
 				.WithMany()
-				.HasForeignKey(ppeg => ppeg.PopsimPlanetId);
+				.HasForeignKey(p => p.OwnerId);
 
-			modelBuilder.Entity<InfraStructureData>()
+			modelBuilder.Entity<Planet>()
+				.HasOne(p => p.Controller)
+				.WithMany()
+				.HasForeignKey(p => p.ControllerId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Pops)
+				.WithOne(p => p.Planet)
+				.HasForeignKey(p => p.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Buildings)
+				.WithOne(b => b.Planet)
+				.HasForeignKey(b => b.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.Districts)
+				.WithOne(d => d.Planet)
+				.HasForeignKey(d => d.PlanetId);
+
+			modelBuilder.Entity<Planet>()
+				.HasMany(p => p.PlanetGroups)
+				.WithOne(ppeg => ppeg.Planet)
+				.HasForeignKey(ppeg => ppeg.PlanetId);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.GalacticObjects)
+				.WithOne();
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.Fleets)
+				.WithOne(f => f.Owner)
+				.HasForeignKey(f => f.OwnerID);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.Armies)
+				.WithOne(a => a.Owner)
+				.HasForeignKey(a => a.OwnerId);
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.MiningStations)
+				.WithOne();
+
+			modelBuilder.Entity<Empire>()
+				.HasMany(e => e.ResearchStations)
+				.WithOne();
+
+			modelBuilder.Entity<Fleet>()
+				.HasMany(f => f.Ships)
+				.WithOne(s => s.Fleet)
+				.HasForeignKey(s => s.FleetId);
+
+			modelBuilder.Entity<Fleet>()
+				.HasOne(f => f.System)
+				.WithMany()
+				.HasForeignKey(f => f.SystemId);
+
+			modelBuilder.Entity<Army>()
+				.HasOne(a => a.Planet)
+				.WithMany()
+				.HasForeignKey(a => a.PlanetId);
+
+			modelBuilder.Entity<Starbase>()
+				.HasOne(s => s.StarbaseFleet)
+				.WithOne()
+				.HasForeignKey<Starbase>(s => s.FleetId);
+
+
+			// -------
+
+			modelBuilder.Entity<InfrastructureData>()
 				.Property(b => b.Infrastructures)
 				.HasConversion(
 					v => JsonConvert.SerializeObject(v),

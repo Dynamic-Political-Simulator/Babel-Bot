@@ -852,55 +852,33 @@ namespace BabelDatabase.Migrations
                     b.ToTable("StaffStaffAction");
                 });
 
-            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
+            modelBuilder.Entity("BabelDatabase.Starbase", b =>
                 {
-                    b.Property<string>("VoteEntryId")
+                    b.Property<string>("StarbaseId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<string>("Buildings")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Vote")
-                        .HasColumnType("int");
+                    b.Property<string>("FleetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("VoteMessageId")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<string>("Level")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("VoteEntryId");
+                    b.Property<string>("Modules")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("VoteMessageId");
+                    b.Property<string>("Owner")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("VoteEntries");
-                });
+                    b.HasKey("StarbaseId");
 
-            modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
-                {
-                    b.Property<decimal>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+                    b.HasIndex("FleetId")
+                        .IsUnique();
 
-                    b.Property<bool>("Anonymous")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("ChannelId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<decimal>("CreatorId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<long>("EndTime")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TimeSpan")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("MessageId");
-
-                    b.ToTable("VoteMessages");
+                    b.ToTable("Starbases");
                 });
 
             modelBuilder.Entity("AlignmentClique", b =>
@@ -1270,15 +1248,15 @@ namespace BabelDatabase.Migrations
                     b.Navigation("StaffAction");
                 });
 
-            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
+            modelBuilder.Entity("BabelDatabase.Starbase", b =>
                 {
-                    b.HasOne("BabelDatabase.VoteMessage", "VoteMessage")
-                        .WithMany("Votes")
-                        .HasForeignKey("VoteMessageId")
+                    b.HasOne("BabelDatabase.Fleet", "StarbaseFleet")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.Starbase", "FleetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("VoteMessage");
+                    b.Navigation("StarbaseFleet");
                 });
 
             modelBuilder.Entity("BabelDatabase.Character", b =>
@@ -1349,11 +1327,6 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("StaffActionPosts");
-                });
-
-            modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
-                {
-                    b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618
         }

@@ -54,6 +54,36 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Data",
+                columns: table => new
+                {
+                    DataId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Stratas = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BaseGdpPerPop = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Data", x => x.DataId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Empires",
+                columns: table => new
+                {
+                    EmpireId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GameId = table.Column<int>(type: "int", nullable: false),
+                    NationalOutput = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EconGmData = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GeneralAssembly = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PopsimGmData = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Empires", x => x.EmpireId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GameState",
                 columns: table => new
                 {
@@ -65,6 +95,50 @@ namespace BabelDatabase.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_GameState", x => x.GameStateId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InfrastructureData",
+                columns: table => new
+                {
+                    InfraStructureDataId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    GdpPerInfrastructure = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    Infrastructures = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InfrastructureData", x => x.InfraStructureDataId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Militaries",
+                columns: table => new
+                {
+                    RevolutionaryGuardId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MilitaryPoliticisation = table.Column<float>(type: "real", nullable: false),
+                    MilitaryGroups = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MilitaryFactions = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Militaries", x => x.RevolutionaryGuardId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Parties",
+                columns: table => new
+                {
+                    PartyId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PopGroupEnlistment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpperPartyMembership = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LowerPartyMembership = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpperPartyAffinity = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LowerPartyAffinity = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpperPartyPercentage = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Parties", x => x.PartyId);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,19 +163,6 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PopsimPlanet",
-                columns: table => new
-                {
-                    PopsimPlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PlanetName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlanetDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PopsimPlanet", x => x.PopsimPlanetId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Species",
                 columns: table => new
                 {
@@ -111,23 +172,6 @@ namespace BabelDatabase.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Species", x => x.SpeciesId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VoteMessages",
-                columns: table => new
-                {
-                    MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    CreatorId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    EndTime = table.Column<long>(type: "bigint", nullable: false),
-                    TimeSpan = table.Column<long>(type: "bigint", nullable: false),
-                    Anonymous = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VoteMessages", x => x.MessageId);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,52 +195,6 @@ namespace BabelDatabase.Migrations
                         column: x => x.CliquesCliqueId,
                         principalTable: "Cliques",
                         principalColumn: "CliqueId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PopsimPlanetEthicGroup",
-                columns: table => new
-                {
-                    PopsimPlanetEthicGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    MembersOnPlanet = table.Column<long>(type: "bigint", nullable: false),
-                    PopsimGlobalEthicGroupId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    PopsimPlanetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PopsimPlanetEthicGroup", x => x.PopsimPlanetEthicGroupId);
-                    table.ForeignKey(
-                        name: "FK_PopsimPlanetEthicGroup_PopsimGlobalEthicGroup_PopsimGlobalEthicGroupId",
-                        column: x => x.PopsimGlobalEthicGroupId,
-                        principalTable: "PopsimGlobalEthicGroup",
-                        principalColumn: "PopsimGlobalEthicGroupId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PopsimPlanetEthicGroup_PopsimPlanet_PopsimPlanetId",
-                        column: x => x.PopsimPlanetId,
-                        principalTable: "PopsimPlanet",
-                        principalColumn: "PopsimPlanetId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VoteEntries",
-                columns: table => new
-                {
-                    VoteEntryId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    VoteMessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                    Vote = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VoteEntries", x => x.VoteEntryId);
-                    table.ForeignKey(
-                        name: "FK_VoteEntries_VoteMessages_VoteMessageId",
-                        column: x => x.VoteMessageId,
-                        principalTable: "VoteMessages",
-                        principalColumn: "MessageId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -463,6 +461,261 @@ namespace BabelDatabase.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Armies",
+                columns: table => new
+                {
+                    ArmyId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Armies", x => x.ArmyId);
+                    table.ForeignKey(
+                        name: "FK_Armies_Empires_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Fleets",
+                columns: table => new
+                {
+                    FleetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OwnerID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MilitaryPower = table.Column<double>(type: "float", nullable: false),
+                    SystemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EmpireId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    EmpireId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Fleets", x => x.FleetId);
+                    table.ForeignKey(
+                        name: "FK_Fleets_Empires_EmpireId",
+                        column: x => x.EmpireId,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Fleets_Empires_EmpireId1",
+                        column: x => x.EmpireId1,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Fleets_Empires_OwnerID",
+                        column: x => x.OwnerID,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ships",
+                columns: table => new
+                {
+                    ShipId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FleetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ShipName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ships", x => x.ShipId);
+                    table.ForeignKey(
+                        name: "FK_Ships_Fleets_FleetId",
+                        column: x => x.FleetId,
+                        principalTable: "Fleets",
+                        principalColumn: "FleetId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Starbases",
+                columns: table => new
+                {
+                    StarbaseId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Owner = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Level = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Modules = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Buildings = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FleetId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Starbases", x => x.StarbaseId);
+                    table.ForeignKey(
+                        name: "FK_Starbases_Fleets_FleetId",
+                        column: x => x.FleetId,
+                        principalTable: "Fleets",
+                        principalColumn: "FleetId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GalacticObjects",
+                columns: table => new
+                {
+                    GalacticObjectId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PosX = table.Column<float>(type: "real", nullable: false),
+                    PosY = table.Column<float>(type: "real", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Hyperlanes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StarbaseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    EmpireId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GalacticObjects", x => x.GalacticObjectId);
+                    table.ForeignKey(
+                        name: "FK_GalacticObjects_Empires_EmpireId",
+                        column: x => x.EmpireId,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_GalacticObjects_Starbases_StarbaseId",
+                        column: x => x.StarbaseId,
+                        principalTable: "Starbases",
+                        principalColumn: "StarbaseId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Planets",
+                columns: table => new
+                {
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PlanetName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlanetDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlanetClass = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Population = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ControllerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    GalacticObjectId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Output = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EconGmData = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PopsimGmData = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Planets", x => x.PlanetId);
+                    table.ForeignKey(
+                        name: "FK_Planets_Empires_ControllerId",
+                        column: x => x.ControllerId,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Planets_Empires_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "Empires",
+                        principalColumn: "EmpireId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Planets_GalacticObjects_GalacticObjectId",
+                        column: x => x.GalacticObjectId,
+                        principalTable: "GalacticObjects",
+                        principalColumn: "GalacticObjectId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Buildings",
+                columns: table => new
+                {
+                    BuildingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ruined = table.Column<bool>(type: "bit", nullable: false),
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Buildings", x => x.BuildingId);
+                    table.ForeignKey(
+                        name: "FK_Buildings_Planets_PlanetId",
+                        column: x => x.PlanetId,
+                        principalTable: "Planets",
+                        principalColumn: "PlanetId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Districts",
+                columns: table => new
+                {
+                    DistrictId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Districts", x => x.DistrictId);
+                    table.ForeignKey(
+                        name: "FK_Districts_Planets_PlanetId",
+                        column: x => x.PlanetId,
+                        principalTable: "Planets",
+                        principalColumn: "PlanetId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Pops",
+                columns: table => new
+                {
+                    PopId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Job = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Strata = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Power = table.Column<float>(type: "real", nullable: false),
+                    Happiness = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pops", x => x.PopId);
+                    table.ForeignKey(
+                        name: "FK_Pops_Planets_PlanetId",
+                        column: x => x.PlanetId,
+                        principalTable: "Planets",
+                        principalColumn: "PlanetId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PopsimPlanetEthicGroup",
+                columns: table => new
+                {
+                    PopsimPlanetEthicGroupId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    MembersOnPlanet = table.Column<long>(type: "bigint", nullable: false),
+                    Percentage = table.Column<float>(type: "real", nullable: false),
+                    PopsimGlobalEthicGroupId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    PlanetId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PopsimPlanetEthicGroup", x => x.PopsimPlanetEthicGroupId);
+                    table.ForeignKey(
+                        name: "FK_PopsimPlanetEthicGroup_Planets_PlanetId",
+                        column: x => x.PlanetId,
+                        principalTable: "Planets",
+                        principalColumn: "PlanetId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PopsimPlanetEthicGroup_PopsimGlobalEthicGroup_PopsimGlobalEthicGroupId",
+                        column: x => x.PopsimGlobalEthicGroupId,
+                        principalTable: "PopsimGlobalEthicGroup",
+                        principalColumn: "PopsimGlobalEthicGroupId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 table: "DiscordUsers",
                 columns: new[] { "DiscordUserId", "ActiveCharacterCharacterId", "ActiveCharacterId", "IsAdmin", "UserName" },
@@ -512,6 +765,21 @@ namespace BabelDatabase.Migrations
                 name: "IX_AlignmentSpendings_PlanetTargetId",
                 table: "AlignmentSpendings",
                 column: "PlanetTargetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Armies_OwnerId",
+                table: "Armies",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Armies_PlanetId",
+                table: "Armies",
+                column: "PlanetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Buildings_PlanetId",
+                table: "Buildings",
+                column: "PlanetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Characters_CommitteeId",
@@ -564,14 +832,76 @@ namespace BabelDatabase.Migrations
                 column: "ActiveCharacterCharacterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Districts_PlanetId",
+                table: "Districts",
+                column: "PlanetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fleets_EmpireId",
+                table: "Fleets",
+                column: "EmpireId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fleets_EmpireId1",
+                table: "Fleets",
+                column: "EmpireId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fleets_OwnerID",
+                table: "Fleets",
+                column: "OwnerID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fleets_SystemId",
+                table: "Fleets",
+                column: "SystemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GalacticObjects_EmpireId",
+                table: "GalacticObjects",
+                column: "EmpireId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GalacticObjects_StarbaseId",
+                table: "GalacticObjects",
+                column: "StarbaseId",
+                unique: true,
+                filter: "[StarbaseId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Planets_ControllerId",
+                table: "Planets",
+                column: "ControllerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Planets_GalacticObjectId",
+                table: "Planets",
+                column: "GalacticObjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Planets_OwnerId",
+                table: "Planets",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pops_PlanetId",
+                table: "Pops",
+                column: "PlanetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PopsimPlanetEthicGroup_PlanetId",
+                table: "PopsimPlanetEthicGroup",
+                column: "PlanetId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PopsimPlanetEthicGroup_PopsimGlobalEthicGroupId",
                 table: "PopsimPlanetEthicGroup",
                 column: "PopsimGlobalEthicGroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PopsimPlanetEthicGroup_PopsimPlanetId",
-                table: "PopsimPlanetEthicGroup",
-                column: "PopsimPlanetId");
+                name: "IX_Ships_FleetId",
+                table: "Ships",
+                column: "FleetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StaffActionPosts_AuthorId",
@@ -594,9 +924,10 @@ namespace BabelDatabase.Migrations
                 column: "StaffActionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VoteEntries_VoteMessageId",
-                table: "VoteEntries",
-                column: "VoteMessageId");
+                name: "IX_Starbases_FleetId",
+                table: "Starbases",
+                column: "FleetId",
+                unique: true);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AlignmentSpendings_Characters_CharacterId",
@@ -645,6 +976,22 @@ namespace BabelDatabase.Migrations
                 principalTable: "Characters",
                 principalColumn: "CharacterId",
                 onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Armies_Planets_PlanetId",
+                table: "Armies",
+                column: "PlanetId",
+                principalTable: "Planets",
+                principalColumn: "PlanetId",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Fleets_GalacticObjects_SystemId",
+                table: "Fleets",
+                column: "SystemId",
+                principalTable: "GalacticObjects",
+                principalColumn: "GalacticObjectId",
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -653,11 +1000,37 @@ namespace BabelDatabase.Migrations
                 name: "FK_DiscordUsers_Characters_ActiveCharacterCharacterId",
                 table: "DiscordUsers");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_Fleets_Empires_EmpireId",
+                table: "Fleets");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Fleets_Empires_EmpireId1",
+                table: "Fleets");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Fleets_Empires_OwnerID",
+                table: "Fleets");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_GalacticObjects_Empires_EmpireId",
+                table: "GalacticObjects");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Fleets_GalacticObjects_SystemId",
+                table: "Fleets");
+
             migrationBuilder.DropTable(
                 name: "AlignmentClique");
 
             migrationBuilder.DropTable(
                 name: "AlignmentSpendings");
+
+            migrationBuilder.DropTable(
+                name: "Armies");
+
+            migrationBuilder.DropTable(
+                name: "Buildings");
 
             migrationBuilder.DropTable(
                 name: "CliqueInvites");
@@ -672,13 +1045,34 @@ namespace BabelDatabase.Migrations
                 name: "CustomSpendings");
 
             migrationBuilder.DropTable(
+                name: "Data");
+
+            migrationBuilder.DropTable(
+                name: "Districts");
+
+            migrationBuilder.DropTable(
                 name: "GameState");
+
+            migrationBuilder.DropTable(
+                name: "InfrastructureData");
+
+            migrationBuilder.DropTable(
+                name: "Militaries");
+
+            migrationBuilder.DropTable(
+                name: "Parties");
 
             migrationBuilder.DropTable(
                 name: "PlayerStaffAction");
 
             migrationBuilder.DropTable(
+                name: "Pops");
+
+            migrationBuilder.DropTable(
                 name: "PopsimPlanetEthicGroup");
+
+            migrationBuilder.DropTable(
+                name: "Ships");
 
             migrationBuilder.DropTable(
                 name: "StaffActionPosts");
@@ -687,25 +1081,19 @@ namespace BabelDatabase.Migrations
                 name: "StaffStaffAction");
 
             migrationBuilder.DropTable(
-                name: "VoteEntries");
-
-            migrationBuilder.DropTable(
                 name: "Alignments");
 
             migrationBuilder.DropTable(
                 name: "Cliques");
 
             migrationBuilder.DropTable(
+                name: "Planets");
+
+            migrationBuilder.DropTable(
                 name: "PopsimGlobalEthicGroup");
 
             migrationBuilder.DropTable(
-                name: "PopsimPlanet");
-
-            migrationBuilder.DropTable(
                 name: "StaffActions");
-
-            migrationBuilder.DropTable(
-                name: "VoteMessages");
 
             migrationBuilder.DropTable(
                 name: "Characters");
@@ -718,6 +1106,18 @@ namespace BabelDatabase.Migrations
 
             migrationBuilder.DropTable(
                 name: "Species");
+
+            migrationBuilder.DropTable(
+                name: "Empires");
+
+            migrationBuilder.DropTable(
+                name: "GalacticObjects");
+
+            migrationBuilder.DropTable(
+                name: "Starbases");
+
+            migrationBuilder.DropTable(
+                name: "Fleets");
         }
     }
 }
