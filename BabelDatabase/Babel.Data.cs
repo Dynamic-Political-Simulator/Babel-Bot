@@ -50,7 +50,7 @@ namespace BabelDatabase
 		public string CharacterDeathTimerId { get; set; } = Guid.NewGuid().ToString();
 
 		public string CharacterId { get; set; }
-		public Character Character { get; set; }
+		public virtual Character Character { get; set; }
 
 		public int YearOfDeath { get; set; }
 
@@ -332,7 +332,7 @@ namespace BabelDatabase
 		public string PopsimGlobalEthicGroupId { get; set; }
 		public virtual PopsimGlobalEthicGroup PopsimGlobalEthicGroup { get; set; }
 
-		public string PlanetId { get; set; }
+		public int PlanetId { get; set; }
 		public virtual Planet Planet { get; set; }
 	}
 

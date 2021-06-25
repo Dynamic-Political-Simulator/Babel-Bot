@@ -97,10 +97,7 @@ namespace WOPR.Services
             foreach (KeyValuePair<Faction, float> faction in Factions)
             {
                 Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
-                {
-                    //bad
-                }
-                else
+                if (alignment != null)
                 {
                     Alignements.Add(alignment, faction.Value);
                 }
@@ -131,10 +128,7 @@ namespace WOPR.Services
             foreach(KeyValuePair<Faction,float> faction in Factions)
             {
                 Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
-                {
-                    //bad
-                }
-                else
+                if (alignment != null)
                 {
                     Alignements.Add(alignment, faction.Value);
                 }
@@ -158,11 +152,7 @@ namespace WOPR.Services
             foreach (KeyValuePair<Group, float> group in party1.PopGroupEnlistment)
             {
                 PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
-                if ( NewGroup == null)
-                {
-                    //bad
-                }
-                else
+                if ( NewGroup != null)
                 {
                     party.PopGroupEnlistment.Add(NewGroup, group.Value);
                 }
@@ -172,6 +162,8 @@ namespace WOPR.Services
 
             Dictionary<Faction, float> ModifierUpper = new Dictionary<Faction, float>();
             Dictionary<Faction, float> ModifierLower = new Dictionary<Faction, float>();
+
+            foreach (Alignment alignment in _context.Alignments.ToList())
             {
                 ModifierUpper.Add(CreateFaction(alignment), alignment.UpperPartyModifier);
                 ModifierLower.Add(CreateFaction(alignment), alignment.LowerPartyModiifer);
@@ -186,11 +178,14 @@ namespace WOPR.Services
             Dictionary<Alignment, float> UpperPartyAffinity = new Dictionary<Alignment, float>();
             Dictionary<Alignment, float> LowerPartyAffinity = new Dictionary<Alignment, float>();
 
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups.ToList())
             {
                 PopGroupEnlistment.Add(group, party1.PopGroupEnlistment.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
                 UpperPartyMembership.Add(group, party1.UpperPartyMembership.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
                 LowerPartyMembership.Add(group, party1.LowerPartyMembership.FirstOrDefault(g => g.Key.GroupId == group.PopsimGlobalEthicGroupId).Value);
             }
+
+            foreach (Alignment alignment1 in _context.Alignments.ToList())
             {
                 UpperPartyAffinity.Add(alignment1, party1.UpperPartyAffinity.FirstOrDefault(a => a.Key.FactionId == alignment1.AlignmentId).Value);
                 LowerPartyAffinity.Add(alignment1, party1.LowerPartyAffinity.FirstOrDefault(a => a.Key.FactionId == alignment1.AlignmentId).Value);
@@ -211,6 +206,8 @@ namespace WOPR.Services
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
 
             Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
+
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups.ToList())
             {
                 EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
             }
@@ -241,6 +238,8 @@ namespace WOPR.Services
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
 
             Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
+
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups.ToList())
             {
                 EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
             }
@@ -262,6 +261,8 @@ namespace WOPR.Services
             military1.SetMilitaryGroups(empire1.CalculateGlobalGroupSize());
 
             List<Faction> factions = new List<Faction>();
+
+            foreach(Alignment alignment in _context.Alignments.ToList())
             {
                 factions.Add(CreateFaction(alignment));
             }

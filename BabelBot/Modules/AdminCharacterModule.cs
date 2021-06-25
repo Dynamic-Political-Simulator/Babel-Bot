@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BabelBot.Modules
 {
-	class AdminCharacterModule : ModuleBase<SocketCommandContext>
+	public class AdminCharacterModule : ModuleBase<SocketCommandContext>
 	{
 		private readonly BabelContext _context;
 		private readonly DeathService _deathService;

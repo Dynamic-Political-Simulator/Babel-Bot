@@ -10,7 +10,7 @@ using System.Timers;
 
 namespace BabelBot.Services
 {
-	class DeathService
+	public class DeathService
 	{
 		private readonly BabelContext _context;
 		private readonly DiscordSocketClient _client;

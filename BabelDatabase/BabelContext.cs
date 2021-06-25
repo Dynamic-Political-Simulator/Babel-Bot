@@ -21,9 +21,9 @@ namespace BabelDatabase
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString"));
-            //optionsBuilder.UseInMemoryDatabase("test");
-            optionsBuilder.UseLazyLoadingProxies();
+			optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString"));
+			//optionsBuilder.UseInMemoryDatabase("test");
+			optionsBuilder.UseLazyLoadingProxies();
         }
 
 		public DbSet<Alignment> Alignments { get; set; }
