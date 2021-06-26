@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using Discord.Addons.Interactive;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using BabelBot.Services;
 
 namespace BabelBot
 {
@@ -67,14 +68,19 @@ namespace BabelBot
             var serviceCollection = new ServiceCollection();
 
             serviceCollection.AddOptions();
+            
 
             // serviceCollection.Configure<BabelConfig>(Configuration.GetSection("BabelConfig")); // No worky :(
             serviceCollection.AddSingleton<IConfiguration>(Configuration); // Worky :)
 
-            serviceCollection.AddDbContext<BabelContext>(ServiceLifetime.Transient);
-            serviceCollection.AddSingleton(new InteractiveService(_client));
-            serviceCollection.AddSingleton<CommandHandler>();
-            serviceCollection.AddSingleton<UpdateHandler>();
+
+            serviceCollection.AddSingleton(new InteractiveService(_client))
+                .AddSingleton(_client)
+                .AddSingleton(_commands)
+                .AddSingleton<UpdateHandler>()
+                .AddSingleton<DeathService>()
+                .AddDbContext<BabelContext>(ServiceLifetime.Transient);
+
 
             return serviceCollection.BuildServiceProvider();
         }

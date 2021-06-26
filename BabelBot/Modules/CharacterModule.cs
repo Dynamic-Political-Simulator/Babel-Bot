@@ -31,7 +31,9 @@ namespace BabelBot.Modules
 
 			embedBuilder.Title = "Cliques";
 
-			foreach (var clique in profile.ActiveCharacter.Cliques)
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);
+
+			foreach (var clique in activeCharacter.Cliques)
 			{
 				var field = new EmbedFieldBuilder();
 				field.Name = clique.Clique.CliqueName;
@@ -71,13 +73,13 @@ namespace BabelBot.Modules
 				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
 			}
 
-			var character = profile.ActiveCharacter;
-
-			if (character == null)
+			if (profile.ActiveCharacterId == null)
 			{
 				await ReplyAsync("This user has no active character.");
 				return;
 			}
+
+			var character = _context.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);			
 
 			var embedBuilder = new EmbedBuilder();
 
@@ -100,7 +102,13 @@ namespace BabelBot.Modules
 			else
 			{
 				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
-			}		
+			}
+
+			if (profile.Characters.Count() == 0)
+			{
+				await ReplyAsync("User has no characters.");
+				return;
+			}
 
 			var embedBuilder = new EmbedBuilder();
 
@@ -123,6 +131,77 @@ namespace BabelBot.Modules
 			}
 
 			await ReplyAsync(embed: embedBuilder.Build());
+		}
+
+		[Command("create character")]
+		[RequireProfile]
+		public async Task CreateCharacter(string name)
+		{
+			var userId = Context.Message.Author.Id.ToString();
+
+			var hasActiveCharacter = _context.Characters.AsQueryable().Where(c => c.DiscordUserId == userId && c.YearOfDeath == 0).ToList();
+
+			if (hasActiveCharacter.Count > 0)
+			{
+				await ReplyAsync("You still have a living character, can't create a new one.");
+				return;
+			}
+
+			if (name.Length < 3)
+			{
+				await ReplyAsync("Name must be at least 3 characters long.");
+				return;
+			}
+
+			if (name.Length > 64)
+			{
+				await ReplyAsync("Name has a maximum length of 64 characters.");
+				return;
+			}
+
+			var currentYear = _context.GameState.First().CurrentYear;
+
+			var rand = new Random();
+
+			var age = rand.Next(18, 26);
+
+			var yearOfBirth = currentYear - age;
+
+			var human = _context.Species.AsQueryable().First(s => s.SpeciesName == "Human");
+
+			var newCharacter = new BabelDatabase.Character()
+			{
+				CharacterName = name,
+				DiscordUserId = userId,
+				SpeciesId = human.SpeciesId,
+				CharacterBio = "",
+				YearOfBirth = yearOfBirth
+			};
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			discordUser.ActiveCharacterId = newCharacter.CharacterId;
+			_context.DiscordUsers.Update(discordUser);
+			_context.Characters.Add(newCharacter);
+			_context.SaveChanges();
+
+			await ReplyAsync("Character created.");
+		}
+
+		[Command("bio")]
+		[RequireLivingActiveCharacter]
+		public async Task SetBio(string bio)
+		{
+			var activeCharacter =
+				_context.Characters
+					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == 0);
+
+			activeCharacter.CharacterBio = bio;
+
+			_context.Characters.Update(activeCharacter);
+			await _context.SaveChangesAsync();
+
+			await ReplyAsync("Bio set.");
 		}
 	}
 }

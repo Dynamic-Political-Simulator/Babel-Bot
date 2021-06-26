@@ -8,15 +8,22 @@ using System.Threading.Tasks;
 
 namespace BabelBot.CustomPreconditions
 {
-	public class RequireLivingActiveCharacter : PreconditionAttribute
+	public class RequiresAdmin : PreconditionAttribute
 	{
+
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			var db = services.GetService(typeof(BabelContext)) as BabelContext;
 
-			var user = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == context.User.Id.ToString());
+			var discordUser = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == context.User.Id.ToString());
 
-			return Task.FromResult(user.ActiveCharacterId == null ? PreconditionResult.FromError("You need a living active character to use this command.") : PreconditionResult.FromSuccess());
+			if (discordUser == null || !discordUser.IsAdmin)
+			{
+				return Task.FromResult(
+					PreconditionResult.FromError("You don't have the required permissions to use this command."));
+			}
+
+			return Task.FromResult(PreconditionResult.FromSuccess());
 		}
 	}
 }

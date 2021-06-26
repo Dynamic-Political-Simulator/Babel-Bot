@@ -45,11 +45,17 @@ namespace BabelDatabase.Migrations
                     b.Property<int>("DemocracyAuthority")
                         .HasColumnType("int");
 
+                    b.Property<float>("Establishment")
+                        .HasColumnType("real");
+
                     b.Property<int>("FederalismCentralism")
                         .HasColumnType("int");
 
                     b.Property<int>("GlobalismIsolationism")
                         .HasColumnType("int");
+
+                    b.Property<float>("LowerPartyModiifer")
+                        .HasColumnType("real");
 
                     b.Property<int>("MilitarismPacifism")
                         .HasColumnType("int");
@@ -65,6 +71,9 @@ namespace BabelDatabase.Migrations
 
                     b.Property<int>("SecurityFreedom")
                         .HasColumnType("int");
+
+                    b.Property<float>("UpperPartyModifier")
+                        .HasColumnType("real");
 
                     b.HasKey("AlignmentId");
 
@@ -112,6 +121,57 @@ namespace BabelDatabase.Migrations
                     b.ToTable("AlignmentSpendings");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Army", b =>
+                {
+                    b.Property<int>("ArmyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ArmyId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("PlanetId");
+
+                    b.ToTable("Armies");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Building", b =>
+                {
+                    b.Property<int>("BuildingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Ruined")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("BuildingId");
+
+                    b.HasIndex("PlanetId");
+
+                    b.ToTable("Buildings");
+                });
+
             modelBuilder.Entity("BabelDatabase.Character", b =>
                 {
                     b.Property<string>("CharacterId")
@@ -152,6 +212,29 @@ namespace BabelDatabase.Migrations
                     b.HasIndex("SpeciesId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("BabelDatabase.CharacterDeathTimer", b =>
+                {
+                    b.Property<string>("CharacterDeathTimerId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CharacterId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DeathTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("YearOfDeath")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharacterDeathTimerId");
+
+                    b.HasIndex("CharacterId")
+                        .IsUnique()
+                        .HasFilter("[CharacterId] IS NOT NULL");
+
+                    b.ToTable("CharacterDeathTimers");
                 });
 
             modelBuilder.Entity("BabelDatabase.Clique", b =>
@@ -269,12 +352,25 @@ namespace BabelDatabase.Migrations
                     b.ToTable("CustomSpendings");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Data", b =>
+                {
+                    b.Property<string>("DataId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("BaseGdpPerPop")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Stratas")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DataId");
+
+                    b.ToTable("Data");
+                });
+
             modelBuilder.Entity("BabelDatabase.DiscordUser", b =>
                 {
                     b.Property<string>("DiscordUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ActiveCharacterCharacterId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ActiveCharacterId")
@@ -289,8 +385,6 @@ namespace BabelDatabase.Migrations
 
                     b.HasKey("DiscordUserId");
 
-                    b.HasIndex("ActiveCharacterCharacterId");
-
                     b.ToTable("DiscordUsers");
 
                     b.HasData(
@@ -300,6 +394,130 @@ namespace BabelDatabase.Migrations
                             IsAdmin = true,
                             UserName = "Obi"
                         });
+                });
+
+            modelBuilder.Entity("BabelDatabase.District", b =>
+                {
+                    b.Property<int>("DistrictId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DistrictId");
+
+                    b.HasIndex("PlanetId");
+
+                    b.ToTable("Districts");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Empire", b =>
+                {
+                    b.Property<int>("EmpireId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("EconGmData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GeneralAssembly")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NationalOutput")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PopsimGmData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EmpireId");
+
+                    b.ToTable("Empires");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Fleet", b =>
+                {
+                    b.Property<int>("FleetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int?>("EmpireId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmpireId1")
+                        .HasColumnType("int");
+
+                    b.Property<double>("MilitaryPower")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SystemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FleetId");
+
+                    b.HasIndex("EmpireId");
+
+                    b.HasIndex("EmpireId1");
+
+                    b.HasIndex("OwnerID");
+
+                    b.HasIndex("SystemId");
+
+                    b.ToTable("Fleets");
+                });
+
+            modelBuilder.Entity("BabelDatabase.GalacticObject", b =>
+                {
+                    b.Property<int>("GalacticObjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int?>("EmpireId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Hyperlanes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("PosX")
+                        .HasColumnType("real");
+
+                    b.Property<float>("PosY")
+                        .HasColumnType("real");
+
+                    b.Property<int>("StarbaseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("GalacticObjectId");
+
+                    b.HasIndex("EmpireId");
+
+                    b.HasIndex("StarbaseId")
+                        .IsUnique();
+
+                    b.ToTable("GalacticObjects");
                 });
 
             modelBuilder.Entity("BabelDatabase.GameState", b =>
@@ -328,30 +546,128 @@ namespace BabelDatabase.Migrations
                         });
                 });
 
-            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+            modelBuilder.Entity("BabelDatabase.Graveyard", b =>
                 {
-                    b.Property<string>("SystemId")
+                    b.Property<string>("ChannelId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Colour")
+                    b.Property<string>("ServerId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Lat")
-                        .HasColumnType("real");
+                    b.HasKey("ChannelId");
 
-                    b.Property<float>("Lng")
-                        .HasColumnType("real");
+                    b.ToTable("Graveyards");
+                });
 
-                    b.Property<string>("PopsimPlanetId")
+            modelBuilder.Entity("BabelDatabase.InfrastructureData", b =>
+                {
+                    b.Property<string>("InfraStructureDataId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("SystemId");
+                    b.Property<decimal>("GdpPerInfrastructure")
+                        .HasColumnType("decimal(20,0)");
 
-                    b.HasIndex("PopsimPlanetId")
-                        .IsUnique()
-                        .HasFilter("[PopsimPlanetId] IS NOT NULL");
+                    b.Property<string>("Infrastructures")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("PlanetarySystems");
+                    b.HasKey("InfraStructureDataId");
+
+                    b.ToTable("InfrastructureData");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Military", b =>
+                {
+                    b.Property<string>("RevolutionaryGuardId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MilitaryFactions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MilitaryGroups")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("MilitaryPoliticisation")
+                        .HasColumnType("real");
+
+                    b.HasKey("RevolutionaryGuardId");
+
+                    b.ToTable("Militaries");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Party", b =>
+                {
+                    b.Property<string>("PartyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("LowerPartyAffinity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LowerPartyMembership")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PopGroupEnlistment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpperPartyAffinity")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpperPartyMembership")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("UpperPartyPercentage")
+                        .HasColumnType("real");
+
+                    b.HasKey("PartyId");
+
+                    b.ToTable("Parties");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Planet", b =>
+                {
+                    b.Property<int>("PlanetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ControllerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EconGmData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GalacticObjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Output")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlanetClass")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanetDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlanetName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PopsimGmData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Population")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.HasKey("PlanetId");
+
+                    b.HasIndex("ControllerId");
+
+                    b.HasIndex("GalacticObjectId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Planets");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
@@ -365,6 +681,35 @@ namespace BabelDatabase.Migrations
                     b.HasKey("PlayerId", "StaffActionId");
 
                     b.ToTable("PlayerStaffAction");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Pop", b =>
+                {
+                    b.Property<int>("PopId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<float>("Happiness")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Job")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.Property<float>("Power")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Strata")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PopId");
+
+                    b.HasIndex("PlanetId");
+
+                    b.ToTable("Pops");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimGlobalEthicGroup", b =>
@@ -390,11 +735,20 @@ namespace BabelDatabase.Migrations
                     b.Property<int>("MonoculturalismMulticulturalism")
                         .HasColumnType("int");
 
+                    b.Property<float>("PartyEnlistmentModifier")
+                        .HasColumnType("real");
+
+                    b.Property<int>("PartyInvolvementFactor")
+                        .HasColumnType("int");
+
                     b.Property<string>("PopsimGlobalEthicGroupName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ProgressivismTraditionalism")
                         .HasColumnType("int");
+
+                    b.Property<float>("Radicalisation")
+                        .HasColumnType("real");
 
                     b.Property<int>("SecularismSpiritualism")
                         .HasColumnType("int");
@@ -404,23 +758,7 @@ namespace BabelDatabase.Migrations
 
                     b.HasKey("PopsimGlobalEthicGroupId");
 
-                    b.ToTable("PopsimGlobalEthicGroup");
-                });
-
-            modelBuilder.Entity("BabelDatabase.PopsimPlanet", b =>
-                {
-                    b.Property<string>("PopsimPlanetId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("PlanetDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PlanetName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PopsimPlanetId");
-
-                    b.ToTable("PopsimPlanets");
+                    b.ToTable("PopsimGlobalEthicGroups");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimPlanetEthicGroup", b =>
@@ -431,19 +769,45 @@ namespace BabelDatabase.Migrations
                     b.Property<long>("MembersOnPlanet")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PopsimGlobalEthicGroupId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<float>("Percentage")
+                        .HasColumnType("real");
 
-                    b.Property<string>("PopsimPlanetId")
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PopsimGlobalEthicGroupId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PopsimPlanetEthicGroupId");
 
+                    b.HasIndex("PlanetId");
+
                     b.HasIndex("PopsimGlobalEthicGroupId");
 
-                    b.HasIndex("PopsimPlanetId");
-
                     b.ToTable("PopsimPlanetEthicGroup");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Ship", b =>
+                {
+                    b.Property<int>("ShipId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("FleetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShipName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ShipId");
+
+                    b.HasIndex("FleetId");
+
+                    b.ToTable("Ships");
                 });
 
             modelBuilder.Entity("BabelDatabase.Species", b =>
@@ -541,6 +905,36 @@ namespace BabelDatabase.Migrations
                     b.HasIndex("StaffActionId");
 
                     b.ToTable("StaffStaffAction");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Starbase", b =>
+                {
+                    b.Property<int>("StarbaseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Buildings")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FleetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Level")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Modules")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Owner")
+                        .HasColumnType("int");
+
+                    b.HasKey("StarbaseId");
+
+                    b.HasIndex("FleetId")
+                        .IsUnique();
+
+                    b.ToTable("Starbases");
                 });
 
             modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
@@ -648,6 +1042,36 @@ namespace BabelDatabase.Migrations
                     b.Navigation("PlanetTarget");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Army", b =>
+                {
+                    b.HasOne("BabelDatabase.Empire", "Owner")
+                        .WithMany("Armies")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithMany()
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Planet");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Building", b =>
+                {
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithMany("Buildings")
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
+                });
+
             modelBuilder.Entity("BabelDatabase.Character", b =>
                 {
                     b.HasOne("BabelDatabase.Committee", null)
@@ -667,6 +1091,15 @@ namespace BabelDatabase.Migrations
                     b.Navigation("DiscordUser");
 
                     b.Navigation("Species");
+                });
+
+            modelBuilder.Entity("BabelDatabase.CharacterDeathTimer", b =>
+                {
+                    b.HasOne("BabelDatabase.Character", "Character")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.CharacterDeathTimer", "CharacterId");
+
+                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("BabelDatabase.CliqueInvite", b =>
@@ -745,13 +1178,84 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Clique");
                 });
 
-            modelBuilder.Entity("BabelDatabase.DiscordUser", b =>
+            modelBuilder.Entity("BabelDatabase.District", b =>
                 {
-                    b.HasOne("BabelDatabase.Character", "ActiveCharacter")
-                        .WithMany()
-                        .HasForeignKey("ActiveCharacterCharacterId");
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithMany("Districts")
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("ActiveCharacter");
+                    b.Navigation("Planet");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Fleet", b =>
+                {
+                    b.HasOne("BabelDatabase.Empire", null)
+                        .WithMany("MiningStations")
+                        .HasForeignKey("EmpireId");
+
+                    b.HasOne("BabelDatabase.Empire", null)
+                        .WithMany("ResearchStations")
+                        .HasForeignKey("EmpireId1");
+
+                    b.HasOne("BabelDatabase.Empire", "Owner")
+                        .WithMany("Fleets")
+                        .HasForeignKey("OwnerID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.GalacticObject", "System")
+                        .WithMany()
+                        .HasForeignKey("SystemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("System");
+                });
+
+            modelBuilder.Entity("BabelDatabase.GalacticObject", b =>
+                {
+                    b.HasOne("BabelDatabase.Empire", null)
+                        .WithMany("GalacticObjects")
+                        .HasForeignKey("EmpireId");
+
+                    b.HasOne("BabelDatabase.Starbase", "Starbase")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.GalacticObject", "StarbaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Starbase");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Planet", b =>
+                {
+                    b.HasOne("BabelDatabase.Empire", "Controller")
+                        .WithMany()
+                        .HasForeignKey("ControllerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.GalacticObject", "GalacticObject")
+                        .WithMany("Planets")
+                        .HasForeignKey("GalacticObjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BabelDatabase.Empire", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Controller");
+
+                    b.Navigation("GalacticObject");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
@@ -782,19 +1286,43 @@ namespace BabelDatabase.Migrations
                     b.Navigation("StaffAction");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Pop", b =>
+                {
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithMany("Pops")
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
+                });
+
             modelBuilder.Entity("BabelDatabase.PopsimPlanetEthicGroup", b =>
                 {
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithMany("PlanetGroups")
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("BabelDatabase.PopsimGlobalEthicGroup", "PopsimGlobalEthicGroup")
                         .WithMany("PlanetaryEthicGroups")
                         .HasForeignKey("PopsimGlobalEthicGroupId");
 
-                    b.HasOne("BabelDatabase.PopsimPlanet", "PopsimPlanet")
-                        .WithMany()
-                        .HasForeignKey("PopsimPlanetId");
+                    b.Navigation("Planet");
 
                     b.Navigation("PopsimGlobalEthicGroup");
+                });
 
-                    b.Navigation("PopsimPlanet");
+            modelBuilder.Entity("BabelDatabase.Ship", b =>
+                {
+                    b.HasOne("BabelDatabase.Fleet", "Fleet")
+                        .WithMany("Ships")
+                        .HasForeignKey("FleetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fleet");
                 });
 
             modelBuilder.Entity("BabelDatabase.StaffAction", b =>
@@ -846,6 +1374,17 @@ namespace BabelDatabase.Migrations
                     b.Navigation("StaffAction");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Starbase", b =>
+                {
+                    b.HasOne("BabelDatabase.Fleet", "StarbaseFleet")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.Starbase", "FleetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StarbaseFleet");
+                });
+
             modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
                 {
                     b.HasOne("BabelDatabase.VoteMessage", "VoteMessage")
@@ -877,6 +1416,40 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.DiscordUser", b =>
                 {
                     b.Navigation("Characters");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Empire", b =>
+                {
+                    b.Navigation("Armies");
+
+                    b.Navigation("Fleets");
+
+                    b.Navigation("GalacticObjects");
+
+                    b.Navigation("MiningStations");
+
+                    b.Navigation("ResearchStations");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Fleet", b =>
+                {
+                    b.Navigation("Ships");
+                });
+
+            modelBuilder.Entity("BabelDatabase.GalacticObject", b =>
+                {
+                    b.Navigation("Planets");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Planet", b =>
+                {
+                    b.Navigation("Buildings");
+
+                    b.Navigation("Districts");
+
+                    b.Navigation("PlanetGroups");
+
+                    b.Navigation("Pops");
                 });
 
             modelBuilder.Entity("BabelDatabase.PopsimGlobalEthicGroup", b =>

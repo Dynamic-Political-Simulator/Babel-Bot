@@ -50,9 +50,9 @@ namespace WOPR.Controllers.Spending
 				return NotFound();
 			}
 
-			var officers = clique.CliqueOfficers.Select(co => co.Officer);
+			var officerIds = clique.CliqueOfficers.Select(co => co.Officer.CharacterId);
 
-			if (!officers.Contains(discordUser.ActiveCharacter))
+			if (!officerIds.Contains(discordUser.ActiveCharacterId))
 			{
 				return Unauthorized();
 			}
@@ -125,10 +125,10 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (clique != null && clique.CliqueMembers.Select(cm => cm.Member).Contains(discordUser.ActiveCharacter))
+			if (clique != null && clique.CliqueMembers.Select(cm => cm.Member.CharacterId).Contains(discordUser.ActiveCharacterId))
 			{
-				clique.CliqueMembers.Remove(clique.CliqueMembers.SingleOrDefault(cm => cm.Member == discordUser.ActiveCharacter));
-				clique.CliqueOfficers.Remove(clique.CliqueOfficers.SingleOrDefault(cm => cm.Officer == discordUser.ActiveCharacter));
+				clique.CliqueMembers.Remove(clique.CliqueMembers.SingleOrDefault(cm => cm.Member.CharacterId == discordUser.ActiveCharacterId));
+				clique.CliqueOfficers.Remove(clique.CliqueOfficers.SingleOrDefault(cm => cm.Officer.CharacterId == discordUser.ActiveCharacterId));
 			}
 
 			_context.SaveChanges();
@@ -157,8 +157,10 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
-					|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
+
+			if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+					|| !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
 			{
 				return Unauthorized();
 			}
@@ -233,13 +235,13 @@ namespace WOPR.Controllers.Spending
 			newClique.CliqueMembers.Add(new CliqueMemberCharacter()
 			{
 				Clique = newClique,
-				Member = discordUser.ActiveCharacter
+				MemberId = discordUser.ActiveCharacterId
 			});
 
 			newClique.CliqueOfficers.Add(new CliqueOfficerCharacter()
 			{
 				Clique = newClique,
-				Officer = discordUser.ActiveCharacter
+				OfficerId = discordUser.ActiveCharacterId
 			});
 
 			_context.Cliques.Add(newClique);
@@ -273,8 +275,10 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
-				|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
+
+			if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+				|| !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
 			{
 				return Unauthorized();
 			}
@@ -330,8 +334,10 @@ namespace WOPR.Controllers.Spending
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			if (!discordUser.ActiveCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
-				|| !clique.CliqueOfficers.Select(co => co.Officer).Contains(discordUser.ActiveCharacter))
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
+
+			if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique) 
+				|| !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
 			{
 				return Unauthorized();
 			}
