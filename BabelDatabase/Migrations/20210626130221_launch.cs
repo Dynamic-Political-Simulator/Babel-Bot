@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BabelDatabase.Migrations
 {
-    public partial class initial : Migration
+    public partial class launch : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -199,7 +199,8 @@ namespace BabelDatabase.Migrations
                 columns: table => new
                 {
                     SpeciesId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SpeciesName = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    SpeciesName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SpeciesDescription = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -826,24 +827,9 @@ namespace BabelDatabase.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "DiscordUsers",
-                columns: new[] { "DiscordUserId", "ActiveCharacterId", "IsAdmin", "UserName" },
-                values: new object[] { "75968535074967552", null, true, "Obi" });
-
-            migrationBuilder.InsertData(
                 table: "GameState",
                 columns: new[] { "GameStateId", "CurrentYear", "SecondsToMidnight" },
                 values: new object[] { 1, 2500, 10800 });
-
-            migrationBuilder.InsertData(
-                table: "Species",
-                columns: new[] { "SpeciesId", "SpeciesName" },
-                values: new object[,]
-                {
-                    { "1", "Human" },
-                    { "2", "Zelvan" },
-                    { "3", "Liaran" }
-                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AlignmentClique_CliquesCliqueId",

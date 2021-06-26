@@ -386,14 +386,6 @@ namespace BabelDatabase.Migrations
                     b.HasKey("DiscordUserId");
 
                     b.ToTable("DiscordUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            DiscordUserId = "75968535074967552",
-                            IsAdmin = true,
-                            UserName = "Obi"
-                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.District", b =>
@@ -815,29 +807,15 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("SpeciesId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("SpeciesDescription")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SpeciesName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SpeciesId");
 
                     b.ToTable("Species");
-
-                    b.HasData(
-                        new
-                        {
-                            SpeciesId = "1",
-                            SpeciesName = "Human"
-                        },
-                        new
-                        {
-                            SpeciesId = "2",
-                            SpeciesName = "Zelvan"
-                        },
-                        new
-                        {
-                            SpeciesId = "3",
-                            SpeciesName = "Liaran"
-                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.StaffAction", b =>

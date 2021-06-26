@@ -65,31 +65,6 @@ namespace BabelDatabase
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
-            {
-                DiscordUserId = "75968535074967552",
-                UserName = "Obi",
-                IsAdmin = true
-            });
-
-            modelBuilder.Entity<Species>().HasData(
-                new Species
-                {
-                    SpeciesId = "1",
-                    SpeciesName = "Human"
-                },
-                new Species
-                {
-                    SpeciesId = "2",
-                    SpeciesName = "Zelvan"
-                },
-                new Species
-                {
-                    SpeciesId = "3",
-                    SpeciesName = "Liaran"
-                }
-            );
-
             modelBuilder.Entity<GameState>().HasData(
                 new GameState()
             );

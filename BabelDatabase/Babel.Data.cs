@@ -144,6 +144,7 @@ namespace BabelDatabase
         public string SpeciesId { get; set; } = Guid.NewGuid().ToString();
 
         public string SpeciesName { get; set; }
+        public string SpeciesDescription { get; set; }
     }
 
     public class GameState
