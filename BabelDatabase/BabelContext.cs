@@ -396,6 +396,11 @@ namespace BabelDatabase
 				.HasConversion(
 					b => JsonConvert.SerializeObject(b),
 					b => JsonConvert.DeserializeObject<List<string>>(b));
+
+			modelBuilder.Entity<VoteEntry>()
+				.HasOne(ve => ve.VoteMessage)
+				.WithMany(vm => vm.Votes)
+				.HasForeignKey(vm => vm.VoteMessageId);
 		}
 	}
 }
