@@ -68,7 +68,7 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            PopsimPlanet planet = _context.PopsimPlanets.FirstOrDefault(x => x.PlanetName == form.PlanetName);
+            Planet planet = _context.Planets.FirstOrDefault(x => x.PlanetName == form.PlanetName);
 
             if (planet == null || form.Location.Length != 2 || form.Colour == null)
             {
@@ -108,10 +108,10 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            PopsimPlanet planet = new PopsimPlanet();
+            Planet planet = new Planet();
             planet.PlanetName = form.PlanetName;
             planet.PlanetDescription = form.PlanetDescription;
-            _context.PopsimPlanets.Add(planet);
+            _context.Planets.Add(planet);
             _context.SaveChanges();
 
             return Ok();
