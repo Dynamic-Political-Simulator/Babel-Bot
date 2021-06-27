@@ -49,6 +49,12 @@ namespace WOPR.Services
             await _context.SaveChangesAsync();
         }
 
+        public Dictionary<string, ulong> ReturnGdpPerStrata(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            return empire1.GetGlobalStrataOutput();
+        }
+
         public async void CalculatePlanetEcon(BabelDatabase.Planet planet)
         {
             DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
