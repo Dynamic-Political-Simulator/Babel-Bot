@@ -919,87 +919,6 @@ namespace BabelDatabase.Migrations
                     b.ToTable("StaffStaffAction");
                 });
 
-            modelBuilder.Entity("BabelDatabase.Starbase", b =>
-                {
-                    b.Property<int>("StarbaseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Buildings")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FleetId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Level")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Modules")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Owner")
-                        .HasColumnType("int");
-
-                    b.HasKey("StarbaseId");
-
-                    b.HasIndex("FleetId")
-                        .IsUnique();
-
-                    b.ToTable("Starbases");
-                });
-
-            modelBuilder.Entity("BabelDatabase.VoteEntry", b =>
-                {
-                    b.Property<string>("VoteEntryId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<int>("Vote")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("VoteMessageId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.HasKey("VoteEntryId");
-
-                    b.HasIndex("VoteMessageId");
-
-                    b.ToTable("VoteEntries");
-                });
-
-            modelBuilder.Entity("BabelDatabase.VoteMessage", b =>
-                {
-                    b.Property<decimal>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
-
-                    b.Property<bool>("Anonymous")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("ChannelId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<decimal>("CreatorId")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<long>("EndTime")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TimeSpan")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("MessageId");
-
-                    b.ToTable("VoteMessages");
-                });
-
             modelBuilder.Entity("AlignmentClique", b =>
                 {
                     b.HasOne("BabelDatabase.Alignment", "Alignment")
@@ -1379,6 +1298,11 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("StaffAction");
+                });
+
+            modelBuilder.Entity("BabelDatabase.Alignment", b =>
+                {
+                    b.Navigation("Cliques");
                 });
 
             modelBuilder.Entity("BabelDatabase.Character", b =>
