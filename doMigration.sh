@@ -6,10 +6,11 @@ sudo docker ps | grep 'sql1' &> /dev/null
 if [ $? != 0 ]; then
     echo "MSSQL docker instance not running!"
 else
-    echo "Deleting existing migrations..."
-    cd ./BabelDatabase/Migrations
-    rm -rf * # Delete all migrations
-    cd ../..
+    # We don't do this anymore
+    # echo "Deleting existing migrations..."
+    # cd ./BabelDatabase/Migrations
+    # rm -rf * # Delete all migrations
+    # cd ../..
     echo "Creating a new migration..."
     dotnet ef migrations add initial -c BabelContext -p ./BabelDatabase -s ./WOPR &> /dev/null
     echo "Updating the database..."
