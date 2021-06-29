@@ -84,7 +84,23 @@ namespace BabelBot.Modules
 			var embedBuilder = new EmbedBuilder();
 
 			embedBuilder.Title = $"{character.CharacterName} {character.YearOfBirth}-Present";
-			embedBuilder.Description = $"Bio: {character.CharacterBio}";
+			var speciesField = new EmbedFieldBuilder();
+			speciesField.Name = "Species";
+			speciesField.Value = character.Species.SpeciesName;
+
+			var bioField = new EmbedFieldBuilder();
+			bioField.Name = "Bio";
+			if(character.CharacterBio == null || character.CharacterBio == "")
+			{
+				bioField.Value = "No bio.";
+			}
+			else
+			{
+				bioField.Value = character.CharacterBio;
+			}
+
+			embedBuilder.AddField(speciesField);
+			embedBuilder.AddField(bioField);
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
@@ -202,6 +218,24 @@ namespace BabelBot.Modules
 			await _context.SaveChangesAsync();
 
 			await ReplyAsync("Bio set.");
+		}
+
+		[Command("species")]
+		public async Task ListSpecies()
+		{
+			var species = _context.Species.ToList();
+
+			var embedBuilder = new EmbedBuilder();
+
+			foreach(var s in species)
+			{
+				var field = new EmbedFieldBuilder();
+				field.Name = s.SpeciesName;
+				field.Value = s.SpeciesDescription;
+				embedBuilder.AddField(field);
+			}
+
+			await ReplyAsync(embed: embedBuilder.Build());
 		}
 	}
 }

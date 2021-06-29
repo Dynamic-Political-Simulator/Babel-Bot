@@ -24,6 +24,44 @@ namespace BabelBot.Modules
 			_deathService = deathService;
 		}
 
+		[Command("change species")]
+		[RequiresAdmin]
+		public async Task ChangeCharacterSpecies(string speciesName, [Remainder] SocketGuildUser mention)
+		{
+			var pingedUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+
+			if (pingedUser == null)
+			{
+				await ReplyAsync("User does not have a profile.");
+			}
+
+			if (pingedUser.ActiveCharacterId == null)
+			{
+				await ReplyAsync("Could not find a living character.");
+				return;
+			}
+
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
+
+			var oldSpecies = activeCharacter.Species.SpeciesName;
+
+			var newSpecies = _context.Species.SingleOrDefault(s => s.SpeciesName.ToLower() == speciesName.ToLower());
+
+			if (newSpecies == null)
+			{
+				await ReplyAsync($"Could not find species {speciesName}.");
+				return;
+			}
+
+			activeCharacter.Species = newSpecies;
+			activeCharacter.SpeciesId = newSpecies.SpeciesId;
+
+			_context.Characters.Update(activeCharacter);
+			await _context.SaveChangesAsync();
+
+			await ReplyAsync($"Changed species of {activeCharacter.CharacterName} from {oldSpecies} to {newSpecies.SpeciesName}.");
+		}
+
 		[Command("change name")]
 		[RequiresAdmin]
 		public async Task ChangeCharacterName(string newName, [Remainder] SocketGuildUser mention)

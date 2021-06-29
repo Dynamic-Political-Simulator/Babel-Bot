@@ -66,31 +66,6 @@ namespace BabelDatabase
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
-            {
-                DiscordUserId = "75968535074967552",
-                UserName = "Obi",
-                IsAdmin = true
-            });
-
-            modelBuilder.Entity<Species>().HasData(
-                new Species
-                {
-                    SpeciesId = "1",
-                    SpeciesName = "Human"
-                },
-                new Species
-                {
-                    SpeciesId = "2",
-                    SpeciesName = "Zelvan"
-                },
-                new Species
-                {
-                    SpeciesId = "3",
-                    SpeciesName = "Liaran"
-                }
-            );
-
             modelBuilder.Entity<GameState>().HasData(
                 new GameState()
             );
@@ -213,21 +188,6 @@ namespace BabelDatabase
                 .HasMany(pgeg => pgeg.PlanetaryEthicGroups)
                 .WithOne(ppeg => ppeg.PopsimGlobalEthicGroup)
                 .HasForeignKey(ppeg => ppeg.PopsimGlobalEthicGroupId);
-
-            modelBuilder.Entity<PopsimPlanetEthicGroup>()
-                .HasOne(ppeg => ppeg.Planet)
-                .WithMany()
-                .HasForeignKey(ppeg => ppeg.PlanetId);
-
-            modelBuilder.Entity<VoteEntry>()
-                .HasOne(ve => ve.VoteMessage)
-                .WithMany(vm => vm.Votes)
-                .HasForeignKey(vm => vm.VoteMessageId);
-
-            modelBuilder.Entity<PlanetarySystem>()
-                .HasOne(ps => ps.Planet)
-                .WithOne()
-                .HasForeignKey<PlanetarySystem>(ps => ps.PopsimPlanetId);
 
             modelBuilder.Entity<GalacticObject>()
                 .HasMany(go => go.Planets)
@@ -437,6 +397,16 @@ namespace BabelDatabase
                 .HasConversion(
                     b => JsonConvert.SerializeObject(b),
                     b => JsonConvert.DeserializeObject<List<string>>(b));
+
+            modelBuilder.Entity<VoteEntry>()
+                .HasOne(ve => ve.VoteMessage)
+                .WithMany(vm => vm.Votes)
+                .HasForeignKey(vm => vm.VoteMessageId);
+
+            modelBuilder.Entity<PlanetarySystem>()
+                .HasOne(ps => ps.Planet)
+                .WithOne()
+                .HasForeignKey<PlanetarySystem>(ps => ps.PopsimPlanetId);
         }
     }
 }
