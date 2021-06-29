@@ -116,5 +116,26 @@ namespace WOPR.Controllers.Map
 
             return Ok();
         }
+
+        [HttpPost("get-planet")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult GetPlanet([FromBody] string name)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || discordUser.IsAdmin == false)
+            {
+
+                return Unauthorized();
+            }
+            else
+            {
+
+            }
+
+            return Ok();
+        }
     }
 }
