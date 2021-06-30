@@ -220,6 +220,8 @@ namespace BabelDatabase
     {
         [Key]
         public string AlignmentId { get; set; } = Guid.NewGuid().ToString();
+        [Required]
+        public string AlignmentName { get; set; }
 
         public virtual List<Clique> Cliques { get; set; }
 
@@ -398,6 +400,10 @@ namespace BabelDatabase
         public Dictionary<string, ulong> Output { get; set; } = new Dictionary<string, ulong>();
         public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
         public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
+
+        public virtual Alignment ExecutiveAlignment { get; set; }
+        public virtual Alignment LegislativeAlignment { get; set; }
+        public virtual Alignment PartyAlignment { get; set; }
     }
 
     public class District
@@ -564,7 +570,7 @@ namespace BabelDatabase
         public float Lng { get; set; }
         public string Colour { get; set; }
 
-        public string PopsimPlanetId { get; set; }
+        public int PlanetId { get; set; }
         public virtual Planet Planet { get; set; }
     }
 

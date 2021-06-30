@@ -406,7 +406,16 @@ namespace BabelDatabase
             modelBuilder.Entity<PlanetarySystem>()
                 .HasOne(ps => ps.Planet)
                 .WithOne()
-                .HasForeignKey<PlanetarySystem>(ps => ps.PopsimPlanetId);
+                .HasForeignKey<PlanetarySystem>(ps => ps.PlanetId);
+
+            modelBuilder.Entity<Planet>()
+                .HasOne(p => p.ExecutiveAlignment);
+
+            modelBuilder.Entity<Planet>()
+                .HasOne(p => p.LegislativeAlignment);
+
+            modelBuilder.Entity<Planet>()
+                .HasOne(p => p.PartyAlignment);
         }
     }
 }

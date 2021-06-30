@@ -39,6 +39,10 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("AlignmentId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("AlignmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CooperationCompetition")
                         .HasColumnType("int");
 
@@ -627,14 +631,23 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("EconGmData")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ExecutiveAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("GalacticObjectId")
                         .HasColumnType("int");
+
+                    b.Property<string>("LegislativeAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Output")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PartyAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PlanetClass")
                         .HasColumnType("nvarchar(max)");
@@ -655,11 +668,42 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("ControllerId");
 
+                    b.HasIndex("ExecutiveAlignmentAlignmentId");
+
                     b.HasIndex("GalacticObjectId");
+
+                    b.HasIndex("LegislativeAlignmentAlignmentId");
 
                     b.HasIndex("OwnerId");
 
+                    b.HasIndex("PartyAlignmentAlignmentId");
+
                     b.ToTable("Planets");
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+                {
+                    b.Property<string>("SystemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Colour")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Lat")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Lng")
+                        .HasColumnType("real");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SystemId");
+
+                    b.HasIndex("PlanetId")
+                        .IsUnique();
+
+                    b.ToTable("PlanetarySystems");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
@@ -1217,11 +1261,19 @@ namespace BabelDatabase.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("BabelDatabase.Alignment", "ExecutiveAlignment")
+                        .WithMany()
+                        .HasForeignKey("ExecutiveAlignmentAlignmentId");
+
                     b.HasOne("BabelDatabase.GalacticObject", "GalacticObject")
                         .WithMany("Planets")
                         .HasForeignKey("GalacticObjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("BabelDatabase.Alignment", "LegislativeAlignment")
+                        .WithMany()
+                        .HasForeignKey("LegislativeAlignmentAlignmentId");
 
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany()
@@ -1229,18 +1281,30 @@ namespace BabelDatabase.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("BabelDatabase.Alignment", "PartyAlignment")
+                        .WithMany()
+                        .HasForeignKey("PartyAlignmentAlignmentId");
+
                     b.Navigation("Controller");
+
+                    b.Navigation("ExecutiveAlignment");
 
                     b.Navigation("GalacticObject");
 
+                    b.Navigation("LegislativeAlignment");
+
                     b.Navigation("Owner");
+
+                    b.Navigation("PartyAlignment");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
                 {
-                    b.HasOne("BabelDatabase.PopsimPlanet", "Planet")
+                    b.HasOne("BabelDatabase.Planet", "Planet")
                         .WithOne()
-                        .HasForeignKey("BabelDatabase.PlanetarySystem", "PopsimPlanetId");
+                        .HasForeignKey("BabelDatabase.PlanetarySystem", "PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Planet");
                 });
