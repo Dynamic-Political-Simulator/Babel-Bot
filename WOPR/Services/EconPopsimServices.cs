@@ -49,6 +49,51 @@ namespace WOPR.Services
             await _context.SaveChangesAsync();
         }
 
+        public Dictionary<string, float> ReturnGdpPerStrata(BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            return empire1.GetGlobalStrataOutput();
+        }
+
+        public Dictionary<string, ulong> ReturnPopulationPerStra(BabelDatabase.Empire empire)
+        {
+            ulong rulers = 0;
+            ulong specialists = 0;
+            ulong workers = 0;
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+            foreach (DPSSimulation.Classes.GalacticObject system in empire1.GalacticObjects)
+            {
+                foreach (DPSSimulation.Classes.Planet planet in system.Planets)
+                {
+                    rulers += (ulong)planet.Pops.FindAll(p => p.Strata == "\"ruler\"").Count * 250000000;
+                    specialists += (ulong)planet.Pops.FindAll(p => p.Strata == "\"specialist\"").Count * 250000000;
+                    workers += (ulong)planet.Pops.FindAll(p => p.Strata == "\"worker\"").Count * 250000000;  
+                }
+            }
+            Dictionary<string, ulong> PopPerStrata = new Dictionary<string, ulong>();
+            PopPerStrata.Add("ruler", rulers);
+            PopPerStrata.Add("specialist", specialists);
+            PopPerStrata.Add("worker", workers);
+
+            return PopPerStrata;
+        }
+
+        public int ReturnDistrictAmount(BabelDatabase.Empire empire)
+        {
+            int DistrictAmount = 0;
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            foreach (DPSSimulation.Classes.GalacticObject system in empire1.GalacticObjects)
+            {
+                foreach (DPSSimulation.Classes.Planet planet in system.Planets)
+                {
+                    DistrictAmount += planet.Districts.Count;
+                }
+            }
+
+            return DistrictAmount;
+        }
+
         public async void CalculatePlanetEcon(BabelDatabase.Planet planet)
         {
             DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
