@@ -8,6 +8,7 @@ Steward/obj/*
 Steward/bin/*
 *.resx
 *.Designer.cs
+!BabelDatabase/Migrations/*.Designer.cs
 appsettings.json
 .json
 
