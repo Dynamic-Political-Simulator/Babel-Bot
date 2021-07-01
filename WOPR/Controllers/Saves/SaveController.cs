@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web.Http.Cors;
 using System.IO;
 using WOPR.Helpers;
+using WOPR.Services;
 
 namespace WOPR.Controllers.Saves
 {
@@ -19,10 +20,12 @@ namespace WOPR.Controllers.Saves
     public class SaveController : ControllerBase
     {
         private readonly BabelContext _context;
+        private readonly SimulationService _simulation;
 
-        public SaveController(BabelContext context)
+        public SaveController(BabelContext context, SimulationService simulation)
         {
             _context = context;
+            _simulation = simulation;
         }
 
         public struct SaveForm
@@ -70,6 +73,29 @@ namespace WOPR.Controllers.Saves
                 Console.WriteLine("Something went wrong while trying to write save to a file on disk.\n" + ex);
                 return StatusCode(500); // Something went wrong while trying to write to a file on disk.
             }
+        }
+
+        [HttpGet("parse-save")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> ParseSaveFile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (userId == null || discordUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            _simulation.GetDataFromSave("./saves/", null, null);
+
+            return Ok();
         }
     }
 }
