@@ -50,7 +50,7 @@ namespace WOPR.Controllers.Spending
                 return NotFound();
             }
 
-            var officerIds = clique.CliqueOfficers.Select(co => co.Officer.CharacterId);
+            var officerIds = clique.CliqueOfficerCharacter.Select(co => co.Officer.CharacterId);
 
             if (!officerIds.Contains(discordUser.ActiveCharacterId))
             {
@@ -59,7 +59,13 @@ namespace WOPR.Controllers.Spending
 
             var alignment = _context.Alignments.SingleOrDefault(a => a.AlignmentId == form.AlignmentId);
 
-            alignment.Cliques.Add(clique);
+            var alignmentClique = new AlignmentClique
+            {
+                Alignment = alignment,
+                Clique = clique
+            };
+
+            alignment.AlignmentClique.Add(alignmentClique);
 
             _context.Alignments.Update(alignment);
             _context.SaveChanges();
@@ -90,7 +96,7 @@ namespace WOPR.Controllers.Spending
 
             if (form.AcceptInvite)
             {
-                invite.Clique.CliqueMembers.Add(new CliqueMemberCharacter()
+                invite.Clique.CliqueMemberCharacter.Add(new CliqueMemberCharacter()
                 {
                     CliqueId = invite.CliqueId,
                     MemberId = discordUser.ActiveCharacterId
@@ -125,10 +131,10 @@ namespace WOPR.Controllers.Spending
 
             var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-            if (clique != null && clique.CliqueMembers.Select(cm => cm.Member.CharacterId).Contains(discordUser.ActiveCharacterId))
+            if (clique != null && clique.CliqueMemberCharacter.Select(cm => cm.Member.CharacterId).Contains(discordUser.ActiveCharacterId))
             {
-                clique.CliqueMembers.Remove(clique.CliqueMembers.SingleOrDefault(cm => cm.Member.CharacterId == discordUser.ActiveCharacterId));
-                clique.CliqueOfficers.Remove(clique.CliqueOfficers.SingleOrDefault(cm => cm.Officer.CharacterId == discordUser.ActiveCharacterId));
+                clique.CliqueMemberCharacter.Remove(clique.CliqueMemberCharacter.SingleOrDefault(cm => cm.Member.CharacterId == discordUser.ActiveCharacterId));
+                clique.CliqueOfficerCharacter.Remove(clique.CliqueOfficerCharacter.SingleOrDefault(cm => cm.Officer.CharacterId == discordUser.ActiveCharacterId));
             }
 
             _context.SaveChanges();
@@ -160,7 +166,7 @@ namespace WOPR.Controllers.Spending
             var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
             if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique)
-                    || !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
+                    || !clique.CliqueOfficerCharacter.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
             {
                 return Unauthorized();
             }
@@ -188,7 +194,6 @@ namespace WOPR.Controllers.Spending
 
         public struct CreateCliqueForm
         {
-            public string CharacterId { get; set; }
             public string CliqueName { get; set; }
             public List<string> AlignmentIds { get; set; }
         }
@@ -204,6 +209,11 @@ namespace WOPR.Controllers.Spending
             if (userId == null || discordUser == null)
             {
                 return Unauthorized();
+            }
+
+            if (discordUser.ActiveCharacterId == null)
+            {
+                return BadRequest();
             }
 
             var alignmentsToJoin = new List<Alignment>();
@@ -227,18 +237,18 @@ namespace WOPR.Controllers.Spending
             {
                 CliqueName = form.CliqueName,
                 Money = 0,
-                CliqueMembers = new List<BabelDatabase.CliqueMemberCharacter>(),
-                CliqueOfficers = new List<BabelDatabase.CliqueOfficerCharacter>(),
-                Alignments = new List<Alignment>()
+                CliqueMemberCharacter = new List<BabelDatabase.CliqueMemberCharacter>(),
+                CliqueOfficerCharacter = new List<BabelDatabase.CliqueOfficerCharacter>(),
+                Alignments = new List<AlignmentClique>()
             };
 
-            newClique.CliqueMembers.Add(new CliqueMemberCharacter()
+            newClique.CliqueMemberCharacter.Add(new CliqueMemberCharacter()
             {
                 Clique = newClique,
                 MemberId = discordUser.ActiveCharacterId
             });
 
-            newClique.CliqueOfficers.Add(new CliqueOfficerCharacter()
+            newClique.CliqueOfficerCharacter.Add(new CliqueOfficerCharacter()
             {
                 Clique = newClique,
                 OfficerId = discordUser.ActiveCharacterId
@@ -278,7 +288,7 @@ namespace WOPR.Controllers.Spending
             var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
             if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique)
-                || !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
+                || !clique.CliqueOfficerCharacter.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
             {
                 return Unauthorized();
             }
@@ -337,7 +347,7 @@ namespace WOPR.Controllers.Spending
             var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
             if (!activeCharacter.Cliques.Select(c => c.Clique).Contains(clique)
-                || !clique.CliqueOfficers.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
+                || !clique.CliqueOfficerCharacter.Select(co => co.Officer.CharacterId).Contains(discordUser.ActiveCharacterId))
             {
                 return Unauthorized();
             }

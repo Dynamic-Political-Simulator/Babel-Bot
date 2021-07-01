@@ -120,10 +120,6 @@ namespace WOPR.Services
                 Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
                 if (alignment != null)
                 {
-                    //bad
-                }
-                else
-                {
                     GeneralAssembly.Add(alignment, faction.Value);
                 }
             }
@@ -265,10 +261,6 @@ namespace WOPR.Services
             {
                 PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
                 if (NewGroup == null)
-                {
-                    //bad
-                }
-                else
                 {
                     NewPartyGroupSize.Add(NewGroup, group.Value);
                 }

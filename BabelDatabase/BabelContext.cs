@@ -27,9 +27,12 @@ namespace BabelDatabase
         }
 
         public DbSet<Alignment> Alignments { get; set; }
+        public DbSet<AlignmentClique> AlignmentClique { get; set; }
         public DbSet<AlignmentSpending> AlignmentSpendings { get; set; }
         public DbSet<Character> Characters { get; set; }
         public DbSet<Clique> Cliques { get; set; }
+        public DbSet<CliqueMemberCharacter> CliqueMemberCharacter { get; set; }
+        public DbSet<CliqueOfficerCharacter> CliqueOfficerCharacter { get; set; }
         public DbSet<CliqueInvite> CliqueInvites { get; set; }
         public DbSet<CustomSpending> CustomSpendings { get; set; }
         public DbSet<DiscordUser> DiscordUsers { get; set; }
@@ -66,6 +69,62 @@ namespace BabelDatabase
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
+            {
+                DiscordUserId = "75968535074967552",
+                UserName = "Obi",
+                IsAdmin = true
+            });
+
+            modelBuilder.Entity<Species>().HasData(
+                new Species
+                {
+                    SpeciesId = "1",
+                    SpeciesName = "Human"
+                },
+                new Species
+                {
+                    SpeciesId = "2",
+                    SpeciesName = "Zelvan"
+                },
+                new Species
+                {
+                    SpeciesId = "3",
+                    SpeciesName = "Liaran"
+                }
+            );
+
+            modelBuilder.Entity<Alignment>().HasData(
+                new Alignment
+                {
+                    AlignmentId = "123",
+                    AlignmentName = "ULTRA COMMIE LIBERTARIANS",
+                    FederalismCentralism = 5,
+                    DemocracyAuthority = 1,
+                    GlobalismIsolationism = 0,
+                    MilitarismPacifism = 8,
+                    SecurityFreedom = 4,
+                    CooperationCompetition = 3,
+                    SecularismSpiritualism = 7,
+                    ProgressivismTraditionalism = 9,
+                    MonoculturalismMulticulturalism = 4
+                },
+                new Alignment
+                {
+                    AlignmentId = "124",
+                    AlignmentName = "ULTRA LIBERTARIAN COMMIES",
+                    FederalismCentralism = 2,
+                    DemocracyAuthority = 3,
+                    GlobalismIsolationism = 4,
+                    MilitarismPacifism = 2,
+                    SecurityFreedom = 6,
+                    CooperationCompetition = 1,
+                    SecularismSpiritualism = 0,
+                    ProgressivismTraditionalism = 4,
+                    MonoculturalismMulticulturalism = 3
+                }
+            );
+
             modelBuilder.Entity<GameState>().HasData(
                 new GameState()
             );
@@ -89,7 +148,7 @@ namespace BabelDatabase
 
             modelBuilder.Entity<CliqueMemberCharacter>()
                 .HasOne(cmc => cmc.Clique)
-                .WithMany(c => c.CliqueMembers);
+                .WithMany(c => c.CliqueMemberCharacter);
 
             modelBuilder.Entity<CliqueMemberCharacter>()
                 .HasOne(cmc => cmc.Member)
@@ -99,11 +158,21 @@ namespace BabelDatabase
 
             modelBuilder.Entity<CliqueOfficerCharacter>()
                 .HasOne(cmc => cmc.Clique)
-                .WithMany(c => c.CliqueOfficers);
+                .WithMany(c => c.CliqueOfficerCharacter);
 
             modelBuilder.Entity<CliqueOfficerCharacter>()
                 .HasOne(cmc => cmc.Officer)
                 .WithMany();
+
+            modelBuilder.Entity<AlignmentClique>().HasKey(ac => new { ac.CliqueId, ac.AlignmentId });
+
+            modelBuilder.Entity<AlignmentClique>()
+                .HasOne(ac => ac.Alignment)
+                .WithMany(a => a.AlignmentClique);
+
+            modelBuilder.Entity<AlignmentClique>()
+                .HasOne(ac => ac.Clique)
+                .WithMany(c => c.Alignments);
 
             // Staff action stuff
 
@@ -149,10 +218,6 @@ namespace BabelDatabase
 
             modelBuilder.Entity<Committee>()
                 .HasMany(c => c.CommitteeMembers);
-
-            modelBuilder.Entity<Clique>()
-                .HasMany(c => c.Alignments)
-                .WithMany(a => a.Cliques);
 
             modelBuilder.Entity<CliqueInvite>()
                 .HasOne(ci => ci.Clique)

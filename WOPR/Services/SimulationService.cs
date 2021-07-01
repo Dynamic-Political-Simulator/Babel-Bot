@@ -87,10 +87,6 @@ namespace WOPR.Services
                 {
 					fleet.System = location;
                 }
-				else
-                {
-					//that would be bad
-                }
             }
 
 			//another pass over planets to do controllers
@@ -100,10 +96,6 @@ namespace WOPR.Services
 				if(controller != null)
                 {
 					planet.Controller = controller;
-                }
-				else
-                {
-					//that would be bad
                 }
             }
 
