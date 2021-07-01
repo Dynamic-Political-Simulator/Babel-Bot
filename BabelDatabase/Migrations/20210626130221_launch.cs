@@ -991,13 +991,6 @@ namespace BabelDatabase.Migrations
                 column: "PlanetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlanetarySystems_PopsimPlanetId",
-                table: "PlanetarySystems",
-                column: "PopsimPlanetId",
-                unique: true,
-                filter: "[PopsimPlanetId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PopsimPlanetEthicGroup_PopsimGlobalEthicGroupId",
                 table: "PopsimPlanetEthicGroup",
                 column: "PopsimGlobalEthicGroupId");
