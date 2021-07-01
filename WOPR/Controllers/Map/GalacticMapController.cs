@@ -117,24 +117,24 @@ namespace WOPR.Controllers.Map
             return Ok();
         }
 
-        class GroupEntry
+        public class GroupEntry
         {
             public string Name;
             public long Size;
             public Dictionary<Alignment, float> Modifier; // Null if not admin
         }
-        class IndustryEntry
+        public class IndustryEntry
         {
             public string Name;
             public ulong GDP;
             public float? Modifier; // Null if not admin
         }
-        class SpeciesEntry
+        public class SpeciesEntry
         {
             public string Name;
             public float Amount;
         }
-        class PlanetReturn
+        public class PlanetReturn
         {
             public string Name;
             public ulong Population;
@@ -185,6 +185,81 @@ namespace WOPR.Controllers.Map
             }
 
             return Ok(replyRaw);
+        }
+
+        [HttpPost("edit-planet")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult EditPlanet([FromBody] PlanetReturn data)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || discordUser.IsAdmin == false)
+            {
+                return Unauthorized();
+            }
+
+            Planet p = _context.Planets.FirstOrDefault(x => x.PlanetName == data.Name);
+            if (p == null)
+            {
+                return BadRequest();
+            }
+
+            Alignment tempAlign = _context.Alignments.FirstOrDefault(x => x.AlignmentName == data.OfficeAlignments[0]);
+            p.ExecutiveAlignment = tempAlign == null ? _context.Alignments.First() : tempAlign;
+
+            tempAlign = _context.Alignments.FirstOrDefault(x => x.AlignmentName == data.OfficeAlignments[1]);
+            p.LegislativeAlignment = tempAlign == null ? _context.Alignments.First() : tempAlign;
+
+            tempAlign = _context.Alignments.FirstOrDefault(x => x.AlignmentName == data.OfficeAlignments[2]);
+            p.PartyAlignment = tempAlign == null ? _context.Alignments.First() : tempAlign;
+
+            for (int x = 0; x < data.GroupEntries.Count(); x++)
+            {
+                if (x < p.PlanetGroups.Count)
+                {
+                    p.PlanetGroups[x].PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
+                    p.PlanetGroups[x].MembersOnPlanet = data.GroupEntries[x].Size;
+                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier;
+                }
+                else
+                {
+                    PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
+                    g.PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
+                    g.MembersOnPlanet = data.GroupEntries[x].Size;
+                    p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier);
+                    p.PlanetGroups.Add(g);
+                }
+            }
+
+            if (data.GroupEntries.Count() < p.PlanetGroups.Count)
+            {
+                for (int x = data.GroupEntries.Count(); x < p.PlanetGroups.Count; x++)
+                {
+                    p.PopsimGmData.Remove(p.PlanetGroups[x]);
+                    p.PlanetGroups.RemoveAt(x);
+                }
+            }
+
+            for (int x = 0; x < data.IndustryEntries.Count(); x++)
+            {
+                if (p.Output.Keys.Contains(data.IndustryEntries[x].Name))
+                {
+                    p.Output[data.IndustryEntries[x].Name] = data.IndustryEntries[x].GDP;
+                    p.EconGmData[data.IndustryEntries[x].Name] = (float)data.IndustryEntries[x].Modifier;
+                }
+                else
+                {
+                    p.Output.Add(data.IndustryEntries[x].Name, data.IndustryEntries[x].GDP);
+                    p.EconGmData.Add(data.IndustryEntries[x].Name, (float)data.IndustryEntries[x].Modifier);
+                }
+            }
+
+            _context.Planets.Update(p);
+            _context.SaveChanges();
+
+            return Ok();
         }
     }
 }
