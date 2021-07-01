@@ -21,18 +21,19 @@ namespace BabelDatabase
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-			optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString"));
+			//optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString
+			optionsBuilder.UseSqlServer("Server=192.168.178.34;Database=woprtest;User ID=SA;Password=gstenaTI22!!;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;");
 			//optionsBuilder.UseInMemoryDatabase("test");
 			optionsBuilder.UseLazyLoadingProxies();
         }
 
 		public DbSet<Alignment> Alignments { get; set; }
-		public DbSet<AlignmentClique> AlignmentCliques { get; set; }
+		public DbSet<AlignmentClique> AlignmentClique { get; set; }
 		public DbSet<AlignmentSpending> AlignmentSpendings { get; set; }
 		public DbSet<Character> Characters { get; set; }
 		public DbSet<Clique> Cliques { get; set; }
-		public DbSet<CliqueMemberCharacter> CliqueMembers { get; set; }
-		public DbSet<CliqueOfficerCharacter> CliqueOfficers { get; set; }
+		public DbSet<CliqueMemberCharacter> CliqueMemberCharacter { get; set; }
+		public DbSet<CliqueOfficerCharacter> CliqueOfficerCharacter { get; set; }
 		public DbSet<CliqueInvite> CliqueInvites { get; set; }
 		public DbSet<CustomSpending> CustomSpendings { get; set; }
 		public DbSet<DiscordUser> DiscordUsers { get; set; }
@@ -147,7 +148,7 @@ namespace BabelDatabase
 
             modelBuilder.Entity<CliqueMemberCharacter>()
                 .HasOne(cmc => cmc.Clique)
-                .WithMany(c => c.CliqueMembers);
+                .WithMany(c => c.CliqueMemberCharacter);
 
             modelBuilder.Entity<CliqueMemberCharacter>()
                 .HasOne(cmc => cmc.Member)
@@ -157,7 +158,7 @@ namespace BabelDatabase
 
             modelBuilder.Entity<CliqueOfficerCharacter>()
                 .HasOne(cmc => cmc.Clique)
-                .WithMany(c => c.CliqueOfficers);
+                .WithMany(c => c.CliqueOfficerCharacter);
 
             modelBuilder.Entity<CliqueOfficerCharacter>()
                 .HasOne(cmc => cmc.Officer)
@@ -167,7 +168,7 @@ namespace BabelDatabase
 
 			modelBuilder.Entity<AlignmentClique>()
 				.HasOne(ac => ac.Alignment)
-				.WithMany(a => a.Cliques);
+				.WithMany(a => a.AlignmentClique);
 
 			modelBuilder.Entity<AlignmentClique>()
 				.HasOne(ac => ac.Clique)

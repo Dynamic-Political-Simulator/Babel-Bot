@@ -49,12 +49,12 @@ namespace WOPR.Controllers.Popsim.Cliques
 				return Unauthorized();
 			}
 
-			var activeCharacter = discordUser.ActiveCharacter;
-
-			if (activeCharacter == null)
+			if (discordUser.ActiveCharacterId == null)
 			{
 				return NotFound();
 			}
+
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
 			var cliques = activeCharacter.Cliques;
 
@@ -94,11 +94,17 @@ namespace WOPR.Controllers.Popsim.Cliques
 		public struct CliqueReturn
 		{
 			public string CliqueName { get; set; }
-			public IEnumerable<string> Members { get; set; }
-			public IEnumerable<string> Officers { get; set; }
+			public List<CliqueMember> Members { get; set; }
+			public List<CliqueMember> Officers { get; set; }
 			public IEnumerable<string> Alignments { get; set; }
 			public ulong Money { get; set; }
 			public bool UserIsOfficer { get; set; }
+		}
+
+		public struct CliqueMember
+		{
+			public string CharacterId { get; set; }
+			public string CharacterName { get; set; }
 		}
 
 		[HttpGet("get-clique")]
@@ -114,12 +120,12 @@ namespace WOPR.Controllers.Popsim.Cliques
 				return Unauthorized();
 			}
 
-			var activeCharacter = discordUser.ActiveCharacter;
-
-			if (activeCharacter == null && !discordUser.IsAdmin)
+			if (discordUser.ActiveCharacterId == null)
 			{
-				return Unauthorized();
+				return NotFound();
 			}
+
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
 			var clique = activeCharacter.Cliques.SingleOrDefault(c => c.CliqueId == id);
 
@@ -131,14 +137,22 @@ namespace WOPR.Controllers.Popsim.Cliques
 			var cliqueReturn = new CliqueReturn
 			{
 				CliqueName = clique.Clique.CliqueName,
-				Members = clique.Clique.CliqueMembers.Select(cm => cm.Member.CharacterName),
-				Officers = clique.Clique.CliqueOfficers.Select(co => co.Officer.CharacterName),
+				Members = clique.Clique.CliqueMemberCharacter.Select(cm =>  new CliqueMember 
+				{
+					CharacterId = cm.MemberId,
+					CharacterName = cm.Member.CharacterName
+				}).ToList(),
+				Officers = clique.Clique.CliqueOfficerCharacter.Select(cm => new CliqueMember
+				{
+					CharacterId = cm.OfficerId,
+					CharacterName = cm.Officer.CharacterName
+				}).ToList(),
 				Alignments = clique.Clique.Alignments.Select(a => a.Alignment.AlignmentName),
 				Money = clique.Clique.Money,
 				UserIsOfficer = false
 			};
 
-			if (cliqueReturn.Officers.Contains(activeCharacter.CharacterName))
+			if (cliqueReturn.Officers.Select(o => o.CharacterId).Contains(activeCharacter.CharacterId))
 			{
 				cliqueReturn.UserIsOfficer = true;
 			}
@@ -159,31 +173,31 @@ namespace WOPR.Controllers.Popsim.Cliques
 
 			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
 
-			if (discordUser == null || discordUser.ActiveCharacter == null)
+			if (discordUser == null || discordUser.ActiveCharacterId == null)
 			{
 				return Unauthorized();
 			}
 
 			var newCliqueOfficer = new CliqueOfficerCharacter
 			{
-				Officer = discordUser.ActiveCharacter
+				OfficerId = discordUser.ActiveCharacterId
 			};
 
 			var newCliqueMember = new CliqueMemberCharacter
 			{
-				Member = discordUser.ActiveCharacter
+				MemberId = discordUser.ActiveCharacterId
 			};
 
 			var newClique = new Clique
 			{
 				CliqueName = form.CliqueName,
-				CliqueMembers = new List<CliqueMemberCharacter>(),
-				CliqueOfficers = new List<CliqueOfficerCharacter>(),
+				CliqueMemberCharacter = new List<CliqueMemberCharacter>(),
+				CliqueOfficerCharacter = new List<CliqueOfficerCharacter>(),
 				Money = 0
 			};
 
-			newClique.CliqueOfficers.Add(newCliqueOfficer);
-			newClique.CliqueMembers.Add(newCliqueMember);
+			newClique.CliqueOfficerCharacter.Add(newCliqueOfficer);
+			newClique.CliqueMemberCharacter.Add(newCliqueMember);
 
 			newCliqueOfficer.Clique = newClique;
 			newCliqueMember.Clique = newClique;
@@ -202,14 +216,14 @@ namespace WOPR.Controllers.Popsim.Cliques
 
 			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
 
-			if (discordUser == null)
+			if (discordUser == null || discordUser.ActiveCharacterId == null)
 			{
 				return Unauthorized();
 			}
 
-			var activeCharacter = discordUser.ActiveCharacter;
+			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == discordUser.ActiveCharacterId);
 
-			var cliqueOfficer = _context.CliqueOfficers
+			var cliqueOfficer = _context.CliqueOfficerCharacter
 				.SingleOrDefault(co => co.OfficerId == activeCharacter.CharacterId && co.CliqueId == id);
 
 			if (cliqueOfficer == null)
@@ -241,9 +255,9 @@ namespace WOPR.Controllers.Popsim.Cliques
 
 			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
 
-			var officers = clique.CliqueOfficers.Select(co => co.OfficerId);
+			var officers = clique.CliqueOfficerCharacter.Select(co => co.OfficerId);
 
-			if (!officers.Contains(userId))
+			if (!officers.Contains(discordUser.ActiveCharacterId))
 			{
 				return Unauthorized();
 			}
@@ -259,6 +273,42 @@ namespace WOPR.Controllers.Popsim.Cliques
 				_context.CliqueInvites.Add(newInvite);
 			}
 
+			await _context.SaveChangesAsync();
+
+			return Ok();
+		}
+
+		public struct KickForm
+		{
+			public string CliqueId { get; set; }
+			public string CharacterId { get; set; }
+		}
+
+		[HttpPost("kick")]
+		[Authorize(AuthenticationSchemes = "Discord")]
+		public async Task<IActionResult> KickMember([FromBody] KickForm form)
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+			if (discordUser == null)
+			{
+				return Unauthorized();
+			}
+
+			var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == form.CliqueId);
+
+			var officers = clique.CliqueOfficerCharacter.Select(co => co.OfficerId);
+
+			if (!officers.Contains(discordUser.ActiveCharacterId))
+			{
+				return Unauthorized();
+			}
+
+			var member = clique.CliqueMemberCharacter.SingleOrDefault(cmc => cmc.MemberId == form.CharacterId);
+
+			_context.CliqueMemberCharacter.Remove(member);
 			await _context.SaveChangesAsync();
 
 			return Ok();

@@ -128,11 +128,10 @@ namespace WOPR.Controllers
 			public string CharacterName { get; set; }
 		}
 
-		[HttpPost("search-for-clique")]
+		[HttpGet("search-for-clique")]
 		public IActionResult SearchCharactersClique(string search, string id = null)
 		{
-			var results = _context.Characters.Where(c => c.CauseOfDeath == null 
-												&& c.CharacterName.ToLower().Contains(search));
+			var results = _context.Characters.Where(c => EF.Functions.Like(c.CharacterName, search)).ToList();
 
 			var returnList = new List<SimpleCharacterSearchReturn>();
 
@@ -140,8 +139,8 @@ namespace WOPR.Controllers
 			{
 				var clique = _context.Cliques.SingleOrDefault(c => c.CliqueId == id);
 
-				var members = clique.CliqueMembers.Select(cm => cm.MemberId);
-				var officers = clique.CliqueOfficers.Select(co => co.OfficerId);
+				var members = clique.CliqueMemberCharacter.Select(cm => cm.MemberId);
+				var officers = clique.CliqueOfficerCharacter.Select(co => co.OfficerId);
 
 				foreach (var result in results)
 				{
@@ -178,7 +177,6 @@ namespace WOPR.Controllers
 			Console.WriteLine("USED ID: " + userId);
 
 			var characters = _context.Characters
-				.Include(c => c.Species)
 				.Where(c => c.DiscordUserId == userId);
 
 			return Ok(characters.ToList());
@@ -262,7 +260,7 @@ namespace WOPR.Controllers
 				YearOfBirth = yearOfBirth
 			};
 
-			discordUser.ActiveCharacter = newCharacter;
+			discordUser.ActiveCharacterId = newCharacter.CharacterId;
 
 			_context.Update(discordUser);
 			_context.Characters.Add(newCharacter);

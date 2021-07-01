@@ -196,8 +196,8 @@ namespace BabelDatabase
         [Required]
         public ulong Money { get; set; }
 
-        public virtual List<CliqueMemberCharacter> CliqueMembers { get; set; }
-        public virtual List<CliqueOfficerCharacter> CliqueOfficers { get; set; }
+        public virtual List<CliqueMemberCharacter> CliqueMemberCharacter { get; set; }
+        public virtual List<CliqueOfficerCharacter> CliqueOfficerCharacter { get; set; }
 
 		public virtual List<AlignmentClique> Alignments { get; set; }
 	}
@@ -232,7 +232,7 @@ namespace BabelDatabase
 		[Required]
 		public string AlignmentName { get; set; }
 
-		public virtual List<AlignmentClique> Cliques { get; set; }
+		public virtual List<AlignmentClique> AlignmentClique { get; set; }
 
 		public float Establishment { get; set; }
 		public float UpperPartyModifier { get; set; }

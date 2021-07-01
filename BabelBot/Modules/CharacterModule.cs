@@ -40,14 +40,14 @@ namespace BabelBot.Modules
 
 				field.Value += "Members:\n";
 
-				foreach (var character in clique.Clique.CliqueMembers)
+				foreach (var character in clique.Clique.CliqueMemberCharacter)
 				{
 					field.Value += character.Member.CharacterName + "\n";
 				}
 
 				field.Value += "\nOfficers:\n";
 
-				foreach (var officer in clique.Clique.CliqueOfficers)
+				foreach (var officer in clique.Clique.CliqueOfficerCharacter)
 				{
 					field.Value += officer.Officer.CharacterName + "\n";
 				}

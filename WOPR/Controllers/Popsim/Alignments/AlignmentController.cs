@@ -210,9 +210,14 @@ namespace WOPR.Controllers.Popsim
 		[HttpGet("search-alignment")]
 		public IActionResult SearchAlignment(string search)
 		{
-			var alignments = _context.Alignments.Where(a => a.AlignmentName.ToLower().Contains(search.ToLower())).ToList();
-
 			var returnList = new List<AlignmentSearchReturn>();
+
+			if (search == null)
+			{
+				return Ok(returnList);
+			}
+
+			var alignments = _context.Alignments.Where(a => a.AlignmentName.ToLower().Contains(search.ToLower())).ToList();
 
 			foreach(var a in alignments)
 			{
