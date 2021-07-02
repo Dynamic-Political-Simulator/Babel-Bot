@@ -30,14 +30,14 @@ namespace WOPR.Services
 
             empire.NationalOutput = empire1.NationalOutput;
 
-            foreach(DPSSimulation.Classes.GalacticObject system in empire1.GalacticObjects)
+            foreach (DPSSimulation.Classes.GalacticObject system in empire1.GalacticObjects)
             {
-                foreach(DPSSimulation.Classes.Planet planet in system.Planets)
+                foreach (DPSSimulation.Classes.Planet planet in system.Planets)
                 {
                     if (planet.Owner == planet.Controller && planet.Pops.Count != 0)
                     {
                         BabelDatabase.Planet planet1 = _context.Planets.FirstOrDefault(p => p.PlanetId == planet.PlanetGameId);
-                        if(planet1 != null)
+                        if (planet1 != null)
                         {
                             planet1.Population = planet.Population;
                             planet1.Output = planet.Output;
@@ -68,7 +68,7 @@ namespace WOPR.Services
                 {
                     rulers += (ulong)planet.Pops.FindAll(p => p.Strata == "\"ruler\"").Count * 250000000;
                     specialists += (ulong)planet.Pops.FindAll(p => p.Strata == "\"specialist\"").Count * 250000000;
-                    workers += (ulong)planet.Pops.FindAll(p => p.Strata == "\"worker\"").Count * 250000000;  
+                    workers += (ulong)planet.Pops.FindAll(p => p.Strata == "\"worker\"").Count * 250000000;
                 }
             }
             Dictionary<string, ulong> PopPerStrata = new Dictionary<string, ulong>();
@@ -129,7 +129,7 @@ namespace WOPR.Services
             await _context.SaveChangesAsync();
         }
 
-        public Dictionary<Alignment,float> CalculateNationalPopularity(BabelDatabase.Empire empire)
+        public Dictionary<Alignment, float> CalculateNationalPopularity(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
 
@@ -147,7 +147,7 @@ namespace WOPR.Services
             return Alignements;
         }
 
-        public Dictionary<Alignment,float> CalculatePlanetPopularity(BabelDatabase.Planet planet)
+        public Dictionary<Alignment, float> CalculatePlanetPopularity(BabelDatabase.Planet planet)
         {
             DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
 
@@ -166,7 +166,7 @@ namespace WOPR.Services
             planet1.CalculatePopularity(PopsimGmData);
             Dictionary<Faction, float> Factions = planet1.PlanetFactions;
             Dictionary<Alignment, float> Alignements = new Dictionary<Alignment, float>();
-            foreach(KeyValuePair<Faction,float> faction in Factions)
+            foreach (KeyValuePair<Faction, float> faction in Factions)
             {
                 Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
                 if (alignment != null)
@@ -184,7 +184,7 @@ namespace WOPR.Services
             DPSSimulation.Classes.Party party1 = new DPSSimulation.Classes.Party();
 
             Dictionary<Group, float> EnlistmentGroupsAndJeremy = new Dictionary<Group, float>();
-            foreach(PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
+            foreach (PopsimGlobalEthicGroup group in _context.PopsimGlobalEthicGroups)
             {
                 EnlistmentGroupsAndJeremy.Add(CreateGroup(group), group.PartyEnlistmentModifier);
             }
@@ -193,7 +193,7 @@ namespace WOPR.Services
             foreach (KeyValuePair<Group, float> group in party1.PopGroupEnlistment)
             {
                 PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
-                if ( NewGroup != null)
+                if (NewGroup != null)
                 {
                     party.PopGroupEnlistment.Add(NewGroup, group.Value);
                 }
@@ -241,7 +241,7 @@ namespace WOPR.Services
             await _context.SaveChangesAsync();
         }
 
-        public Dictionary<PopsimGlobalEthicGroup,float> GetPartyGroupSize(BabelDatabase.Empire empire)
+        public Dictionary<PopsimGlobalEthicGroup, float> GetPartyGroupSize(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Party party = new DPSSimulation.Classes.Party();
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
@@ -299,7 +299,7 @@ namespace WOPR.Services
 
             List<Faction> factions = new List<Faction>();
 
-            foreach(Alignment alignment in _context.Alignments.ToList())
+            foreach (Alignment alignment in _context.Alignments.ToList())
             {
                 factions.Add(CreateFaction(alignment));
             }
@@ -309,14 +309,14 @@ namespace WOPR.Services
             Dictionary<PopsimGlobalEthicGroup, float> MilitaryGroups = new Dictionary<PopsimGlobalEthicGroup, float>();
             Dictionary<Alignment, float> MilitaryFactions = new Dictionary<Alignment, float>();
 
-            foreach(KeyValuePair<Group,float> group in military1.MilitaryGroups)
+            foreach (KeyValuePair<Group, float> group in military1.MilitaryGroups)
             {
                 PopsimGlobalEthicGroup popsimGlobalEthicGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(p => p.PopsimGlobalEthicGroupId == group.Key.GroupId);
                 {
                     MilitaryGroups.Add(popsimGlobalEthicGroup, group.Value);
                 }
             }
-            foreach(KeyValuePair<Faction,float> faction in military1.MilitaryFactions)
+            foreach (KeyValuePair<Faction, float> faction in military1.MilitaryFactions)
             {
                 Alignment alignment = _context.Alignments.FirstOrDefault(a => a.AlignmentId == faction.Key.FactionId);
                 {
@@ -332,7 +332,7 @@ namespace WOPR.Services
 
         //Conversions
 
-        public DPSSimulation.Classes.Empire CreateEmpire (BabelDatabase.Empire empire)
+        public DPSSimulation.Classes.Empire CreateEmpire(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire NewEmpire = new DPSSimulation.Classes.Empire()
             {
@@ -341,7 +341,7 @@ namespace WOPR.Services
                 EconGmData = empire.EconGmData
             };
 
-            foreach(BabelDatabase.GalacticObject system in empire.GalacticObjects)
+            foreach (BabelDatabase.GalacticObject system in empire.GalacticObjects)
             {
                 NewEmpire.GalacticObjects.Add(CreateSystem(system));
             }
@@ -367,7 +367,7 @@ namespace WOPR.Services
                 Name = system.Name
             };
 
-            foreach(BabelDatabase.Planet planet in system.Planets)
+            foreach (BabelDatabase.Planet planet in system.Planets)
             {
                 NewSystem.Planets.Add(CreatePlanet(planet));
             }
@@ -383,7 +383,7 @@ namespace WOPR.Services
                 Name = planet.PlanetName,
                 Population = planet.Population,
                 Owner = planet.OwnerId,
-                Controller = planet.ControllerId,
+                Controller = (int)planet.ControllerId,
                 Output = planet.Output,
                 EconGmData = planet.EconGmData
             };
@@ -393,30 +393,30 @@ namespace WOPR.Services
                 LibraryPlanet.Data = CreateData(data);
             }
 
-            foreach(BabelDatabase.Pop pop in planet.Pops)
+            foreach (BabelDatabase.Pop pop in planet.Pops)
             {
                 LibraryPlanet.Pops.Add(CreatePop(pop));
             }
 
-            foreach(BabelDatabase.District district in planet.Districts)
+            foreach (BabelDatabase.District district in planet.Districts)
             {
                 LibraryPlanet.Districts.Add(CreateDistrict(district));
             }
 
-            foreach(BabelDatabase.Building building in planet.Buildings)
+            foreach (BabelDatabase.Building building in planet.Buildings)
             {
                 LibraryPlanet.Buildings.Add(CreateBuilding(building));
             }
 
-            foreach(BabelDatabase.PopsimPlanetEthicGroup popsimPlanetEthicGroup in planet.PlanetGroups)
+            foreach (BabelDatabase.PopsimPlanetEthicGroup popsimPlanetEthicGroup in planet.PlanetGroups)
             {
                 LibraryPlanet.PlanetGroups.Add(CreateGroup(popsimPlanetEthicGroup.PopsimGlobalEthicGroup), popsimPlanetEthicGroup.Percentage);
             }
 
-            foreach(KeyValuePair<PopsimPlanetEthicGroup,Dictionary<Alignment,float>> popsimGmData in planet.PopsimGmData)
+            foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.PopsimGmData)
             {
                 Dictionary<Faction, float> factionStuff = new Dictionary<Faction, float>();
-                foreach(KeyValuePair<Alignment,float> faction in popsimGmData.Value)
+                foreach (KeyValuePair<Alignment, float> faction in popsimGmData.Value)
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
@@ -456,7 +456,7 @@ namespace WOPR.Services
         {
             DPSSimulation.Classes.District NewDistrict = new DPSSimulation.Classes.District()
             {
-                DistrictId = district.DistrictId,
+                DistrictId = 0, // This field is never used in DPSSimulation itself I have no idea why it exists
                 Type = district.Type
             };
 
@@ -489,7 +489,7 @@ namespace WOPR.Services
 
             return NewFaction;
         }
-        
+
         public DPSSimulation.Classes.PoliticalAlignment CreateAlignment(BabelDatabase.PopsimGlobalEthicGroup group)
         {
 
@@ -566,6 +566,6 @@ namespace WOPR.Services
             return NewData;
         }
 
-        
+
     }
 }

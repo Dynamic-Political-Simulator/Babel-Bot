@@ -4,14 +4,16 @@ using BabelDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BabelDatabase.Migrations
 {
     [DbContext(typeof(BabelContext))]
-    partial class BabelContextModelSnapshot : ModelSnapshot
+    [Migration("20210702194152_FleetFix2")]
+    partial class FleetFix2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -653,7 +655,7 @@ namespace BabelDatabase.Migrations
                     b.Property<int>("PlanetId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ControllerId")
+                    b.Property<int>("ControllerId")
                         .HasColumnType("int");
 
                     b.Property<string>("EconGmData")
@@ -1292,7 +1294,8 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Controller")
                         .WithMany()
                         .HasForeignKey("ControllerId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("BabelDatabase.Alignment", "ExecutiveAlignment")
                         .WithMany()

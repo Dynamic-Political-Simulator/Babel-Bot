@@ -350,7 +350,7 @@ namespace BabelDatabase
     // Simulation -------------------------------------------
     public class Empire
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int EmpireId { get; set; }
         [Required]
         public string Name { get; set; }
@@ -369,6 +369,7 @@ namespace BabelDatabase
     //celestial objects-----------------------------------
     public class GalacticObject
     {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int GalacticObjectId { get; set; }
         public float PosX { get; set; }
         public float PosY { get; set; }
@@ -384,7 +385,7 @@ namespace BabelDatabase
 
     public class Planet
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int PlanetId { get; set; }
         public string PlanetName { get; set; }
         public string PlanetDescription { get; set; }
@@ -394,7 +395,7 @@ namespace BabelDatabase
         public int OwnerId { get; set; }
         public virtual Empire Owner { get; set; }
 
-        public int ControllerId { get; set; }
+        public int? ControllerId { get; set; }
         public virtual Empire Controller { get; set; }
 
         [Required]
@@ -418,7 +419,7 @@ namespace BabelDatabase
     public class District
     {
         [Key]
-        public int DistrictId { get; set; }
+        public string DistrictId { get; set; }
         public string Type { get; set; }
         [Required]
         public virtual int PlanetId { get; set; }
@@ -427,7 +428,7 @@ namespace BabelDatabase
 
     public class Building
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int BuildingId { get; set; }
         public string Type { get; set; }
         public bool Ruined { get; set; }
@@ -438,7 +439,7 @@ namespace BabelDatabase
 
     public class Pop
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int PopId { get; set; }
         [Required]
         public virtual int PlanetId { get; set; }
@@ -454,7 +455,7 @@ namespace BabelDatabase
     //military stuff -----------------------------------------------------------
     public class Starbase
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int StarbaseId { get; set; }
         public int Owner { get; set; }
         public string Level { get; set; }
@@ -467,22 +468,22 @@ namespace BabelDatabase
 
     public class Fleet
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int FleetId { get; set; }
         public string Name { get; set; }
-        [Required]
-        public int OwnerID { get; set; }
+        // [Required]
+        public int? OwnerID { get; set; }
         public virtual Empire Owner { get; set; }
         public double MilitaryPower { get; set; }
         [Required]
         public int SystemId { get; set; }
-        public virtual GalacticObject System { get; set; }
+        // public virtual GalacticObject System { get; set; }
         public virtual List<Ship> Ships { get; set; } = new List<Ship>();
     }
 
     public class Ship
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int ShipId { get; set; }
         [Required]
         public int FleetId { get; set; }
@@ -493,7 +494,7 @@ namespace BabelDatabase
 
     public class Army
     {
-        [Key]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int ArmyId { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }

@@ -93,7 +93,7 @@ namespace WOPR.Controllers.Saves
                 return Unauthorized();
             }
 
-            _simulation.GetDataFromSave("./saves/", null, null);
+            await _simulation.GetDataFromSave("./saves/", null, null);
 
             return Ok();
         }

@@ -24,6 +24,7 @@ namespace BabelDatabase
             optionsBuilder.UseSqlServer(Configuration.GetValue<string>("Database:ConnectionString"));
             //optionsBuilder.UseInMemoryDatabase("test");
             optionsBuilder.UseLazyLoadingProxies();
+            optionsBuilder.EnableSensitiveDataLogging();
         }
 
         public DbSet<Alignment> Alignments { get; set; }
@@ -325,11 +326,11 @@ namespace BabelDatabase
                 .WithOne(s => s.Fleet)
                 .HasForeignKey(s => s.FleetId);
 
-            modelBuilder.Entity<Fleet>()
+            /*modelBuilder.Entity<Fleet>()
                 .HasOne(f => f.System)
                 .WithMany()
                 .HasForeignKey(f => f.SystemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction);*/
 
             modelBuilder.Entity<Army>()
                 .HasOne(a => a.Planet)
