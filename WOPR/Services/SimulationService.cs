@@ -389,7 +389,8 @@ namespace WOPR.Services
                     Job = pop.Job,
                     Strata = pop.Strata,
                     Power = pop.Power,
-                    Happiness = pop.Hapiness
+                    Happiness = pop.Hapiness,
+                    Species = pop.Species
                 };
                 _context.Pops.Add(NewPop);
             }
@@ -401,6 +402,7 @@ namespace WOPR.Services
                 NewPop.Strata = pop.Strata;
                 NewPop.Power = pop.Power;
                 NewPop.Happiness = pop.Hapiness;
+                NewPop.Species = pop.Species;
             }
 
             return NewPop;

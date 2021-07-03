@@ -445,6 +445,7 @@ namespace BabelDatabase
         public virtual int PlanetId { get; set; }
         public virtual Planet Planet { get; set; }
 
+        public string Species { get; set; }
         public string Job { get; set; }
         public string Strata { get; set; }
         public float Power { get; set; }
