@@ -145,21 +145,20 @@ namespace WOPR.Controllers.Map
 
         }
 
-        [HttpPost("get-planet")]
+        [HttpGet("get-planet")]
         [Authorize(AuthenticationSchemes = "Discord")]
-        public IActionResult GetPlanet([FromBody] string name)
+        public IActionResult GetPlanet(string name)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
-
-            Planet planet = _context.Planets.FirstOrDefault(x => x.PlanetName == name);
+            Planet planet = _context.Planets.Where(x => x.PlanetName == "\"" + name + "\"" && !x.PlanetClass.Contains("star")).SingleOrDefault();
             if (planet == null)
             {
-                return BadRequest();
+                return NotFound();
             }
             PlanetReturn replyRaw = new PlanetReturn();
-            replyRaw.Name = planet.PlanetName;
+            replyRaw.Name = planet.PlanetName.Replace("\"", "");
             replyRaw.Population = planet.Population;
             replyRaw.OfficeAlignments = new string[3];
             replyRaw.OfficeAlignments[0] = planet.ExecutiveAlignment == null ? _context.Alignments.First().AlignmentName : planet.ExecutiveAlignment.AlignmentName;
@@ -200,7 +199,7 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            Planet p = _context.Planets.FirstOrDefault(x => x.PlanetName == data.Name);
+            Planet p = _context.Planets.Where(x => x.PlanetName == "\"" + data.Name + "\"" && !x.PlanetClass.Contains("star")).SingleOrDefault();
             if (p == null)
             {
                 return BadRequest();

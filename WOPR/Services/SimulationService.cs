@@ -333,7 +333,7 @@ namespace WOPR.Services
                     PlanetClass = planet.Planet_class,
                     OwnerId = empire.EmpireId,
                     Owner = empire,
-                    ControllerId = planet.Controller,
+                    //ControllerId = planet.Controller, // TODO: Fix the race(?) condition where the ControllerId FK constraint seems to be inserted before the Empires are.
                     GalacticObjectId = galacticObject.GalacticObjectId,
                     GalacticObject = galacticObject,
                     Pops = new List<BabelDatabase.Pop>(),
