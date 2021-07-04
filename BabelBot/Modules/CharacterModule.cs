@@ -88,19 +88,9 @@ namespace BabelBot.Modules
 			speciesField.Name = "Species";
 			speciesField.Value = character.Species.SpeciesName;
 
-			var bioField = new EmbedFieldBuilder();
-			bioField.Name = "Bio";
-			if(character.CharacterBio == null || character.CharacterBio == "")
-			{
-				bioField.Value = "No bio.";
-			}
-			else
-			{
-				bioField.Value = character.CharacterBio;
-			}
+			embedBuilder.Description = $"Bio:\n{character.CharacterBio}";
 
 			embedBuilder.AddField(speciesField);
-			embedBuilder.AddField(bioField);
 
 			await ReplyAsync(embed: embedBuilder.Build());
 		}
@@ -208,6 +198,12 @@ namespace BabelBot.Modules
 		[RequireLivingActiveCharacter]
 		public async Task SetBio(string bio)
 		{
+			if (bio.Length > 4000)
+			{
+				await ReplyAsync("Bio has a maximum length of 4000 characters.");
+				return;
+			}
+
 			var activeCharacter =
 				_context.Characters
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == 0);
