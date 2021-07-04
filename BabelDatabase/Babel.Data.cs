@@ -8,6 +8,7 @@ using DPSSimulation.Classes;
 using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace BabelDatabase
 {
@@ -247,6 +248,46 @@ namespace BabelDatabase
         public int SecularismSpiritualism { get; set; }
         public int ProgressivismTraditionalism { get; set; }
         public int MonoculturalismMulticulturalism { get; set; }
+
+        public override string ToString()
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                ContractResolver = new EFResolver(),
+                PreserveReferencesHandling = PreserveReferencesHandling.None,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            return JsonConvert.SerializeObject(this, settings);
+        }
+
+        public static explicit operator Alignment(string m)
+        {
+            return JsonConvert.DeserializeObject<Alignment>(m);
+        }
+        public static bool operator ==(Alignment a, Alignment b)
+        {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            return a.AlignmentId == b.AlignmentId;
+        }
+
+        public static bool operator !=(Alignment a, Alignment b)
+        {
+            if (a is null && b is null) return false;
+            if (a is null || b is null) return true;
+            return a.AlignmentId != b.AlignmentId;
+        }
+
+        public override bool Equals(Object x)
+        {
+            if (x is null) return false;
+            return this.AlignmentId == ((Alignment)x).AlignmentId;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.AlignmentId.GetHashCode();
+        }
     }
 
     public class CustomSpending
@@ -345,6 +386,47 @@ namespace BabelDatabase
 
         public int PlanetId { get; set; }
         public virtual Planet Planet { get; set; }
+
+        public override string ToString()
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                ContractResolver = new EFResolver(),
+                PreserveReferencesHandling = PreserveReferencesHandling.None,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            return JsonConvert.SerializeObject(this, settings);
+        }
+
+        public static explicit operator PopsimPlanetEthicGroup(string m)
+        {
+            return JsonConvert.DeserializeObject<PopsimPlanetEthicGroup>(m);
+        }
+
+        public static bool operator ==(PopsimPlanetEthicGroup a, PopsimPlanetEthicGroup b)
+        {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            return a.PopsimPlanetEthicGroupId == b.PopsimPlanetEthicGroupId;
+        }
+
+        public static bool operator !=(PopsimPlanetEthicGroup a, PopsimPlanetEthicGroup b)
+        {
+            if (a is null && b is null) return false;
+            if (a is null || b is null) return true;
+            return a.PopsimPlanetEthicGroupId != b.PopsimPlanetEthicGroupId;
+        }
+
+        public override bool Equals(Object x)
+        {
+            if (x is null) return false;
+            return this.PopsimPlanetEthicGroupId == ((PopsimPlanetEthicGroup)x).PopsimPlanetEthicGroupId;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.PopsimPlanetEthicGroupId.GetHashCode();
+        }
     }
 
     // Simulation -------------------------------------------

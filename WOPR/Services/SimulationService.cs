@@ -76,11 +76,10 @@ namespace WOPR.Services
             List<BabelDatabase.Empire> empires = new List<BabelDatabase.Empire>();
             foreach (DPSSimulation.Classes.Empire empire in map.Empires)
             {
+                Console.WriteLine("Empire ID " + empire.EmpireID);
                 empire.OrganiseFleets();
                 empires.Add(GetEmpire(empire));
             }
-
-            await _context.SaveChangesAsync();
 
             //Another Pass over Fleets to do locations
             foreach (BabelDatabase.Fleet fleet in _context.Fleets)
@@ -103,6 +102,7 @@ namespace WOPR.Services
             }
 
             await _context.SaveChangesAsync();
+            Console.WriteLine("Save parsed!");
         }
 
         public BabelDatabase.Empire GetEmpire(DPSSimulation.Classes.Empire empire)
@@ -115,7 +115,7 @@ namespace WOPR.Services
                 Empire = new BabelDatabase.Empire()
                 {
                     Name = empire.Name,
-                    EmpireId = empire.EmpireID
+                    EmpireId = empire.EmpireID,
                 };
                 newEmpire = true;
             }
@@ -155,9 +155,13 @@ namespace WOPR.Services
             }
             Empire.ResearchStations = ResearchFleets;
 
-            if (newEmpire == true)
+            if (newEmpire)
             {
                 _context.Empires.Add(Empire);
+            }
+            else
+            {
+                _context.Empires.Update(Empire);
             }
 
             return Empire;
@@ -213,6 +217,10 @@ namespace WOPR.Services
             {
                 _context.GalacticObjects.Add(GalacticObject);
             }
+            else
+            {
+                _context.GalacticObjects.Update(GalacticObject);
+            }
 
             return GalacticObject;
         }
@@ -247,6 +255,7 @@ namespace WOPR.Services
                 BabelDatabase.Fleet fleet = GetFleet(starbase.StarbaseFleet, empire);
                 NewStarbase.StarbaseFleet = fleet;
                 NewStarbase.FleetId = fleet.FleetId;
+                _context.Starbases.Update(NewStarbase);
             }
             return NewStarbase;
         }
@@ -272,7 +281,7 @@ namespace WOPR.Services
                 NewShip.Fleet = fleet;
                 NewShip.ShipName = ship.ShipName;
                 NewShip.Type = ship.Type;
-
+                _context.Ships.Update(NewShip);
             }
             return NewShip;
         }
@@ -315,6 +324,7 @@ namespace WOPR.Services
                     Ships.Add(GetShip(ship, NewFleet));
                 }
                 NewFleet.Ships = Ships;
+                _context.Fleets.Update(NewFleet);
             }
             return NewFleet;
         }
@@ -323,6 +333,8 @@ namespace WOPR.Services
         {
             BabelDatabase.Planet NewPlanet = _context.Planets.FirstOrDefault(p => p.PlanetId == planet.PlanetGameId);
             bool IsPlanetNew = false;
+
+            int? control = planet.Controller == 0 ? null : (int?)planet.Controller;
 
             if (NewPlanet == null)
             {
@@ -333,7 +345,7 @@ namespace WOPR.Services
                     PlanetClass = planet.Planet_class,
                     OwnerId = empire.EmpireId,
                     Owner = empire,
-                    //ControllerId = planet.Controller, // TODO: Fix the race(?) condition where the ControllerId FK constraint seems to be inserted before the Empires are.
+                    ControllerId = control,
                     GalacticObjectId = galacticObject.GalacticObjectId,
                     GalacticObject = galacticObject,
                     Pops = new List<BabelDatabase.Pop>(),
@@ -348,7 +360,7 @@ namespace WOPR.Services
                 NewPlanet.PlanetClass = planet.Planet_class;
                 NewPlanet.OwnerId = empire.EmpireId;
                 NewPlanet.Owner = empire;
-                NewPlanet.ControllerId = planet.Controller;
+                NewPlanet.ControllerId = control;
             }
 
             foreach (DPSSimulation.Classes.Pop pop in planet.Pops)
@@ -371,6 +383,10 @@ namespace WOPR.Services
             if (IsPlanetNew == true)
             {
                 _context.Planets.Add(NewPlanet);
+            }
+            else
+            {
+                _context.Planets.Update(NewPlanet);
             }
 
             return NewPlanet;
@@ -403,6 +419,7 @@ namespace WOPR.Services
                 NewPop.Power = pop.Power;
                 NewPop.Happiness = pop.Hapiness;
                 NewPop.Species = pop.Species;
+                _context.Pops.Update(NewPop);
             }
 
             return NewPop;
@@ -428,6 +445,7 @@ namespace WOPR.Services
                 NewDistrict.Type = district.Type;
                 NewDistrict.PlanetId = planet.PlanetId;
                 NewDistrict.Planet = planet;
+                _context.Districts.Update(NewDistrict);
             }
 
             return NewDistrict;
@@ -454,6 +472,7 @@ namespace WOPR.Services
                 NewBuilding.Ruined = building.ruined;
                 NewBuilding.PlanetId = planet.PlanetId;
                 NewBuilding.Planet = planet;
+                _context.Buildings.Update(NewBuilding);
             }
 
             return NewBuilding;

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -121,7 +122,7 @@ namespace WOPR.Controllers.Map
         {
             public string Name;
             public long Size;
-            public Dictionary<Alignment, float> Modifier; // Null if not admin
+            public Dictionary<string, float> Modifier; // Null if not admin
         }
         public class IndustryEntry
         {
@@ -138,7 +139,7 @@ namespace WOPR.Controllers.Map
         {
             public string Name;
             public ulong Population;
-            // public SpeciesEntry[] Species;
+            public SpeciesEntry[] Species;
             public string[] OfficeAlignments;
             public GroupEntry[] GroupEntries;
             public IndustryEntry[] IndustryEntries;
@@ -171,7 +172,8 @@ namespace WOPR.Controllers.Map
                 GroupEntry ge = new GroupEntry();
                 ge.Name = planet.PlanetGroups[x].PopsimPlanetEthicGroupId;
                 ge.Size = planet.PlanetGroups[x].MembersOnPlanet;
-                if (discordUser != null && discordUser.IsAdmin) ge.Modifier = planet.PopsimGmData[planet.PlanetGroups[x]];
+                if (discordUser != null && discordUser.IsAdmin) ge.Modifier = planet.PopsimGmData.Keys.Contains(planet.PlanetGroups[x]) ? planet.PopsimGmData[planet.PlanetGroups[x]].ToDictionary(k => ((Alignment)k.Key).AlignmentName, v => v.Value) : new Dictionary<string, float>();
+                replyRaw.GroupEntries[x] = ge;
             }
 
             replyRaw.IndustryEntries = new IndustryEntry[planet.Output.Count];
@@ -181,6 +183,18 @@ namespace WOPR.Controllers.Map
                 ie.Name = planet.Output.Keys.ToList()[x];
                 ie.GDP = planet.Output[ie.Name];
                 if (discordUser != null && discordUser.IsAdmin) ie.Modifier = planet.EconGmData[ie.Name];
+                replyRaw.IndustryEntries[x] = ie;
+            }
+
+            int totalPops = planet.Pops.Count;
+            List<string> specieList = planet.Pops.ConvertAll(x => x.Species).Distinct().ToList();
+            replyRaw.Species = new SpeciesEntry[specieList.Count];
+            for (int x = 0; x < specieList.Count; x++)
+            {
+                SpeciesEntry se = new SpeciesEntry();
+                se.Name = specieList[x].Replace("\"", "");
+                se.Amount = (float)Math.Floor((planet.Pops.Count(y => y.Species == specieList[x]) / (float)totalPops) * 100);
+                replyRaw.Species[x] = se;
             }
 
             return Ok(replyRaw);
@@ -220,15 +234,15 @@ namespace WOPR.Controllers.Map
                 {
                     p.PlanetGroups[x].PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
                     p.PlanetGroups[x].MembersOnPlanet = data.GroupEntries[x].Size;
-                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier;
+                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
                 }
                 else
                 {
                     PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
                     g.PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
                     g.MembersOnPlanet = data.GroupEntries[x].Size;
-                    p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier);
                     p.PlanetGroups.Add(g);
+                    p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                 }
             }
 
@@ -243,6 +257,7 @@ namespace WOPR.Controllers.Map
 
             for (int x = 0; x < data.IndustryEntries.Count(); x++)
             {
+                if (p.EconGmData == null) p.EconGmData = new Dictionary<string, float>();
                 if (p.Output.Keys.Contains(data.IndustryEntries[x].Name))
                 {
                     p.Output[data.IndustryEntries[x].Name] = data.IndustryEntries[x].GDP;
