@@ -196,11 +196,11 @@ namespace BabelBot.Modules
 
 		[Command("bio")]
 		[RequireLivingActiveCharacter]
-		public async Task SetBio(string bio)
+		public async Task SetBio([Remainder] string bio)
 		{
-			if (bio.Length > 4000)
+			if (bio.Length > 2000)
 			{
-				await ReplyAsync("Bio has a maximum length of 4000 characters.");
+				await ReplyAsync("Bio has a maximum length of 2000 characters.");
 				return;
 			}
 
