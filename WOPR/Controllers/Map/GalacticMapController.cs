@@ -170,7 +170,7 @@ namespace WOPR.Controllers.Map
             for (int x = 0; x < planet.PlanetGroups.Count; x++)
             {
                 GroupEntry ge = new GroupEntry();
-                ge.Name = planet.PlanetGroups[x].PopsimPlanetEthicGroupId;
+                ge.Name = planet.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
                 ge.Size = planet.PlanetGroups[x].MembersOnPlanet;
                 if (discordUser != null && discordUser.IsAdmin) ge.Modifier = planet.PopsimGmData.Keys.Contains(planet.PlanetGroups[x]) ? planet.PopsimGmData[planet.PlanetGroups[x]].ToDictionary(k => ((Alignment)k.Key).AlignmentName, v => v.Value) : new Dictionary<string, float>();
                 replyRaw.GroupEntries[x] = ge;
@@ -182,7 +182,7 @@ namespace WOPR.Controllers.Map
                 IndustryEntry ie = new IndustryEntry();
                 ie.Name = planet.Output.Keys.ToList()[x];
                 ie.GDP = planet.Output[ie.Name];
-                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = planet.EconGmData[ie.Name];
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = planet.EconGmData.Keys.Contains(ie.Name) ? planet.EconGmData[ie.Name] : 0;
                 replyRaw.IndustryEntries[x] = ie;
             }
 
@@ -193,7 +193,7 @@ namespace WOPR.Controllers.Map
             {
                 SpeciesEntry se = new SpeciesEntry();
                 se.Name = specieList[x].Replace("\"", "");
-                se.Amount = (float)Math.Floor((planet.Pops.Count(y => y.Species == specieList[x]) / (float)totalPops) * 100);
+                se.Amount = (float)Math.Round((planet.Pops.Count(y => y.Species == specieList[x]) / (float)totalPops) * 1000) / 10;
                 replyRaw.Species[x] = se;
             }
 
@@ -232,17 +232,37 @@ namespace WOPR.Controllers.Map
             {
                 if (x < p.PlanetGroups.Count)
                 {
-                    p.PlanetGroups[x].PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
+                    p.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
                     p.PlanetGroups[x].MembersOnPlanet = data.GroupEntries[x].Size;
                     p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
                 }
                 else
                 {
-                    PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
-                    g.PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
-                    g.MembersOnPlanet = data.GroupEntries[x].Size;
-                    p.PlanetGroups.Add(g);
-                    p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                    if (_context.PopsimGlobalEthicGroups.Any(pg => pg.PopsimGlobalEthicGroupName == data.GroupEntries[x].Name))
+                    {
+                        PopsimGlobalEthicGroup global = _context.PopsimGlobalEthicGroups.First(pg => pg.PopsimGlobalEthicGroupName == data.GroupEntries[x].Name);
+                        PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
+                        g.MembersOnPlanet = data.GroupEntries[x].Size;
+                        global.PlanetaryEthicGroups.Add(g);
+                        _context.PopsimGlobalEthicGroups.Update(global);
+                        p.PlanetGroups.Add(g);
+                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                    }
+                    else
+                    {
+                        PopsimGlobalEthicGroup global = new PopsimGlobalEthicGroup();
+                        global.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
+                        global.Radicalisation = 1;
+                        global.PartyInvolvementFactor = 1;
+                        PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
+                        g.PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
+                        g.MembersOnPlanet = data.GroupEntries[x].Size;
+                        global.PlanetaryEthicGroups = new List<PopsimPlanetEthicGroup>();
+                        global.PlanetaryEthicGroups.Add(g);
+                        _context.PopsimGlobalEthicGroups.Add(global);
+                        p.PlanetGroups.Add(g);
+                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                    }
                 }
             }
 
@@ -250,6 +270,8 @@ namespace WOPR.Controllers.Map
             {
                 for (int x = data.GroupEntries.Count(); x < p.PlanetGroups.Count; x++)
                 {
+                    PopsimGlobalEthicGroup globe = p.PlanetGroups[x].PopsimGlobalEthicGroup;
+                    globe.PlanetaryEthicGroups.RemoveAt(globe.PlanetaryEthicGroups.IndexOf(p.PlanetGroups[x]));
                     p.PopsimGmData.Remove(p.PlanetGroups[x]);
                     p.PlanetGroups.RemoveAt(x);
                 }

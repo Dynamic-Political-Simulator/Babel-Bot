@@ -22,7 +22,7 @@ namespace WOPR.Services
 
         //econ
 
-        public async void CalculateEmpireEcon(BabelDatabase.Empire empire)
+        public async Task CalculateEmpireEcon(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
 
@@ -94,7 +94,7 @@ namespace WOPR.Services
             return DistrictAmount;
         }
 
-        public async void CalculatePlanetEcon(BabelDatabase.Planet planet)
+        public async Task CalculatePlanetEcon(BabelDatabase.Planet planet)
         {
             DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
 
@@ -341,6 +341,23 @@ namespace WOPR.Services
                 EconGmData = empire.EconGmData
             };
 
+            NewEmpire.InfraStructureData = CreateInfrastructureData(_context.InfrastructureData.First());
+
+            foreach (BabelDatabase.Fleet fleet in empire.MiningStations)
+            {
+                NewEmpire.MiningStations.Add(CreateFleet(fleet));
+            }
+
+            foreach (BabelDatabase.Fleet fleet in empire.ResearchStations)
+            {
+                NewEmpire.ResearchStations.Add(CreateFleet(fleet));
+            }
+
+            foreach (BabelDatabase.Fleet fleet in empire.Fleets)
+            {
+                NewEmpire.Fleets.Add(CreateFleet(fleet));
+            }
+
             foreach (BabelDatabase.GalacticObject system in empire.GalacticObjects)
             {
                 NewEmpire.GalacticObjects.Add(CreateSystem(system));
@@ -369,10 +386,60 @@ namespace WOPR.Services
 
             foreach (BabelDatabase.Planet planet in system.Planets)
             {
-                NewSystem.Planets.Add(CreatePlanet(planet));
+                if (planet.ControllerId != null) NewSystem.Planets.Add(CreatePlanet(planet)); // If controller id is null, the planet is probably irrelevant since colonies should have a controller id.
             }
 
+            NewSystem.Starbase = CreateStarbase(system.Starbase);
+
             return NewSystem;
+        }
+
+        public DPSSimulation.Classes.Starbase CreateStarbase(BabelDatabase.Starbase starbase)
+        {
+            DPSSimulation.Classes.Starbase NewStarbase = new DPSSimulation.Classes.Starbase()
+            {
+                StarbaseId = starbase.StarbaseId,
+                Owner = starbase.Owner,
+                Level = starbase.Level,
+                Buildings = starbase.Buildings,
+                Modules = starbase.Modules
+            };
+
+            NewStarbase.StarbaseFleet = CreateFleet(starbase.StarbaseFleet);
+
+            return NewStarbase;
+        }
+
+        public DPSSimulation.Classes.Fleet CreateFleet(BabelDatabase.Fleet fleet)
+        {
+            DPSSimulation.Classes.Fleet newFleet = new DPSSimulation.Classes.Fleet()
+            {
+                FleetId = fleet.FleetId,
+                Name = fleet.Name,
+                Owner = (int)fleet.OwnerID,
+                MilitaryPower = fleet.MilitaryPower,
+                System = fleet.SystemId
+            };
+
+            foreach (BabelDatabase.Ship ship in fleet.Ships)
+            {
+                newFleet.Ships.Add(CreateShip(ship));
+            }
+
+            return newFleet;
+        }
+
+        public DPSSimulation.Classes.Ship CreateShip(BabelDatabase.Ship ship)
+        {
+            DPSSimulation.Classes.Ship newShip = new DPSSimulation.Classes.Ship()
+            {
+                ShipId = ship.ShipId,
+                FleetId = ship.FleetId,
+                ShipName = ship.ShipName,
+                Type = ship.Type
+            };
+
+            return newShip;
         }
 
         public DPSSimulation.Classes.Planet CreatePlanet(BabelDatabase.Planet planet)
@@ -389,9 +456,7 @@ namespace WOPR.Services
             };
 
             BabelDatabase.Data data = _context.Data.First();
-            {
-                LibraryPlanet.Data = CreateData(data);
-            }
+            LibraryPlanet.Data = CreateData(data);
 
             foreach (BabelDatabase.Pop pop in planet.Pops)
             {
@@ -420,7 +485,8 @@ namespace WOPR.Services
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
-                LibraryPlanet.PopsimGmData.Add(CreateGroup(popsimGmData.Key.PopsimGlobalEthicGroup), factionStuff);
+                PopsimPlanetEthicGroup g = planet.PlanetGroups.FirstOrDefault(x => x == popsimGmData.Key);
+                LibraryPlanet.PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
             }
 
             return LibraryPlanet;

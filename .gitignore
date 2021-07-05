@@ -373,3 +373,5 @@ saves/
 
 # Fairly certain this is not supposed to be public
 WOPR/appsettings.Development.json
+WOPR/PopDistribution.xml
+WOPR/EmpireDistribution.xml

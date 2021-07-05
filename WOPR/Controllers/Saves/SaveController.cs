@@ -21,11 +21,13 @@ namespace WOPR.Controllers.Saves
     {
         private readonly BabelContext _context;
         private readonly SimulationService _simulation;
+        private readonly EconPopsimServices _econ;
 
-        public SaveController(BabelContext context, SimulationService simulation)
+        public SaveController(BabelContext context, SimulationService simulation, EconPopsimServices econ)
         {
             _context = context;
             _simulation = simulation;
+            _econ = econ;
         }
 
         public struct SaveForm
@@ -93,7 +95,54 @@ namespace WOPR.Controllers.Saves
                 return Unauthorized();
             }
 
-            _simulation.GetDataFromSave("./saves/", null, null);
+            await _simulation.GetDataFromSave("./saves/", null, null);
+
+            return Ok();
+        }
+
+        [HttpGet("parse-data")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> ParseDataFiles()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (userId == null || discordUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            await _simulation.SetData("./PopDistribution.xml", "./EmpireDistribution.xml");
+
+            return Ok();
+        }
+
+        [HttpGet("run-test")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> Test()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (userId == null || discordUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            await _econ.CalculateEmpireEcon(_context.Empires.FirstOrDefault(x => x.EmpireId == 1));
+            Console.WriteLine("Done!");
 
             return Ok();
         }

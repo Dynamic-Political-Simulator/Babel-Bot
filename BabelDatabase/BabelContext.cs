@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using System.Runtime.Serialization;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using DPSSimulation.Classes;
@@ -25,6 +27,96 @@ namespace BabelDatabase
             //optionsBuilder.UseInMemoryDatabase("test");
             optionsBuilder.UseLazyLoadingProxies();
             optionsBuilder.EnableSensitiveDataLogging();
+        }
+
+        private string SerializeDictInfra(Dictionary<string, Infrastructure> dict)
+        {
+            Dictionary<string, string> res = new Dictionary<string, string>();
+            foreach (string k in dict.Keys)
+            {
+                res.Add(k, JsonConvert.SerializeObject(dict[k]));
+            }
+            return JsonConvert.SerializeObject(res);
+        }
+
+        class Infr
+        {
+            public float InfrastructureWeight { get; set; }
+            public Dictionary<string, float> InfrastructureIndustries { get; set; }
+        }
+
+        private Infrastructure DeSerializeInfra(string str)
+        {
+            Infr i = JsonConvert.DeserializeObject<Infr>(str);
+            Infrastructure res = FormatterServices.GetUninitializedObject(typeof(Infrastructure)) as Infrastructure;
+            res.InfrastructureIndustries = i.InfrastructureIndustries;
+            res.InfrastructureWeight = i.InfrastructureWeight;
+            return res;
+        }
+
+        private Dictionary<string, Infrastructure> DeSerializeDictInfra(string dictstr)
+        {
+            Dictionary<string, string> dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(dictstr);
+            Dictionary<string, Infrastructure> res = new Dictionary<string, Infrastructure>();
+            foreach (string k in dict.Keys)
+            {
+                res.Add(k, DeSerializeInfra(dict[k]));
+            }
+            return res;
+        }
+
+        class PseudoStrata
+        {
+            public int StrataWeight { get; set; }
+            public Dictionary<string, float> StrataIndustries { get; set; }
+            public Dictionary<string, string> StrataJobs { get; set; }
+        }
+
+        private string SerializeListStrata(List<Strata> list)
+        {
+            List<string> res = new List<string>();
+            foreach (Strata s in list)
+            {
+                PseudoStrata pseudo = new PseudoStrata();
+                pseudo.StrataWeight = s.StrataWeight;
+                pseudo.StrataIndustries = s.StrataIndustries;
+                pseudo.StrataJobs = s.StrataJobs.ToDictionary((k) => k.Key, v => JsonConvert.SerializeObject(v.Value));
+                res.Add(JsonConvert.SerializeObject(pseudo));
+            }
+
+            return JsonConvert.SerializeObject(res);
+        }
+
+        class Jorb
+        {
+            public float JobWeight { get; set; }
+            public Dictionary<string, float> JobIndustries { get; set; }
+        }
+
+        private Job DeSerializeJob(string str)
+        {
+            Jorb i = JsonConvert.DeserializeObject<Jorb>(str);
+            Job res = FormatterServices.GetUninitializedObject(typeof(Job)) as Job;
+            res.JobWeight = i.JobWeight;
+            res.JobIndustries = i.JobIndustries;
+            return res;
+        }
+
+        private List<Strata> DeSerializeListStrata(string str)
+        {
+            List<string> list = JsonConvert.DeserializeObject<List<string>>(str);
+            List<Strata> res = new List<Strata>();
+            foreach (string s in list)
+            {
+                PseudoStrata pseudo = JsonConvert.DeserializeObject<PseudoStrata>(s);
+                Strata strata = FormatterServices.GetUninitializedObject(typeof(Strata)) as Strata; // Sure I could've asked to just add a blank constructor to Strata, but it's funnier this way.
+                strata.StrataWeight = pseudo.StrataWeight;
+                strata.StrataIndustries = pseudo.StrataIndustries;
+                strata.StrataJobs = pseudo.StrataJobs.ToDictionary((k) => k.Key, v => DeSerializeJob(v.Value));
+                res.Add(strata);
+            }
+
+            return res;
         }
 
         public DbSet<Alignment> Alignments { get; set; }
@@ -347,14 +439,14 @@ namespace BabelDatabase
             modelBuilder.Entity<InfrastructureData>()
                 .Property(b => b.Infrastructures)
                 .HasConversion(
-                    v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<Dictionary<string, Infrastructure>>(v));
+                    v => SerializeDictInfra(v),
+                    v => DeSerializeDictInfra(v));
 
             modelBuilder.Entity<Data>()
                 .Property(b => b.Stratas)
                 .HasConversion(
-                    v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<List<Strata>>(v));
+                    v => SerializeListStrata(v),
+                    v => DeSerializeListStrata(v));
 
             modelBuilder.Entity<Empire>()
                 .Property(b => b.NationalOutput)
@@ -445,12 +537,6 @@ namespace BabelDatabase
                 .HasConversion(
                     h => JsonConvert.SerializeObject(h),
                     h => JsonConvert.DeserializeObject<Dictionary<int, float>>(h));
-
-            modelBuilder.Entity<Data>()
-                .Property(d => d.Stratas)
-                .HasConversion(
-                    d => JsonConvert.SerializeObject(d),
-                    d => JsonConvert.DeserializeObject<List<Strata>>(d));
 
             modelBuilder.Entity<Starbase>()
                 .Property(s => s.Modules)

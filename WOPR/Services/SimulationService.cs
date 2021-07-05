@@ -20,7 +20,7 @@ namespace WOPR.Services
             _context = context;
         }
 
-        public async void SetData(string DataPath, string InfrastructureDataPath)
+        public async Task SetData(string DataPath, string InfrastructureDataPath)
         {
             XmlDocument Xmldata = new XmlDocument();
             Xmldata.Load(DataPath);
@@ -28,6 +28,7 @@ namespace WOPR.Services
             XmlInfradata.Load(InfrastructureDataPath);
             var data = new DPSSimulation.Classes.Data(Xmldata);
             var infradata = new InfraStructureData(XmlInfradata);
+            // Console.WriteLine("A");
 
             if (_context.Data.ToList().Count() == 0)
             {
@@ -43,6 +44,7 @@ namespace WOPR.Services
                 Data.BaseGdpPerPop = data.BaseGdpPerPop;
                 Data.Stratas = data.Stratas;
             }
+            // Console.WriteLine("B");
 
             if (_context.InfrastructureData.ToList().Count() == 0)
             {
@@ -58,9 +60,10 @@ namespace WOPR.Services
                 InfraData.GdpPerInfrastructure = infradata.GdpPerInfrastructure;
                 InfraData.Infrastructures = infradata.Infrastructures;
             }
+            // Console.WriteLine("C");
 
             await _context.SaveChangesAsync();
-
+            Console.WriteLine("Parsed data.");
         }
 
         public async Task GetDataFromSave(string SaveFolderPath, string DataPath, string InfrastructureDataPath)
