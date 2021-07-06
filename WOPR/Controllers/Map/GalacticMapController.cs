@@ -40,7 +40,7 @@ namespace WOPR.Controllers.Map
             for (int x = 0; x < systems.Length; x++)
             {
                 info[x] = new PlanetInfo();
-                info[x].Name = systems[x].Planet.PlanetName;
+                info[x].Name = systems[x].Planet.PlanetName.Replace("\"", "");
                 info[x].Description = systems[x].Planet.PlanetDescription; // NOTE: Potentially optimise load speeds by fetching the desc on tooltip open
                 info[x].Colour = systems[x].Colour;
                 info[x].Location = new float[] { systems[x].Lat, systems[x].Lng };
@@ -69,7 +69,7 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            Planet planet = _context.Planets.FirstOrDefault(x => x.PlanetName == form.PlanetName);
+            Planet planet = _context.Planets.Where(x => x.PlanetName == "\"" + form.PlanetName + "\"" && !x.PlanetClass.Contains("star")).SingleOrDefault();
 
             if (planet == null || form.Location.Length != 2 || form.Colour == null)
             {
@@ -96,9 +96,9 @@ namespace WOPR.Controllers.Map
             public string PlanetDescription;
         }
 
-        [HttpPost("create-planet")]
+        [HttpPost("edit-planet-description")]
         [Authorize(AuthenticationSchemes = "Discord")]
-        public IActionResult CreatePlanet([FromBody] PlanetCreateForm form)
+        public IActionResult EditPlanetDescription([FromBody] PlanetCreateForm form)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -109,10 +109,9 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            Planet planet = new Planet();
-            planet.PlanetName = form.PlanetName;
+            Planet planet = _context.Planets.Where(x => x.PlanetName == "\"" + form.PlanetName + "\"" && !x.PlanetClass.Contains("star")).SingleOrDefault();
             planet.PlanetDescription = form.PlanetDescription;
-            _context.Planets.Add(planet);
+            _context.Planets.Update(planet);
             _context.SaveChanges();
 
             return Ok();
