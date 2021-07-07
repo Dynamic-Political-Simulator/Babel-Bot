@@ -206,7 +206,6 @@ namespace WOPR.Controllers.Map
 
             Dictionary<Alignment, float> popularities = _econ.CalculatePlanetPopularity(planet);
             List<PopularityEntry> popularityEntries = new List<PopularityEntry>();
-            Console.WriteLine(popularities.Count);
 
             foreach (Alignment k in popularities.Keys)
             {
@@ -279,6 +278,12 @@ namespace WOPR.Controllers.Map
                         global.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
                         global.Radicalisation = 1;
                         global.PartyInvolvementFactor = 1;
+                        global.CooperationCompetition = 5;
+                        global.DemocracyAuthority = 5;
+                        global.FederalismCentralism = 5;
+                        global.GlobalismIsolationism = 5;
+                        global.MilitarismPacifism = 5;
+                        global.MonoculturalismMulticulturalism = 5;
                         PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
                         g.Percentage = data.GroupEntries[x].Size;
                         global.PlanetaryEthicGroups = new List<PopsimPlanetEthicGroup>();
