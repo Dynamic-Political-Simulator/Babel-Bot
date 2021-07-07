@@ -1,4 +1,5 @@
 using BabelDatabase;
+using WOPR.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -16,10 +17,12 @@ namespace WOPR.Controllers.Map
     public class MapController : ControllerBase
     {
         private readonly BabelContext _context;
+        private readonly EconPopsimServices _econ;
 
-        public MapController(BabelContext context)
+        public MapController(BabelContext context, EconPopsimServices econ)
         {
             _context = context;
+            _econ = econ;
         }
 
         class PlanetInfo
@@ -120,7 +123,7 @@ namespace WOPR.Controllers.Map
         public class GroupEntry
         {
             public string Name;
-            public long Size;
+            public float Size;
             public Dictionary<string, float> Modifier; // Null if not admin
         }
         public class IndustryEntry
@@ -134,6 +137,11 @@ namespace WOPR.Controllers.Map
             public string Name;
             public float Amount;
         }
+        public class PopularityEntry
+        {
+            public string Name;
+            public float Popularity;
+        }
         public class PlanetReturn
         {
             public string Name;
@@ -142,7 +150,7 @@ namespace WOPR.Controllers.Map
             public string[] OfficeAlignments;
             public GroupEntry[] GroupEntries;
             public IndustryEntry[] IndustryEntries;
-
+            public PopularityEntry[] PopularityEntries;
         }
 
         [HttpGet("get-planet")]
@@ -170,7 +178,7 @@ namespace WOPR.Controllers.Map
             {
                 GroupEntry ge = new GroupEntry();
                 ge.Name = planet.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
-                ge.Size = planet.PlanetGroups[x].MembersOnPlanet;
+                ge.Size = planet.PlanetGroups[x].Percentage;
                 if (discordUser != null && discordUser.IsAdmin) ge.Modifier = planet.PopsimGmData.Keys.Contains(planet.PlanetGroups[x]) ? planet.PopsimGmData[planet.PlanetGroups[x]].ToDictionary(k => ((Alignment)k.Key).AlignmentName, v => v.Value) : new Dictionary<string, float>();
                 replyRaw.GroupEntries[x] = ge;
             }
@@ -195,6 +203,22 @@ namespace WOPR.Controllers.Map
                 se.Amount = (float)Math.Round((planet.Pops.Count(y => y.Species == specieList[x]) / (float)totalPops) * 1000) / 10;
                 replyRaw.Species[x] = se;
             }
+
+            Dictionary<Alignment, float> popularities = _econ.CalculatePlanetPopularity(planet);
+            List<PopularityEntry> popularityEntries = new List<PopularityEntry>();
+            Console.WriteLine(popularities.Count);
+
+            foreach (Alignment k in popularities.Keys)
+            {
+                PopularityEntry pe = new PopularityEntry()
+                {
+                    Name = k.AlignmentName,
+                    Popularity = popularities[k]
+                };
+                popularityEntries.Add(pe);
+            }
+
+            replyRaw.PopularityEntries = popularityEntries.ToArray();
 
             return Ok(replyRaw);
         }
@@ -232,8 +256,9 @@ namespace WOPR.Controllers.Map
                 if (x < p.PlanetGroups.Count)
                 {
                     p.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
-                    p.PlanetGroups[x].MembersOnPlanet = data.GroupEntries[x].Size;
+                    p.PlanetGroups[x].Percentage = data.GroupEntries[x].Size;
                     p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
+                    p.Controller.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
                 }
                 else
                 {
@@ -241,11 +266,12 @@ namespace WOPR.Controllers.Map
                     {
                         PopsimGlobalEthicGroup global = _context.PopsimGlobalEthicGroups.First(pg => pg.PopsimGlobalEthicGroupName == data.GroupEntries[x].Name);
                         PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
-                        g.MembersOnPlanet = data.GroupEntries[x].Size;
+                        g.Percentage = data.GroupEntries[x].Size;
                         global.PlanetaryEthicGroups.Add(g);
                         _context.PopsimGlobalEthicGroups.Update(global);
                         p.PlanetGroups.Add(g);
                         p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                        p.Controller.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                     }
                     else
                     {
@@ -254,13 +280,13 @@ namespace WOPR.Controllers.Map
                         global.Radicalisation = 1;
                         global.PartyInvolvementFactor = 1;
                         PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
-                        g.PopsimPlanetEthicGroupId = data.GroupEntries[x].Name;
-                        g.MembersOnPlanet = data.GroupEntries[x].Size;
+                        g.Percentage = data.GroupEntries[x].Size;
                         global.PlanetaryEthicGroups = new List<PopsimPlanetEthicGroup>();
                         global.PlanetaryEthicGroups.Add(g);
                         _context.PopsimGlobalEthicGroups.Add(global);
                         p.PlanetGroups.Add(g);
                         p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                        p.Controller.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                     }
                 }
             }
@@ -292,6 +318,7 @@ namespace WOPR.Controllers.Map
             }
 
             _context.Planets.Update(p);
+            _context.Empires.Update(p.Controller);
             _context.SaveChanges();
 
             return Ok();

@@ -160,7 +160,8 @@ namespace WOPR.Services
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
-                PopsimGmData.Add(CreateGroup(popsimGmData.Key.PopsimGlobalEthicGroup), factionStuff);
+                PopsimPlanetEthicGroup g = planet.PlanetGroups.First(x => x.PopsimPlanetEthicGroupId == popsimGmData.Key.PopsimPlanetEthicGroupId);
+                PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
             }
 
             planet1.CalculatePopularity(PopsimGmData);
@@ -487,6 +488,11 @@ namespace WOPR.Services
                 }
                 PopsimPlanetEthicGroup g = planet.PlanetGroups.FirstOrDefault(x => x == popsimGmData.Key);
                 LibraryPlanet.PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
+            }
+
+            foreach (Alignment a in _context.Alignments)
+            {
+                LibraryPlanet.PlanetFactions.Add(CreateFaction(a), 0);
             }
 
             return LibraryPlanet;
