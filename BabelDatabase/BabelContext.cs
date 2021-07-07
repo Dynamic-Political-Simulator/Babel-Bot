@@ -167,6 +167,13 @@ namespace BabelDatabase
                 DiscordUserId = "75968535074967552",
                 UserName = "Obi",
                 IsAdmin = true
+            }); 
+
+            modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
+            {
+                DiscordUserId = "222825184887963648",
+                UserName = "Grindor",
+                IsAdmin = true
             });
 
             modelBuilder.Entity<Species>().HasData(

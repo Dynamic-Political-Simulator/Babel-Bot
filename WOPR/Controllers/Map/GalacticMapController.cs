@@ -165,7 +165,7 @@ namespace WOPR.Controllers.Map
 
         [HttpGet("get-empire")]
         [Authorize(AuthenticationSchemes = "Discord")]
-        public IActionResult GetEmpire(string name)
+        public async Task<IActionResult> GetEmpire(string name)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -178,12 +178,13 @@ namespace WOPR.Controllers.Map
             }
 
             EmpireReturn replyRaw = new EmpireReturn();
-
+            await _econ.CalculateEmpireEcon(empire);
             replyRaw.Name = empire.Name.Replace("\"", "");
             ulong population = 0;
             List<GroupEntry> GroupEntries = new List<GroupEntry>();
             List<SpeciesEntry> speciesEntries = new List<SpeciesEntry>();
-            foreach(GalacticObject system in empire.GalacticObjects)
+            
+            foreach (GalacticObject system in empire.GalacticObjects)
             {
                 foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
                 {
@@ -191,43 +192,53 @@ namespace WOPR.Controllers.Map
                     
                 }
             }
+            replyRaw.Population = population;
 
             foreach (GalacticObject system in empire.GalacticObjects)
             {
-                foreach (Planet planet in system.Planets.Where(p => p.Population != 0 && p.PlanetGroups.Count != 0))
+                foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
                 {
-                    float populationPercentage = (float)(planet.Population / population);
-                    foreach(PopsimPlanetEthicGroup group in planet.PlanetGroups)
-                    {
+                    double populationPercentage = (double)((decimal)planet.Population / (decimal)population);
 
-                        GroupEntry ge = GroupEntries.FirstOrDefault(g => g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName);
-                        if(ge == null)
+                    if(planet.PlanetGroups.Count != 0)
+                    {
+                        foreach (PopsimPlanetEthicGroup group in planet.PlanetGroups)
                         {
-                            ge = new GroupEntry();
-                            ge.Name = group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
-                            ge.Size = group.Percentage * populationPercentage;
-                            GroupEntries.Add(ge);
+
+                            GroupEntry ge = GroupEntries.FirstOrDefault(g => g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName);
+                            if (ge == null)
+                            {
+                                ge = new GroupEntry();
+                                ge.Name = group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
+                                ge.Size = (float)(group.Percentage * populationPercentage);
+                                GroupEntries.Add(ge);
+                            }
+                            else
+                            {
+                                GroupEntries.FirstOrDefault(g => g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName).Size += (float)(group.Percentage * populationPercentage);
+                            }
+
                         }
-                        else
-                        {
-                            GroupEntries.FirstOrDefault(g=> g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName).Size += group.Percentage * populationPercentage; 
-                        }
-                        
                     }
+                    
+                    
                     List<string> specieList = planet.Pops.ConvertAll(x => x.Species).Distinct().ToList();
                     int totalPops = planet.Pops.Count;
-                    foreach (Pop pop in planet.Pops)
+                    
+                    foreach (string species in specieList)
                     {
-                        SpeciesEntry se = speciesEntries.FirstOrDefault(s=>s.Name == pop.Species.Replace("\"", ""));
+                        SpeciesEntry se = speciesEntries.FirstOrDefault(s=>s.Name == species.Replace("\"", ""));
                         if(se == null)
                         {
-                            se.Name = pop.Species.Replace("\"", "");
-                            se.Amount = (float)Math.Round(((planet.Pops.Count(y => y.Species == pop.Species) / (float)totalPops) * 1000) / 10) * populationPercentage;
+                            se = new SpeciesEntry();
+                            se.Name = species.Replace("\"", "");
+                            se.Amount = (float)((planet.Pops.Count(y => y.Species == species) / (float)totalPops) * (float)populationPercentage*100);
                             speciesEntries.Add(se);
                         }
                         else
                         {
-                            speciesEntries.Where(s => s.Name == pop.Species.Replace("\"","")).Single().Amount = ((planet.Pops.Count(y => y.Species == pop.Species) / (float)totalPops * 1000) / 10) *populationPercentage;
+                            var speciespop = (float)((planet.Pops.Count(y => y.Species == species) / (float)totalPops) * populationPercentage * 100);
+                            speciesEntries.Where(s => s.Name == species.Replace("\"","")).Single().Amount += speciespop;
                         }
                     }
                     
@@ -236,6 +247,9 @@ namespace WOPR.Controllers.Map
 
                 }
             }
+
+            replyRaw.GroupEntries = GroupEntries.ToArray();
+            replyRaw.Species = speciesEntries.ToArray();
 
             Dictionary<string, ulong> EconIndustries = _econ.GetGrossGdp(empire);
             List<IndustryEntry> industryEntries = new List<IndustryEntry>();

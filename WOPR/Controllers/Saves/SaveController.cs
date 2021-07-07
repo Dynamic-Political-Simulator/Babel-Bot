@@ -87,6 +87,7 @@ namespace WOPR.Controllers.Saves
 
             if (userId == null || discordUser == null)
             {
+                Console.WriteLine("user null");
                 return Unauthorized();
             }
 
