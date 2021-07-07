@@ -464,7 +464,7 @@ namespace BabelDatabase
                 .Property(b => b.PopsimGmData)
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>>(v));
+                    v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, Dictionary<Alignment, float>>>(v));
 
             modelBuilder.Entity<Empire>()
                 .Property(b => b.GeneralAssembly)

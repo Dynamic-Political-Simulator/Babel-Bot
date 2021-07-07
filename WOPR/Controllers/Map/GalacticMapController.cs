@@ -160,6 +160,7 @@ namespace WOPR.Controllers.Map
             public SpeciesEntry[] Species;
             public GroupEntry[] GroupEntries;
             public IndustryEntry[] IndustryEntries;
+            public IndustryEntry[] SpaceIndustryEntries;
         }
 
         [HttpGet("get-empire")]
@@ -180,7 +181,8 @@ namespace WOPR.Controllers.Map
 
             replyRaw.Name = empire.Name.Replace("\"", "");
             ulong population = 0;
-            List<GroupEntry> GroupEntries = new List<GroupEntry>(); 
+            List<GroupEntry> GroupEntries = new List<GroupEntry>();
+            List<SpeciesEntry> speciesEntries = new List<SpeciesEntry>();
             foreach(GalacticObject system in empire.GalacticObjects)
             {
                 foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
@@ -204,17 +206,111 @@ namespace WOPR.Controllers.Map
                             ge = new GroupEntry();
                             ge.Name = group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
                             ge.Size = group.Percentage * populationPercentage;
+                            GroupEntries.Add(ge);
+                        }
+                        else
+                        {
+                            GroupEntries.FirstOrDefault(g=> g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName).Size += group.Percentage * populationPercentage; 
                         }
                         
-                        
                     }
+                    List<string> specieList = planet.Pops.ConvertAll(x => x.Species).Distinct().ToList();
+                    int totalPops = planet.Pops.Count;
+                    foreach (Pop pop in planet.Pops)
+                    {
+                        SpeciesEntry se = speciesEntries.FirstOrDefault(s=>s.Name == pop.Species.Replace("\"", ""));
+                        if(se == null)
+                        {
+                            se.Name = pop.Species.Replace("\"", "");
+                            se.Amount = (float)Math.Round(((planet.Pops.Count(y => y.Species == pop.Species) / (float)totalPops) * 1000) / 10) * populationPercentage;
+                            speciesEntries.Add(se);
+                        }
+                        else
+                        {
+                            speciesEntries.Where(s => s.Name == pop.Species.Replace("\"","")).Single().Amount = ((planet.Pops.Count(y => y.Species == pop.Species) / (float)totalPops * 1000) / 10) *populationPercentage;
+                        }
+                    }
+                    
+                    
+
 
                 }
             }
 
-            replyRaw.Population = population;
+            Dictionary<string, ulong> EconIndustries = _econ.GetGrossGdp(empire);
+            List<IndustryEntry> industryEntries = new List<IndustryEntry>();
+            foreach(KeyValuePair<string,ulong> industry in EconIndustries)
+            {
+                IndustryEntry ie = new IndustryEntry();
+                ie.Name = industry.Key;
+                ie.GDP = industry.Value;
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 0;
+                industryEntries.Add(ie);
+            }
+            replyRaw.IndustryEntries = industryEntries.ToArray();
 
-            
+            replyRaw.SpaceIndustryEntries = new IndustryEntry[empire.NationalOutput.Count];
+            for (int x = 0; x < empire.NationalOutput.Count; x++)
+            {
+                IndustryEntry ie = new IndustryEntry();
+                ie.Name = empire.NationalOutput.Keys.ToList()[x];
+                ie.GDP = empire.NationalOutput[ie.Name];
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 0;
+                replyRaw.SpaceIndustryEntries[x] = ie;
+            }
+
+            return Ok(replyRaw);
+        }
+
+        [HttpPost("edit-empire")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult EditEmpire([FromBody] EmpireReturn data)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || discordUser.IsAdmin == false)
+            {
+                return Unauthorized();
+            }
+
+            Empire p = _context.Empires.Where(x => x.Name == "\"" + data.Name + "\"" ).SingleOrDefault();
+            if (p == null)
+            {
+                return BadRequest();
+            }
+
+            for (int x = 0; x < data.GroupEntries.Count(); x++)
+            {
+                PopsimGlobalEthicGroup group = _context.PopsimGlobalEthicGroups.FirstOrDefault(g => g.PopsimGlobalEthicGroupName == data.GroupEntries[x].Name);
+                if (p.PopsimGmData.ContainsKey(group))
+                {
+                    p.PopsimGmData[group] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
+                }
+                else
+                {
+                    p.PopsimGmData.Add(group, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                }  
+            }
+
+            for (int x = 0; x < data.IndustryEntries.Count(); x++)
+            {
+                if (p.EconGmData == null) p.EconGmData = new Dictionary<string, float>();
+                if (p.EconGmData.Keys.Contains(data.IndustryEntries[x].Name))
+                {
+                    p.EconGmData[data.IndustryEntries[x].Name] = (float)data.IndustryEntries[x].Modifier;
+                }
+                else
+                {
+                    p.EconGmData.Add(data.IndustryEntries[x].Name, (float)data.IndustryEntries[x].Modifier);
+                }
+            }
+
+            _context.Empires.Update(p);
+            _context.SaveChanges();
+
+            return Ok();
         }
 
         [HttpGet("get-planet")]
@@ -320,8 +416,7 @@ namespace WOPR.Controllers.Map
                 {
                     p.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
                     p.PlanetGroups[x].Percentage = data.GroupEntries[x].Size;
-                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
-                    p.Controller.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
+                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);    
                 }
                 else
                 {
@@ -333,8 +428,7 @@ namespace WOPR.Controllers.Map
                         global.PlanetaryEthicGroups.Add(g);
                         _context.PopsimGlobalEthicGroups.Update(global);
                         p.PlanetGroups.Add(g);
-                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
-                        p.Controller.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
+                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));     
                     }
                     else
                     {
@@ -355,7 +449,6 @@ namespace WOPR.Controllers.Map
                         _context.PopsimGlobalEthicGroups.Add(global);
                         p.PlanetGroups.Add(g);
                         p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
-                        p.Controller.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                     }
                 }
             }

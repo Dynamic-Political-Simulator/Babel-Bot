@@ -94,6 +94,12 @@ namespace WOPR.Services
             return DistrictAmount;
         }
 
+        public Dictionary<string,ulong> GetGrossGdp (BabelDatabase.Empire empire)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            return empire1.GetGrossGDP();
+        }
+
         public async Task CalculatePlanetEcon(BabelDatabase.Planet planet)
         {
             DPSSimulation.Classes.Planet planet1 = CreatePlanet(planet);
@@ -153,16 +159,17 @@ namespace WOPR.Services
 
             Dictionary<Group, Dictionary<Faction, float>> PopsimGmData = new Dictionary<Group, Dictionary<Faction, float>>();
 
-            foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.Owner.PopsimGmData)
+            foreach (KeyValuePair<PopsimGlobalEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.Owner.PopsimGmData)
             {
                 Dictionary<Faction, float> factionStuff = new Dictionary<Faction, float>();
                 foreach (KeyValuePair<Alignment, float> faction in popsimGmData.Value)
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
-                PopsimPlanetEthicGroup g = planet.PlanetGroups.First(x => x.PopsimPlanetEthicGroupId == popsimGmData.Key.PopsimPlanetEthicGroupId);
-                PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
+                PopsimGlobalEthicGroup g = _context.PopsimGlobalEthicGroups.FirstOrDefault(g => g.PopsimGlobalEthicGroupId == popsimGmData.Key.PopsimGlobalEthicGroupId);
+                PopsimGmData.Add(CreateGroup(g), factionStuff);
             }
+            
 
             planet1.CalculatePopularity(PopsimGmData);
             Dictionary<Faction, float> Factions = planet1.PlanetFactions;
@@ -364,14 +371,14 @@ namespace WOPR.Services
                 NewEmpire.GalacticObjects.Add(CreateSystem(system));
             }
 
-            foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in empire.PopsimGmData)
+            foreach (KeyValuePair<PopsimGlobalEthicGroup, Dictionary<Alignment, float>> popsimGmData in empire.PopsimGmData)
             {
                 Dictionary<Faction, float> factionStuff = new Dictionary<Faction, float>();
                 foreach (KeyValuePair<Alignment, float> faction in popsimGmData.Value)
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
-                NewEmpire.PopsimGmData.Add(CreateGroup(popsimGmData.Key.PopsimGlobalEthicGroup), factionStuff);
+                NewEmpire.PopsimGmData.Add(CreateGroup(popsimGmData.Key), factionStuff);
             }
 
             return NewEmpire;

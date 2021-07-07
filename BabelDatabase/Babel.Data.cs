@@ -445,7 +445,7 @@ namespace BabelDatabase
         public Dictionary<string, ulong> NationalOutput { get; set; } = new Dictionary<string, ulong>();
         public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
         public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
-        public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
+        public Dictionary<PopsimGlobalEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimGlobalEthicGroup, Dictionary<Alignment, float>>();
     }
 
     //celestial objects-----------------------------------
