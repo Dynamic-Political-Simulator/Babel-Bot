@@ -153,6 +153,70 @@ namespace WOPR.Controllers.Map
             public PopularityEntry[] PopularityEntries;
         }
 
+        public class EmpireReturn
+        {
+            public string Name;
+            public ulong Population;
+            public SpeciesEntry[] Species;
+            public GroupEntry[] GroupEntries;
+            public IndustryEntry[] IndustryEntries;
+        }
+
+        [HttpGet("get-empire")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult GetEmpire(string name)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            Empire empire = _context.Empires.Where(e => e.Name == "\"" + name + "\"").SingleOrDefault();
+            if (empire == null)
+            {
+                return NotFound();
+            }
+
+            EmpireReturn replyRaw = new EmpireReturn();
+
+            replyRaw.Name = empire.Name.Replace("\"", "");
+            ulong population = 0;
+            List<GroupEntry> GroupEntries = new List<GroupEntry>(); 
+            foreach(GalacticObject system in empire.GalacticObjects)
+            {
+                foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
+                {
+                    population += planet.Population;
+                    
+                }
+            }
+
+            foreach (GalacticObject system in empire.GalacticObjects)
+            {
+                foreach (Planet planet in system.Planets.Where(p => p.Population != 0 && p.PlanetGroups.Count != 0))
+                {
+                    float populationPercentage = (float)(planet.Population / population);
+                    foreach(PopsimPlanetEthicGroup group in planet.PlanetGroups)
+                    {
+
+                        GroupEntry ge = GroupEntries.FirstOrDefault(g => g.Name == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName);
+                        if(ge == null)
+                        {
+                            ge = new GroupEntry();
+                            ge.Name = group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
+                            ge.Size = group.Percentage * populationPercentage;
+                        }
+                        
+                        
+                    }
+
+                }
+            }
+
+            replyRaw.Population = population;
+
+            
+        }
+
         [HttpGet("get-planet")]
         [Authorize(AuthenticationSchemes = "Discord")]
         public IActionResult GetPlanet(string name)
