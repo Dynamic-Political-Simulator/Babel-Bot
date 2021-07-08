@@ -149,6 +149,31 @@ namespace BabelDatabase.Migrations
                     b.ToTable("Armies");
                 });
 
+            modelBuilder.Entity("BabelDatabase.AutoAdvance", b =>
+                {
+                    b.Property<string>("AutoAdvanceId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AmountOfYears")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ChannelId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DayExceptions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastDayTriggered")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AutoAdvanceId");
+
+                    b.ToTable("AutoAdvance");
+                });
+
             modelBuilder.Entity("BabelDatabase.Building", b =>
                 {
                     b.Property<int>("BuildingId")

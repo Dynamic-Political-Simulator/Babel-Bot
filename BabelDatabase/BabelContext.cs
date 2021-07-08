@@ -56,6 +56,8 @@ namespace BabelDatabase
 		public DbSet<InfrastructureData> InfrastructureData { get; set; }
 		public DbSet<Data> Data { get; set; }
 
+		public DbSet<AutoAdvance> AutoAdvance { get; set; }
+
 
 		//public DbSet<PopsimReport> PopsimReports { get; set; }
 

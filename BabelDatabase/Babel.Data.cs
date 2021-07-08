@@ -561,4 +561,16 @@ namespace BabelDatabase
 		public List<Strata> Stratas { get; set; } = new List<Strata>();
 		public int BaseGdpPerPop { get; set; }
     }
+
+    public class AutoAdvance
+	{
+        [Key]
+        public string AutoAdvanceId { get; set; } = "1";
+        public bool Enabled { get; set; } = false;
+        public string DayExceptions { get; set; } = "0000000";
+        public int AmountOfYears { get; set; }
+        public DateTime LastDayTriggered { get; set; }
+
+        public string ChannelId { get; set; }
+    }
 }
