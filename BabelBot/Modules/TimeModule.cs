@@ -46,7 +46,7 @@ namespace BabelBot.Modules
 
 		private async void TriggerAutoAdvance(Object source, ElapsedEventArgs e)
 		{
-			var timeToTrigger = DateTime.UtcNow.Date.AddHours(12);
+			var timeToTrigger = DateTime.UtcNow.Date.AddHours(22);
 
 			var timeNow = DateTime.UtcNow;
 
