@@ -157,10 +157,13 @@ namespace WOPR.Controllers.Map
         {
             public string Name;
             public ulong Population;
+            public ulong TotalGdp;
             public SpeciesEntry[] Species;
             public GroupEntry[] GroupEntries;
             public IndustryEntry[] IndustryEntries;
             public IndustryEntry[] SpaceIndustryEntries;
+            public PopularityEntry[] PopularityEntries;
+            public PopularityEntry[] ParlamentEntries;
         }
 
         [HttpGet("get-empire")]
@@ -272,6 +275,37 @@ namespace WOPR.Controllers.Map
                 if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 0;
                 replyRaw.SpaceIndustryEntries[x] = ie;
             }
+
+            replyRaw.TotalGdp = (ulong)EconIndustries.Sum(e => (decimal)e.Value);
+
+            Dictionary<Alignment, float> popularities = _econ.CalculateNationalPopularity(empire);
+            List<PopularityEntry> popularityEntries = new List<PopularityEntry>();
+
+            foreach (Alignment k in popularities.Keys)
+            {
+                PopularityEntry pe = new PopularityEntry()
+                {
+                    Name = k.AlignmentName,
+                    Popularity = popularities[k]
+                };
+                popularityEntries.Add(pe);
+            }
+
+            replyRaw.PopularityEntries = popularityEntries.ToArray();
+
+            await _econ.CalculateNationalAssembly(empire);
+            List<PopularityEntry> parlamentEntries = new List<PopularityEntry>();
+
+            foreach (Alignment k in empire.GeneralAssembly.Keys)
+            {
+                PopularityEntry pe = new PopularityEntry()
+                {
+                    Name = k.AlignmentName,
+                    Popularity = empire.GeneralAssembly[k]
+                };
+                parlamentEntries.Add(pe);
+            }
+            replyRaw.ParlamentEntries = parlamentEntries.ToArray();
 
             return Ok(replyRaw);
         }

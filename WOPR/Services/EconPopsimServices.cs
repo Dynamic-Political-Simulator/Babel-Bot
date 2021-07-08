@@ -115,7 +115,7 @@ namespace WOPR.Services
 
         //popsim
 
-        public async void CalculateNationalAssembly(BabelDatabase.Empire empire)
+        public async Task CalculateNationalAssembly(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
             empire1.SetParliament();
@@ -138,7 +138,7 @@ namespace WOPR.Services
         public Dictionary<Alignment, float> CalculateNationalPopularity(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
-
+            var test = empire1.CalculateGlobalPopularity();
             Dictionary<Faction, float> Factions = empire1.CalculateGlobalPopularity();
             Dictionary<Alignment, float> Alignements = new Dictionary<Alignment, float>();
             foreach (KeyValuePair<Faction, float> faction in Factions)
@@ -483,7 +483,7 @@ namespace WOPR.Services
 
             foreach (BabelDatabase.PopsimPlanetEthicGroup popsimPlanetEthicGroup in planet.PlanetGroups)
             {
-                LibraryPlanet.PlanetGroups.Add(CreateGroup(popsimPlanetEthicGroup.PopsimGlobalEthicGroup), popsimPlanetEthicGroup.Percentage);
+                LibraryPlanet.PlanetGroups.Add(CreateGroup(popsimPlanetEthicGroup.PopsimGlobalEthicGroup), popsimPlanetEthicGroup.Percentage/100);
             }
 
             foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.PopsimGmData)
