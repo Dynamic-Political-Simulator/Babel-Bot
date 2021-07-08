@@ -368,6 +368,47 @@ namespace BabelDatabase
         public int SecularismSpiritualism { get; set; }
         public int ProgressivismTraditionalism { get; set; }
         public int MonoculturalismMulticulturalism { get; set; }
+
+        public override string ToString()
+        {
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+                ContractResolver = new EFResolver(),
+                PreserveReferencesHandling = PreserveReferencesHandling.None,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+            return JsonConvert.SerializeObject(this, settings);
+        }
+
+        public static explicit operator PopsimGlobalEthicGroup(string m)
+        {
+            return JsonConvert.DeserializeObject<PopsimGlobalEthicGroup>(m);
+        }
+
+        public static bool operator ==(PopsimGlobalEthicGroup a, PopsimGlobalEthicGroup b)
+        {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            return a.PopsimGlobalEthicGroupId == b.PopsimGlobalEthicGroupId;
+        }
+
+        public static bool operator !=(PopsimGlobalEthicGroup a, PopsimGlobalEthicGroup b)
+        {
+            if (a is null && b is null) return false;
+            if (a is null || b is null) return true;
+            return a.PopsimGlobalEthicGroupId != b.PopsimGlobalEthicGroupId;
+        }
+
+        public override bool Equals(Object x)
+        {
+            if (x is null) return false;
+            return this.PopsimGlobalEthicGroupId == ((PopsimGlobalEthicGroup)x).PopsimGlobalEthicGroupId;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.PopsimGlobalEthicGroupId.GetHashCode();
+        }
     }
 
     // Planets ------------------------------------------
