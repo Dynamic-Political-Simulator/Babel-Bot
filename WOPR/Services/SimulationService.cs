@@ -71,8 +71,7 @@ namespace WOPR.Services
             var directory = new DirectoryInfo(SaveFolderPath);
 
             var saveFile = directory.GetFiles()
-             .OrderByDescending(f => f.LastWriteTime)
-             .First();
+             .First(f => f.Name == "gamestate");
 
             Map map = new Map(saveFile.FullName);
 

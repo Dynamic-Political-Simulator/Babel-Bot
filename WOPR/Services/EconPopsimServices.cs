@@ -94,7 +94,7 @@ namespace WOPR.Services
             return DistrictAmount;
         }
 
-        public Dictionary<string,ulong> GetGrossGdp (BabelDatabase.Empire empire)
+        public Dictionary<string, ulong> GetGrossGdp(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
             return empire1.GetGrossGDP();
@@ -169,7 +169,7 @@ namespace WOPR.Services
                 PopsimGlobalEthicGroup g = _context.PopsimGlobalEthicGroups.FirstOrDefault(g => g.PopsimGlobalEthicGroupId == popsimGmData.Key.PopsimGlobalEthicGroupId);
                 PopsimGmData.Add(CreateGroup(g), factionStuff);
             }
-            
+
 
             planet1.CalculatePopularity(PopsimGmData);
             Dictionary<Faction, float> Factions = planet1.PlanetFactions;
@@ -424,7 +424,7 @@ namespace WOPR.Services
             {
                 FleetId = fleet.FleetId,
                 Name = fleet.Name,
-                Owner = (int)fleet.OwnerID,
+                Owner = fleet.OwnerID != null ? (int)fleet.OwnerID : -1,
                 MilitaryPower = fleet.MilitaryPower,
                 System = fleet.SystemId
             };
@@ -483,7 +483,7 @@ namespace WOPR.Services
 
             foreach (BabelDatabase.PopsimPlanetEthicGroup popsimPlanetEthicGroup in planet.PlanetGroups)
             {
-                LibraryPlanet.PlanetGroups.Add(CreateGroup(popsimPlanetEthicGroup.PopsimGlobalEthicGroup), popsimPlanetEthicGroup.Percentage/100);
+                LibraryPlanet.PlanetGroups.Add(CreateGroup(popsimPlanetEthicGroup.PopsimGlobalEthicGroup), popsimPlanetEthicGroup.Percentage / 100);
             }
 
             foreach (KeyValuePair<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> popsimGmData in planet.PopsimGmData)

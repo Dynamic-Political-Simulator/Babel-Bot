@@ -181,18 +181,18 @@ namespace WOPR.Controllers.Map
             }
 
             EmpireReturn replyRaw = new EmpireReturn();
-            await _econ.CalculateEmpireEcon(empire);
+            // await _econ.CalculateEmpireEcon(empire);
             replyRaw.Name = empire.Name.Replace("\"", "");
             ulong population = 0;
             List<GroupEntry> GroupEntries = new List<GroupEntry>();
             List<SpeciesEntry> speciesEntries = new List<SpeciesEntry>();
-            
+
             foreach (GalacticObject system in empire.GalacticObjects)
             {
                 foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
                 {
                     population += planet.Population;
-                    
+
                 }
             }
             replyRaw.Population = population;
@@ -203,7 +203,7 @@ namespace WOPR.Controllers.Map
                 {
                     double populationPercentage = (double)((decimal)planet.Population / (decimal)population);
 
-                    if(planet.PlanetGroups.Count != 0)
+                    if (planet.PlanetGroups.Count != 0)
                     {
                         foreach (PopsimPlanetEthicGroup group in planet.PlanetGroups)
                         {
@@ -223,29 +223,29 @@ namespace WOPR.Controllers.Map
 
                         }
                     }
-                    
-                    
+
+
                     List<string> specieList = planet.Pops.ConvertAll(x => x.Species).Distinct().ToList();
                     int totalPops = planet.Pops.Count;
-                    
+
                     foreach (string species in specieList)
                     {
-                        SpeciesEntry se = speciesEntries.FirstOrDefault(s=>s.Name == species.Replace("\"", ""));
-                        if(se == null)
+                        SpeciesEntry se = speciesEntries.FirstOrDefault(s => s.Name == species.Replace("\"", ""));
+                        if (se == null)
                         {
                             se = new SpeciesEntry();
                             se.Name = species.Replace("\"", "");
-                            se.Amount = (float)((planet.Pops.Count(y => y.Species == species) / (float)totalPops) * (float)populationPercentage*100);
+                            se.Amount = (float)((planet.Pops.Count(y => y.Species == species) / (float)totalPops) * (float)populationPercentage * 100);
                             speciesEntries.Add(se);
                         }
                         else
                         {
                             var speciespop = (float)((planet.Pops.Count(y => y.Species == species) / (float)totalPops) * populationPercentage * 100);
-                            speciesEntries.Where(s => s.Name == species.Replace("\"","")).Single().Amount += speciespop;
+                            speciesEntries.Where(s => s.Name == species.Replace("\"", "")).Single().Amount += speciespop;
                         }
                     }
-                    
-                    
+
+
 
 
                 }
@@ -256,12 +256,12 @@ namespace WOPR.Controllers.Map
 
             Dictionary<string, ulong> EconIndustries = _econ.GetGrossGdp(empire);
             List<IndustryEntry> industryEntries = new List<IndustryEntry>();
-            foreach(KeyValuePair<string,ulong> industry in EconIndustries)
+            foreach (KeyValuePair<string, ulong> industry in EconIndustries)
             {
                 IndustryEntry ie = new IndustryEntry();
                 ie.Name = industry.Key;
                 ie.GDP = industry.Value;
-                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 0;
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 1;
                 industryEntries.Add(ie);
             }
             replyRaw.IndustryEntries = industryEntries.ToArray();
@@ -272,7 +272,7 @@ namespace WOPR.Controllers.Map
                 IndustryEntry ie = new IndustryEntry();
                 ie.Name = empire.NationalOutput.Keys.ToList()[x];
                 ie.GDP = empire.NationalOutput[ie.Name];
-                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 0;
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = empire.EconGmData.Keys.Contains(ie.Name) ? empire.EconGmData[ie.Name] : 1;
                 replyRaw.SpaceIndustryEntries[x] = ie;
             }
 
@@ -323,7 +323,7 @@ namespace WOPR.Controllers.Map
                 return Unauthorized();
             }
 
-            Empire p = _context.Empires.Where(x => x.Name == "\"" + data.Name + "\"" ).SingleOrDefault();
+            Empire p = _context.Empires.Where(x => x.Name == "\"" + data.Name + "\"").SingleOrDefault();
             if (p == null)
             {
                 return BadRequest();
@@ -339,7 +339,7 @@ namespace WOPR.Controllers.Map
                 else
                 {
                     p.PopsimGmData.Add(group, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
-                }  
+                }
             }
 
             for (int x = 0; x < data.IndustryEntries.Count(); x++)
@@ -397,7 +397,7 @@ namespace WOPR.Controllers.Map
                 IndustryEntry ie = new IndustryEntry();
                 ie.Name = planet.Output.Keys.ToList()[x];
                 ie.GDP = planet.Output[ie.Name];
-                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = planet.EconGmData.Keys.Contains(ie.Name) ? planet.EconGmData[ie.Name] : 0;
+                if (discordUser != null && discordUser.IsAdmin) ie.Modifier = planet.EconGmData.Keys.Contains(ie.Name) ? planet.EconGmData[ie.Name] : 1;
                 replyRaw.IndustryEntries[x] = ie;
             }
 
@@ -462,9 +462,18 @@ namespace WOPR.Controllers.Map
             {
                 if (x < p.PlanetGroups.Count)
                 {
+                    PopsimGlobalEthicGroup global = _context.PopsimGlobalEthicGroups.First(pg => pg.PopsimGlobalEthicGroupName == data.GroupEntries[x].Name);
+                    if (!p.Owner.PopsimGmData.Keys.Contains(global))
+                    {
+                        p.Owner.PopsimGmData.Add(global, _context.Alignments.ToList().ToDictionary(x => x, x => 1f));
+                    }
+                    else if (p.Owner.PopsimGmData[global].Count() < _context.Alignments.Count())
+                    {
+                        p.Owner.PopsimGmData[global] = _context.Alignments.ToList().ToDictionary(x => x, x => p.Owner.PopsimGmData[global].Keys.Contains(x) ? p.Owner.PopsimGmData[global][x] : 1f);
+                    }
                     p.PlanetGroups[x].PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName = data.GroupEntries[x].Name;
                     p.PlanetGroups[x].Percentage = data.GroupEntries[x].Size;
-                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);    
+                    p.PopsimGmData[p.PlanetGroups[x]] = data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value);
                 }
                 else
                 {
@@ -475,8 +484,17 @@ namespace WOPR.Controllers.Map
                         g.Percentage = data.GroupEntries[x].Size;
                         global.PlanetaryEthicGroups.Add(g);
                         _context.PopsimGlobalEthicGroups.Update(global);
+                        if (!p.Owner.PopsimGmData.Keys.Contains(global))
+                        {
+                            Console.WriteLine("???");
+                            p.Owner.PopsimGmData.Add(global, _context.Alignments.ToList().ToDictionary(x => x, x => 1f));
+                        }
+                        else if (p.Owner.PopsimGmData[global].Count() < _context.Alignments.Count())
+                        {
+                            p.Owner.PopsimGmData[global] = _context.Alignments.ToList().ToDictionary(x => x, x => p.Owner.PopsimGmData[global].Keys.Contains(x) ? p.Owner.PopsimGmData[global][x] : 1f);
+                        }
                         p.PlanetGroups.Add(g);
-                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));     
+                        p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                     }
                     else
                     {
@@ -490,11 +508,15 @@ namespace WOPR.Controllers.Map
                         global.GlobalismIsolationism = 5;
                         global.MilitarismPacifism = 5;
                         global.MonoculturalismMulticulturalism = 5;
+                        global.SecurityFreedom = 5;
+                        global.SecularismSpiritualism = 5;
+                        global.ProgressivismTraditionalism = 5;
                         PopsimPlanetEthicGroup g = new PopsimPlanetEthicGroup();
                         g.Percentage = data.GroupEntries[x].Size;
                         global.PlanetaryEthicGroups = new List<PopsimPlanetEthicGroup>();
                         global.PlanetaryEthicGroups.Add(g);
                         _context.PopsimGlobalEthicGroups.Add(global);
+                        p.Owner.PopsimGmData.Add(global, _context.Alignments.ToList().ToDictionary(x => x, x => 1f));
                         p.PlanetGroups.Add(g);
                         p.PopsimGmData.Add(g, data.GroupEntries[x].Modifier.ToDictionary(k => _context.Alignments.FirstOrDefault(x => x.AlignmentName == k.Key), v => v.Value));
                     }
@@ -528,7 +550,7 @@ namespace WOPR.Controllers.Map
             }
 
             _context.Planets.Update(p);
-            _context.Empires.Update(p.Controller);
+            _context.Empires.Update(p.Owner);
             _context.SaveChanges();
 
             return Ok();
