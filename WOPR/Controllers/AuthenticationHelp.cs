@@ -21,7 +21,7 @@ namespace WOPR.Controllers
         [Authorize(AuthenticationSchemes = "Discord")]
         public IActionResult AuthHelp()
         {
-            return Redirect("http://localhost:3000");
+            return Redirect("https://discordplaysstellaris.com");
         }
     }
 }
