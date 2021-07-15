@@ -277,7 +277,10 @@ namespace WOPR.Controllers.Saves
                 return Unauthorized();
             }
 
-            await _econ.CalculateEmpireEcon(_context.Empires.FirstOrDefault(x => x.EmpireId == 1));
+            foreach (Empire x in await _context.Empires.ToListAsync())
+            {
+                await _econ.CalculateEmpireEcon(x);
+            }
             Console.WriteLine("Done!");
 
             return Ok();

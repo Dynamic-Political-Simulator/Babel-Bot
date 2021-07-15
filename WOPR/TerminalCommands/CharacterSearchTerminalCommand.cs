@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 
 namespace WOPR.TerminalCommands
 {
-	public class CharacterSearchTerminalCommand : ITerminalCommand
-	{
-		public async Task<string> DoCommandAsync(string command)
-		{
-			return "redirect-character-search";
-		}
+    public class CharacterSearchTerminalCommand : ITerminalCommand
+    {
+        public async Task<string> DoCommandAsync(string command)
+        {
+            return "redirect-character-search";
+        }
 
-		public string GetCommand()
-		{
-			return "characters";
-		}
-	}
+        public string GetCommand()
+        {
+            return "character-search";
+        }
+    }
 }

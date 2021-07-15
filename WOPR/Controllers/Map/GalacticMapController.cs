@@ -197,6 +197,11 @@ namespace WOPR.Controllers.Map
             }
             replyRaw.Population = population;
 
+            if (population == 0)
+            {
+                return NotFound(); // This empire has no data so it "doesn't exist".
+            }
+
             foreach (GalacticObject system in empire.GalacticObjects)
             {
                 foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
