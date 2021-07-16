@@ -219,6 +219,7 @@ namespace WOPR.Controllers.Map
                                 ge = new GroupEntry();
                                 ge.Name = group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupName;
                                 ge.Size = (float)(group.Percentage * populationPercentage);
+                                if (discordUser != null && discordUser.IsAdmin) ge.Modifier = empire.PopsimGmData.ContainsKey(group.PopsimGlobalEthicGroup) ? empire.PopsimGmData[group.PopsimGlobalEthicGroup].ToDictionary(k => ((Alignment)k.Key).AlignmentName, v => v.Value) : null;
                                 GroupEntries.Add(ge);
                             }
                             else
@@ -298,7 +299,7 @@ namespace WOPR.Controllers.Map
 
             replyRaw.PopularityEntries = popularityEntries.ToArray();
 
-            await _econ.CalculateNationalAssembly(empire);
+            // await _econ.CalculateNationalAssembly(empire);
             List<PopularityEntry> parlamentEntries = new List<PopularityEntry>();
 
             foreach (Alignment k in empire.GeneralAssembly.Keys)

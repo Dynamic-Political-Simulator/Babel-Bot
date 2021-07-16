@@ -26,7 +26,8 @@ namespace BabelBot
         // Types with multiple options
         private readonly VoteType[] multipleOptions = new VoteType[] {
             VoteType.FPTP,
-            VoteType.TWOROUND
+            VoteType.TWOROUND,
+            VoteType.TWOROUNDFINAL
         };
 
         bool isMultipleOption(VoteType type)
@@ -203,7 +204,7 @@ namespace BabelBot
                                         winner = a;
                                         break;
                                     }
-                                    votes.Remove(a);
+                                    votes.RemoveAt(a);
                                     int b = votes.IndexOf(votes.Max());
                                     if (b >= a) b++; // Jank, but makes sense.
                                     // start run-off with a and b
@@ -226,17 +227,16 @@ namespace BabelBot
                                         .AddField("Ends:", timeStr)
                                         .AddField("Type: ", "Two Round Runoff")
                                         .WithColor(Color.LightGrey);
-                                    for (int x = 2; x < og.Fields.Length; x++)
-                                    {
-                                        embo.AddField("Option #" + x + ":", og.Fields[x].Value, true);
-                                    }
+                                    embo.AddField("Option #1", og.Fields[a + 2].Value);
+                                    embo.AddField("Option #2", og.Fields[b + 2].Value);
                                     RestUserMessage mid = (RestUserMessage)await ((ITextChannel)_discordSocketClient.GetChannel(vms.ChannelId)).SendMessageAsync("", false, embo.Build());
                                     embo.WithFooter("Message ID: " + mid.Id);
                                     await mid.ModifyAsync((x) =>
                                     {
                                         x.Embed = embo.Build();
                                     });
-                                    await mid.AddReactionsAsync(numberEmotes.AsSpan(1, og.Fields.Length - 2).ToArray());
+                                    Embed neu = mid.Embeds.First();
+                                    await mid.AddReactionsAsync(numberEmotes.AsSpan(1, neu.Fields.Length - 2).ToArray());
                                     VoteMessage message = new VoteMessage();
                                     message.MessageId = mid.Id;
                                     message.CreatorId = vms.CreatorId;
@@ -403,10 +403,10 @@ namespace BabelBot
                     }
                 }
             }
-			catch (Exception e)
-			{
+            catch (Exception e)
+            {
                 Console.Write("UpdateHandler Exception: " + e.StackTrace);
-			}
+            }
 
             await _context.SaveChangesAsync();
             return;

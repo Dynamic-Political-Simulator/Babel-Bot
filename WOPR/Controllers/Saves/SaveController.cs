@@ -117,6 +117,11 @@ namespace WOPR.Controllers.Saves
                 return Unauthorized();
             }
 
+            if (!System.IO.Directory.Exists("./saves"))
+            {
+                return Ok(new List<SaveEntry>());
+            }
+
             string[] dirs = System.IO.Directory.GetDirectories("./saves/");
             List<SaveEntry> entires = new List<SaveEntry>();
 
@@ -236,7 +241,7 @@ namespace WOPR.Controllers.Saves
             }
         }
 
-        [HttpPost("parse-data")]
+        [HttpGet("parse-data")]
         [Authorize(AuthenticationSchemes = "Discord")]
         public async Task<IActionResult> ParseDataFiles()
         {
@@ -280,6 +285,33 @@ namespace WOPR.Controllers.Saves
             foreach (Empire x in await _context.Empires.ToListAsync())
             {
                 await _econ.CalculateEmpireEcon(x);
+            }
+            Console.WriteLine("Done!");
+
+            return Ok();
+        }
+
+        [HttpGet("calculate-assembly")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> AssemblyCalculation()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (userId == null || discordUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            foreach (Empire x in await _context.Empires.ToListAsync())
+            {
+                await _econ.CalculateNationalAssembly(x);
             }
             Console.WriteLine("Done!");
 

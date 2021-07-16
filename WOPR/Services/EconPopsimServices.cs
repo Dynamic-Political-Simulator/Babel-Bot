@@ -118,6 +118,33 @@ namespace WOPR.Services
         public async Task CalculateNationalAssembly(BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+
+
+            int x = -1;
+            int y = -1;
+            int x1 = -1;
+            int y1 = -1;
+            foreach (DPSSimulation.Classes.GalacticObject system in empire1.GalacticObjects)
+            {
+                foreach (DPSSimulation.Classes.Planet planet in system.Planets)
+                {
+                    if (planet.Name == "\"Earth\"")
+                    {
+                        y = system.Planets.IndexOf(planet);
+                        x = empire1.GalacticObjects.IndexOf(system);
+                    }
+
+                    if (planet.Name == "\"Sawa\"")
+                    {
+                        y1 = system.Planets.IndexOf(planet);
+                        x1 = empire1.GalacticObjects.IndexOf(system);
+                    }
+                }
+            }
+
+            if (x > -1 && y > -1) empire1.GalacticObjects[x].Planets.RemoveAt(y);
+            if (x1 > -1 && y1 > -1) empire1.GalacticObjects[x1].Planets.RemoveAt(y1);
+
             empire1.SetParliament();
 
             Dictionary<Alignment, int> GeneralAssembly = new Dictionary<Alignment, int>();

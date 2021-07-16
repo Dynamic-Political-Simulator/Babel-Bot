@@ -201,6 +201,7 @@ namespace WOPR.Services
             //set planet here
             foreach (DPSSimulation.Classes.Planet planet in system.Planets)
             {
+                if (planet == null) continue;
                 GalacticObject.Planets.Add(GetPlanet(planet, empire, GalacticObject));
             }
 
