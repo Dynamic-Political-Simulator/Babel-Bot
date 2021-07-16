@@ -309,10 +309,8 @@ namespace WOPR.Controllers.Saves
                 return Unauthorized();
             }
 
-            foreach (Empire x in await _context.Empires.ToListAsync())
-            {
-                await _econ.CalculateNationalAssembly(x);
-            }
+            Empire x = _context.Empires.SingleOrDefault(x => x.EmpireId == 1);
+            await _econ.CalculateNationalAssembly(x);
             Console.WriteLine("Done!");
 
             return Ok();

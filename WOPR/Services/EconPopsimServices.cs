@@ -159,6 +159,7 @@ namespace WOPR.Services
 
             empire.GeneralAssembly = GeneralAssembly;
 
+            _context.Empires.Update(empire);
             await _context.SaveChangesAsync();
         }
 
@@ -191,7 +192,8 @@ namespace WOPR.Services
                 Dictionary<Faction, float> factionStuff = new Dictionary<Faction, float>();
                 foreach (KeyValuePair<Alignment, float> faction in popsimGmData.Value)
                 {
-                    factionStuff.Add(CreateFaction(faction.Key), faction.Value);
+                    Alignment a = _context.Alignments.FirstOrDefault(x => x.AlignmentId == faction.Key.AlignmentId);
+                    factionStuff.Add(CreateFaction(a), faction.Value);
                 }
                 PopsimGlobalEthicGroup g = _context.PopsimGlobalEthicGroups.FirstOrDefault(g => g.PopsimGlobalEthicGroupId == popsimGmData.Key.PopsimGlobalEthicGroupId);
                 PopsimGmData.Add(CreateGroup(g), factionStuff);
