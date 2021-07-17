@@ -526,6 +526,16 @@ namespace WOPR.Services
                 LibraryPlanet.PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
             }
 
+            Dictionary<Faction, float> factionStuffer = new Dictionary<Faction, float>();
+            if (planet.GlobalAlignment != null)
+            {
+                foreach (KeyValuePair<Alignment, float> faction in planet.GlobalAlignment)
+                {
+                    factionStuffer.Add(CreateFaction(faction.Key), faction.Value);
+                }
+            }
+            LibraryPlanet.GlobalAlignment = factionStuffer;
+
             foreach (Alignment a in _context.Alignments)
             {
                 LibraryPlanet.PlanetFactions.Add(CreateFaction(a), 0);
@@ -590,6 +600,7 @@ namespace WOPR.Services
             Faction NewFaction = new Faction()
             {
                 FactionId = faction.AlignmentId,
+                Name = faction.AlignmentName,
                 Establishment = faction.Establishment
             };
 

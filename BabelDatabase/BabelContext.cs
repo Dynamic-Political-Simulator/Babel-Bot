@@ -135,27 +135,27 @@ namespace BabelDatabase
         public DbSet<StaffActionPost> StaffActionPosts { get; set; }
         public DbSet<GameState> GameState { get; set; }
         public DbSet<CharacterDeathTimer> CharacterDeathTimers { get; set; }
-		public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
+        public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
 
-		public DbSet<Empire> Empires { get; set; }
-		public DbSet<GalacticObject> GalacticObjects { get; set; }
-		public DbSet<Planet> Planets { get; set; }
-		public DbSet<District> Districts { get; set; }
-		public DbSet<Building> Buildings { get; set; }
-		public DbSet<Pop> Pops { get; set; }
-		public DbSet<Starbase> Starbases { get; set; }
-		public DbSet<Fleet> Fleets { get; set; }
-		public DbSet<Ship> Ships { get; set; }
-		public DbSet<Army> Armies { get; set; }
-		public DbSet<Party> Parties { get; set; }
-		public DbSet<Military> Militaries { get; set; }
-		public DbSet<InfrastructureData> InfrastructureData { get; set; }
-		public DbSet<Data> Data { get; set; }
+        public DbSet<Empire> Empires { get; set; }
+        public DbSet<GalacticObject> GalacticObjects { get; set; }
+        public DbSet<Planet> Planets { get; set; }
+        public DbSet<District> Districts { get; set; }
+        public DbSet<Building> Buildings { get; set; }
+        public DbSet<Pop> Pops { get; set; }
+        public DbSet<Starbase> Starbases { get; set; }
+        public DbSet<Fleet> Fleets { get; set; }
+        public DbSet<Ship> Ships { get; set; }
+        public DbSet<Army> Armies { get; set; }
+        public DbSet<Party> Parties { get; set; }
+        public DbSet<Military> Militaries { get; set; }
+        public DbSet<InfrastructureData> InfrastructureData { get; set; }
+        public DbSet<Data> Data { get; set; }
 
-		public DbSet<AutoAdvance> AutoAdvance { get; set; }
+        public DbSet<AutoAdvance> AutoAdvance { get; set; }
 
 
-		//public DbSet<PopsimReport> PopsimReports { get; set; }
+        //public DbSet<PopsimReport> PopsimReports { get; set; }
 
         //public DbSet<PopsimGlobalEthicGroup> PopsimGlobalEthicGroups { get; set; }
         public DbSet<VoteMessage> VoteMessages { get; set; }
@@ -169,7 +169,7 @@ namespace BabelDatabase
                 DiscordUserId = "75968535074967552",
                 UserName = "Obi",
                 IsAdmin = true
-            }); 
+            });
 
             modelBuilder.Entity<DiscordUser>().HasData(new DiscordUser()
             {
@@ -577,6 +577,12 @@ namespace BabelDatabase
 
             modelBuilder.Entity<Planet>()
                 .HasOne(p => p.PartyAlignment);
+
+            modelBuilder.Entity<Planet>()
+                .Property(b => b.GlobalAlignment)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
         }
     }
 }

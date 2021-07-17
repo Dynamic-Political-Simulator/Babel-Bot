@@ -142,6 +142,11 @@ namespace WOPR.Controllers.Map
             public string Name;
             public float Popularity;
         }
+        public class AlignmentMod
+        {
+            public string Name;
+            public float Mod;
+        }
         public class PlanetReturn
         {
             public string Name;
@@ -151,6 +156,7 @@ namespace WOPR.Controllers.Map
             public GroupEntry[] GroupEntries;
             public IndustryEntry[] IndustryEntries;
             public PopularityEntry[] PopularityEntries;
+            public AlignmentMod[] AlignmentModifiers;
         }
 
         public class EmpireReturn
@@ -433,6 +439,20 @@ namespace WOPR.Controllers.Map
 
             replyRaw.PopularityEntries = popularityEntries.ToArray();
 
+            List<AlignmentMod> alignmentMods = new List<AlignmentMod>();
+            if (planet.GlobalAlignment == null) planet.GlobalAlignment = new Dictionary<Alignment, float>();
+            foreach (Alignment k in planet.GlobalAlignment.Keys)
+            {
+                AlignmentMod am = new AlignmentMod()
+                {
+                    Name = k.AlignmentName,
+                    Mod = planet.GlobalAlignment[k]
+                };
+                alignmentMods.Add(am);
+            }
+
+            replyRaw.AlignmentModifiers = alignmentMods.ToArray();
+
             return Ok(replyRaw);
         }
 
@@ -552,6 +572,24 @@ namespace WOPR.Controllers.Map
                 {
                     p.Output.Add(data.IndustryEntries[x].Name, data.IndustryEntries[x].GDP);
                     p.EconGmData.Add(data.IndustryEntries[x].Name, (float)data.IndustryEntries[x].Modifier);
+                }
+            }
+
+            for (int x = 0; x < data.AlignmentModifiers.Count(); x++)
+            {
+                if (p.GlobalAlignment == null) p.GlobalAlignment = new Dictionary<Alignment, float>();
+                Alignment a = p.GlobalAlignment.Keys.FirstOrDefault(y => y.AlignmentName == data.AlignmentModifiers[x].Name);
+                if (a != null)
+                {
+                    p.GlobalAlignment[a] = data.AlignmentModifiers[x].Mod;
+                }
+                else
+                {
+                    a = _context.Alignments.FirstOrDefault(y => y.AlignmentName == data.AlignmentModifiers[x].Name);
+                    if (a != null)
+                    {
+                        p.GlobalAlignment.Add(a, data.AlignmentModifiers[x].Mod);
+                    }
                 }
             }
 

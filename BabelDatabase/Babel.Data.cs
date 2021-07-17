@@ -533,6 +533,7 @@ namespace BabelDatabase
         public Dictionary<string, ulong> Output { get; set; } = new Dictionary<string, ulong>();
         public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
         public Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimPlanetEthicGroup, Dictionary<Alignment, float>>();
+        public Dictionary<Alignment, float> GlobalAlignment { get; set; } = new Dictionary<Alignment, float>();
 
         public virtual Alignment ExecutiveAlignment { get; set; }
         public virtual Alignment LegislativeAlignment { get; set; }
@@ -717,7 +718,7 @@ namespace BabelDatabase
     }
 
     public class AutoAdvance
-	{
+    {
         [Key]
         public string AutoAdvanceId { get; set; } = "1";
         public bool Enabled { get; set; } = false;

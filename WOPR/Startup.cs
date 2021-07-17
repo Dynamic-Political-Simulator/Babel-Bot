@@ -34,8 +34,7 @@ namespace WOPR
 
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
-                // builder.WithOrigins("https://discordplaysstellaris.com")
-                builder.WithOrigins("http://localhost:3000")
+                builder.WithOrigins("https://discordplaysstellaris.com")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
