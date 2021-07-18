@@ -199,8 +199,19 @@ namespace WOPR.Services
                 PopsimGmData.Add(CreateGroup(g), factionStuff);
             }
 
+            Dictionary<Faction, float> GlobalAlignments = new Dictionary<Faction, float>();
 
-            planet1.CalculatePopularity(PopsimGmData);
+            if (planet.Owner.GlobalAlignment != null)
+            {
+                foreach (KeyValuePair<Alignment, float> alignData in planet.Owner.GlobalAlignment)
+                {
+                    Alignment a = _context.Alignments.FirstOrDefault(x => x.AlignmentId == alignData.Key.AlignmentId);
+                    GlobalAlignments.Add(CreateFaction(a), alignData.Value);
+                }
+            }
+
+
+            planet1.CalculatePopularity(PopsimGmData, GlobalAlignments);
             Dictionary<Faction, float> Factions = planet1.PlanetFactions;
             Dictionary<Alignment, float> Alignements = new Dictionary<Alignment, float>();
             foreach (KeyValuePair<Faction, float> faction in Factions)
@@ -409,6 +420,16 @@ namespace WOPR.Services
                 }
                 NewEmpire.PopsimGmData.Add(CreateGroup(popsimGmData.Key), factionStuff);
             }
+
+            Dictionary<Faction, float> factionStuffer = new Dictionary<Faction, float>();
+            if (empire.GlobalAlignment != null)
+            {
+                foreach (KeyValuePair<Alignment, float> faction in empire.GlobalAlignment)
+                {
+                    factionStuffer.Add(CreateFaction(faction.Key), faction.Value);
+                }
+            }
+            NewEmpire.GlobalAlignment = factionStuffer;
 
             return NewEmpire;
         }

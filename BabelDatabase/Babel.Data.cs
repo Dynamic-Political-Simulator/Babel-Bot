@@ -487,6 +487,7 @@ namespace BabelDatabase
         public Dictionary<string, float> EconGmData { get; set; } = new Dictionary<string, float>();
         public Dictionary<Alignment, int> GeneralAssembly { get; set; } = new Dictionary<Alignment, int>();
         public Dictionary<PopsimGlobalEthicGroup, Dictionary<Alignment, float>> PopsimGmData { get; set; } = new Dictionary<PopsimGlobalEthicGroup, Dictionary<Alignment, float>>();
+        public Dictionary<Alignment, float> GlobalAlignment { get; set; } = new Dictionary<Alignment, float>();
     }
 
     //celestial objects-----------------------------------

@@ -170,6 +170,7 @@ namespace WOPR.Controllers.Map
             public IndustryEntry[] SpaceIndustryEntries;
             public PopularityEntry[] PopularityEntries;
             public PopularityEntry[] ParlamentEntries;
+            public AlignmentMod[] AlignmentModifiers;
         }
 
         [HttpGet("get-empire")]
@@ -317,7 +318,20 @@ namespace WOPR.Controllers.Map
                 };
                 parlamentEntries.Add(pe);
             }
-            replyRaw.ParlamentEntries = parlamentEntries.ToArray();
+            replyRaw.ParlamentEntries = parlamentEntries.ToArray(); List<AlignmentMod> alignmentMods = new List<AlignmentMod>();
+
+            if (empire.GlobalAlignment == null) empire.GlobalAlignment = new Dictionary<Alignment, float>();
+            foreach (Alignment k in empire.GlobalAlignment.Keys)
+            {
+                AlignmentMod am = new AlignmentMod()
+                {
+                    Name = k.AlignmentName,
+                    Mod = empire.GlobalAlignment[k]
+                };
+                alignmentMods.Add(am);
+            }
+
+            replyRaw.AlignmentModifiers = alignmentMods.ToArray();
 
             return Ok(replyRaw);
         }
@@ -364,6 +378,24 @@ namespace WOPR.Controllers.Map
                 else
                 {
                     p.EconGmData.Add(data.IndustryEntries[x].Name, (float)data.IndustryEntries[x].Modifier);
+                }
+            }
+
+            for (int x = 0; x < data.AlignmentModifiers.Count(); x++)
+            {
+                if (p.GlobalAlignment == null) p.GlobalAlignment = new Dictionary<Alignment, float>();
+                Alignment a = p.GlobalAlignment.Keys.FirstOrDefault(y => y.AlignmentName == data.AlignmentModifiers[x].Name);
+                if (a != null)
+                {
+                    p.GlobalAlignment[a] = data.AlignmentModifiers[x].Mod;
+                }
+                else
+                {
+                    a = _context.Alignments.FirstOrDefault(y => y.AlignmentName == data.AlignmentModifiers[x].Name);
+                    if (a != null)
+                    {
+                        p.GlobalAlignment.Add(a, data.AlignmentModifiers[x].Mod);
+                    }
                 }
             }
 

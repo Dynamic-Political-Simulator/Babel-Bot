@@ -583,6 +583,12 @@ namespace BabelDatabase
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+
+            modelBuilder.Entity<Empire>()
+                .Property(b => b.GlobalAlignment)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
         }
     }
 }
