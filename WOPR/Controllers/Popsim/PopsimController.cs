@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http.Cors;
 using WOPR.Helpers;
+using WOPR.Services;
 
 namespace WOPR.Controllers.Popsim
 {
@@ -18,10 +19,12 @@ namespace WOPR.Controllers.Popsim
     public class PopsimController : ControllerBase
     {
         private readonly BabelContext _context;
+        private readonly EconPopsimServices _econ;
 
-        public PopsimController(BabelContext context)
+        public PopsimController(BabelContext context, EconPopsimServices econ)
         {
             _context = context;
+            _econ = econ;
         }
 
         public struct PopsimPartyOverviewReturn
@@ -235,6 +238,128 @@ namespace WOPR.Controllers.Popsim
             _context.SaveChanges();
 
             return Ok();
+        }
+
+        [HttpPost("make-gov")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult MakeGovBranch()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || !discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            GovernmentBranch gb = new GovernmentBranch();
+            gb.Name = "Untitled";
+            gb.PerceivedAlignment = _context.Alignments.FirstOrDefault();
+            gb.NationalModifier = 0;
+
+
+
+            _context.GovernmentBranches.Add(gb);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        public struct GovEdit
+        {
+            public string Id;
+            public string Name;
+            public string PerceivedAlignment;
+            public float NatMod;
+            public Dictionary<string, float> Modifier;
+        }
+
+        [HttpGet("get-gov-edit")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult GetGovBranchEdit()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || !discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            GovEdit[] gba = _context.GovernmentBranches.ToList().Select(x => new GovEdit()
+            {
+                Id = x.GovernmentId,
+                Name = x.Name,
+                PerceivedAlignment = x.PerceivedAlignment.AlignmentName,
+                NatMod = x.NationalModifier,
+                Modifier = x.Modifiers.ToDictionary(k => k.Key.PopsimGlobalEthicGroupName, v => v.Value)
+            }).ToArray();
+
+            return Ok(gba);
+        }
+
+        [HttpPost("set-gov")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult SetGovBranch(GovEdit ge)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || !discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            GovernmentBranch gb = _context.GovernmentBranches.FirstOrDefault(x => x.GovernmentId == ge.Id);
+
+            if (gb is null)
+            {
+                return NotFound();
+            }
+            Alignment a = _context.Alignments.FirstOrDefault(x => x.AlignmentName == ge.PerceivedAlignment);
+            if (a is null)
+            {
+                return BadRequest();
+            }
+
+            gb.Name = ge.Name;
+            gb.PerceivedAlignment = a;
+            gb.NationalModifier = ge.NatMod;
+            gb.Modifiers = ge.Modifier.ToDictionary(x => _context.PopsimGlobalEthicGroups.First(y => y.PopsimGlobalEthicGroupName == x.Key), x => x.Value);
+
+            _context.GovernmentBranches.Update(gb);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        struct GovBrancher
+        {
+            public string Name;
+            public string Alignment;
+            public float Popularity;
+        }
+
+        [HttpGet("get-gov")]
+        public IActionResult GetGovBranches()
+        {
+            Empire empire = _context.Empires.Single(x => x.EmpireId == 1);
+            List<GovBrancher> gbl = new List<GovBrancher>();
+            List<float> popularities = _econ.CalculateBranchPopularity(empire, _context.GovernmentBranches.ToList());
+            foreach (GovernmentBranch gb in _context.GovernmentBranches.ToList())
+            {
+                GovBrancher gbe = new GovBrancher()
+                {
+                    Name = gb.Name,
+                    Alignment = gb.PerceivedAlignment.AlignmentName,
+                    Popularity = popularities[_context.GovernmentBranches.ToList().IndexOf(gb)]
+                };
+                gbl.Add(gbe);
+            }
+            return Ok(gbl.ToArray());
         }
     }
 }

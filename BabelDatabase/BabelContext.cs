@@ -161,6 +161,7 @@ namespace BabelDatabase
         public DbSet<VoteMessage> VoteMessages { get; set; }
         public DbSet<VoteEntry> VoteEntries { get; set; }
         public DbSet<PlanetarySystem> PlanetarySystems { get; set; }
+        public DbSet<GovernmentBranch> GovernmentBranches { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -589,6 +590,12 @@ namespace BabelDatabase
                 .HasConversion(
                     v => JsonConvert.SerializeObject(v),
                     v => JsonConvert.DeserializeObject<Dictionary<Alignment, float>>(v));
+
+            modelBuilder.Entity<GovernmentBranch>()
+                .Property(b => b.Modifiers)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Dictionary<PopsimGlobalEthicGroup, float>>(v));
         }
     }
 }

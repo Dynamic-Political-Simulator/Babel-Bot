@@ -67,6 +67,7 @@ nation - View information on the nation
 characters - View your characters
 character-search - Lookup characters
 clock - View the time to midnight
+government - View the current popularity of government branches
 options - Open the options screen
 help - Returns this message";
         }
@@ -74,6 +75,19 @@ help - Returns this message";
         public string GetCommand()
         {
             return "help";
+        }
+    }
+
+    public class PopularityCommand : ITerminalCommand
+    {
+        public async Task<string> DoCommandAsync(string command)
+        {
+            return "redirect-popularity";
+        }
+
+        public string GetCommand()
+        {
+            return "government";
         }
     }
 }
