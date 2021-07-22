@@ -5,6 +5,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,20 +16,22 @@ namespace BabelBot.Modules
 {
 	public class AdminCharacterModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly BabelContext _context;
 		private readonly DeathService _deathService;
 
-		public AdminCharacterModule(BabelContext context, DeathService deathService)
+		private IConfiguration Configuration;
+
+		public AdminCharacterModule(DeathService deathService, IConfiguration configuration)
 		{
-			_context = context;
 			_deathService = deathService;
+			Configuration = configuration;
 		}
 
 		[Command("change species")]
 		[RequiresAdmin]
 		public async Task ChangeCharacterSpecies(string speciesName, [Remainder] SocketGuildUser mention)
 		{
-			var pingedUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			using var db = new BabelContext(Configuration);
+			var pingedUser = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 
 			if (pingedUser == null)
 			{
@@ -41,11 +44,11 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
+			var activeCharacter = db.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
 
 			var oldSpecies = activeCharacter.Species.SpeciesName;
 
-			var newSpecies = _context.Species.SingleOrDefault(s => s.SpeciesName.ToLower() == speciesName.ToLower());
+			var newSpecies = db.Species.SingleOrDefault(s => s.SpeciesName.ToLower() == speciesName.ToLower());
 
 			if (newSpecies == null)
 			{
@@ -56,8 +59,8 @@ namespace BabelBot.Modules
 			activeCharacter.Species = newSpecies;
 			activeCharacter.SpeciesId = newSpecies.SpeciesId;
 
-			_context.Characters.Update(activeCharacter);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(activeCharacter);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync($"Changed species of {activeCharacter.CharacterName} from {oldSpecies} to {newSpecies.SpeciesName}.");
 		}
@@ -66,7 +69,8 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task ChangeCharacterName(string newName, [Remainder] SocketGuildUser mention)
 		{
-			var pingedUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			using var db = new BabelContext(Configuration);
+			var pingedUser = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 
 			if (pingedUser == null)
 			{
@@ -79,14 +83,14 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
+			var activeCharacter = db.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
 
 			var oldName = activeCharacter.CharacterName;
 
 			activeCharacter.CharacterName = newName;
 
-			_context.Characters.Update(activeCharacter);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(activeCharacter);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync($"Changed name from {oldName} to {newName}.");
 		}
@@ -95,7 +99,8 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task ShowCharacterListWithId([Remainder] SocketGuildUser mention)
 		{
-			var discordUser = _context.DiscordUsers
+			using var db = new BabelContext(Configuration);
+			var discordUser = db.DiscordUsers
 				.Include(du => du.Characters)
 				.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 
@@ -130,7 +135,8 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task DeleteCharacter(string id)
 		{
-			var character = _context.Characters.SingleOrDefault(c => c.CharacterId == id);
+			using var db = new BabelContext(Configuration);
+			var character = db.Characters.SingleOrDefault(c => c.CharacterId == id);
 
 			if (character == null)
 			{
@@ -143,8 +149,8 @@ namespace BabelBot.Modules
 				character.DiscordUser.ActiveCharacterId = null;
 			}
 
-			_context.Characters.Remove(character);
-			await _context.SaveChangesAsync();
+			db.Characters.Remove(character);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Character has been deleted.");
 		}
@@ -153,7 +159,8 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task RemoveGraveyard()
 		{
-			var existingYard = _context.Graveyards.FirstOrDefault(gy => gy.ChannelId == Context.Channel.Id.ToString());
+			using var db = new BabelContext(Configuration);
+			var existingYard = db.Graveyards.FirstOrDefault(gy => gy.ChannelId == Context.Channel.Id.ToString());
 
 			if (existingYard == null)
 			{
@@ -161,8 +168,8 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			_context.Graveyards.Remove(existingYard);
-			await _context.SaveChangesAsync();
+			db.Graveyards.Remove(existingYard);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Graveyard removed.");
 		}
@@ -171,7 +178,8 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task AddGraveyard()
 		{
-			var existingYard = _context.Graveyards.FirstOrDefault(gy => gy.ChannelId == Context.Channel.Id.ToString());
+			using var db = new BabelContext(Configuration);
+			var existingYard = db.Graveyards.FirstOrDefault(gy => gy.ChannelId == Context.Channel.Id.ToString());
 
 			if (existingYard != null)
 			{
@@ -185,8 +193,8 @@ namespace BabelBot.Modules
 				ServerId = Context.Guild.Id.ToString()
 			};
 
-			await _context.Graveyards.AddAsync(newGraveyard);
-			await _context.SaveChangesAsync();
+			await db.Graveyards.AddAsync(newGraveyard);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Graveyard added.");
 		}
@@ -210,6 +218,7 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task SetAge(int newAge, [Remainder] SocketGuildUser mention)
 		{
+			using var db = new BabelContext(Configuration);
 			if (newAge < 18)
 			{
 				await ReplyAsync("Can't set age below 18.");
@@ -222,7 +231,7 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var pingedUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+			var pingedUser = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 
 			if (pingedUser == null)
 			{
@@ -235,16 +244,16 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
+			var activeCharacter = db.Characters.SingleOrDefault(c => c.CharacterId == pingedUser.ActiveCharacterId);
 
-			var year = _context.GameState.First();
+			var year = db.GameState.First();
 
 			var newYearOfBirth = year.CurrentYear - newAge;
 
 			activeCharacter.YearOfBirth = newYearOfBirth;
 
-			_context.Characters.Update(activeCharacter);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(activeCharacter);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Age changed.");
 		}
@@ -253,8 +262,9 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task Revive(string characterId)
 		{
+			using var db = new BabelContext(Configuration);
 			var deadCharacter =
-				_context.Characters.SingleOrDefault(c => c.CharacterId == characterId);
+				db.Characters.SingleOrDefault(c => c.CharacterId == characterId);
 
 			if (deadCharacter == null)
 			{
@@ -281,9 +291,9 @@ namespace BabelBot.Modules
 
 			deadCharacter.DiscordUser.ActiveCharacterId = deadCharacter.CharacterId;
 
-			_context.Characters.Update(deadCharacter);
-			_context.DiscordUsers.Update(deadCharacter.DiscordUser);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(deadCharacter);
+			db.DiscordUsers.Update(deadCharacter.DiscordUser);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("The dead walk once more!");
 		}
