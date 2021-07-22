@@ -187,6 +187,11 @@ namespace WOPR.Controllers.Map
                 return NotFound();
             }
 
+            if ((discordUser == null || discordUser.IsAdmin == false) && empire.EmpireId != 1)
+            {
+                return Unauthorized();
+            }
+
             EmpireReturn replyRaw = new EmpireReturn();
             // await _econ.CalculateEmpireEcon(empire);
             replyRaw.Name = empire.Name.Replace("\"", "");

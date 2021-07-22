@@ -729,4 +729,14 @@ namespace BabelDatabase
 
         public string ChannelId { get; set; }
     }
+
+    public class GovernmentBranch
+    {
+        [Key]
+        public string GovernmentId { get; set; } = Guid.NewGuid().ToString();
+        public string Name { get; set; }
+        public virtual Alignment PerceivedAlignment { get; set; }
+        public float NationalModifier { get; set; }
+        public Dictionary<PopsimGlobalEthicGroup, float> Modifiers { get; set; } = new Dictionary<PopsimGlobalEthicGroup, float>();
+    }
 }

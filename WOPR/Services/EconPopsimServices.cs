@@ -378,6 +378,12 @@ namespace WOPR.Services
             await _context.SaveChangesAsync();
         }
 
+        public List<float> CalculateBranchPopularity(BabelDatabase.Empire empire, List<BabelDatabase.GovernmentBranch> branch)
+        {
+            DPSSimulation.Classes.Empire empire1 = CreateEmpire(empire);
+            return branch.Select(x => empire1.GetBranchPopularity(CreateBranch(x))).ToList();
+        }
+
         //Conversions
 
         public DPSSimulation.Classes.Empire CreateEmpire(BabelDatabase.Empire empire)
@@ -543,7 +549,7 @@ namespace WOPR.Services
                 {
                     factionStuff.Add(CreateFaction(faction.Key), faction.Value);
                 }
-                PopsimPlanetEthicGroup g = planet.PlanetGroups.FirstOrDefault(x => x == popsimGmData.Key);
+                PopsimPlanetEthicGroup g = planet.PlanetGroups.First(x => x.PopsimPlanetEthicGroupId == popsimGmData.Key.PopsimPlanetEthicGroupId);
                 LibraryPlanet.PopsimGmData.Add(CreateGroup(g.PopsimGlobalEthicGroup), factionStuff);
             }
 
@@ -607,8 +613,9 @@ namespace WOPR.Services
             Group NewGroup = new Group()
             {
                 GroupId = group.PopsimGlobalEthicGroupId,
+                Name = group.PopsimGlobalEthicGroupName,
                 PartyInvolvementFactor = group.PartyInvolvementFactor,
-                Radicalisation = group.Radicalisation
+                Radicalisation = group.Radicalisation / 100
             };
 
             NewGroup.Alignment = CreateAlignment(group);
@@ -706,6 +713,17 @@ namespace WOPR.Services
             return NewData;
         }
 
-
+        public DPSSimulation.Classes.Branch CreateBranch(BabelDatabase.GovernmentBranch branch)
+        {
+            DPSSimulation.Classes.Branch NewBranch = new Branch()
+            {
+                BranchId = branch.GovernmentId,
+                Name = branch.Name,
+                PerceivedAlignment = CreateFaction(branch.PerceivedAlignment),
+                NationalMod = branch.NationalModifier,
+                Modifiers = branch.Modifiers.ToDictionary(k => CreateGroup(_context.PopsimGlobalEthicGroups.First(x => x == k.Key)), v => v.Value)
+            };
+            return NewBranch;
+        }
     }
 }
