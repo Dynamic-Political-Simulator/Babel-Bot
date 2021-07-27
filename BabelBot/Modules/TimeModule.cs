@@ -73,10 +73,10 @@ namespace BabelBot.Modules
 
 				var gameState = db.GameState.First();
 
-				var charactersOver80AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
-				&& c.YearOfBirth < gameState.CurrentYear - 80);
+				var charactersOver110AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
+				&& c.YearOfBirth < gameState.CurrentYear - 110);
 
-				foreach (var character in charactersOver80AndAlive)
+				foreach (var character in charactersOver110AndAlive)
 				{
 					await _deathService.PerformOldAgeCalculation(character, gameState.CurrentYear, gameState.CurrentYear + autoAdvance.AmountOfYears - 1);
 				}
@@ -114,10 +114,10 @@ namespace BabelBot.Modules
 
 			var gameState = db.GameState.FirstOrDefault();
 
-			var charactersOver80AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
-				&& c.YearOfBirth < gameState.CurrentYear - 80);
+			var charactersOver110AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
+				&& c.YearOfBirth < gameState.CurrentYear - 110);
 
-			foreach (var character in charactersOver80AndAlive)
+			foreach (var character in charactersOver110AndAlive)
 			{
 				await _deathService.PerformOldAgeCalculation(character, gameState.CurrentYear, gameState.CurrentYear + amount - 1);
 			}

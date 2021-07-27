@@ -75,9 +75,9 @@ namespace BabelBot.Services
 			for (var year = startYear; year < endYear + 1; year++)
 			{
 				var age = character.GetAge(year);
-				var yearsOver80 = age - 80;
+				var yearsOver110 = age - 110;
 
-				var chanceOfDeath = yearsOver80 * 2;
+				var chanceOfDeath = yearsOver110 * 2;
 
 				if (chanceOfDeath > 10) chanceOfDeath = 10;
 
