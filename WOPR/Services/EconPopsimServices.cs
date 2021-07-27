@@ -227,7 +227,7 @@ namespace WOPR.Services
         }
 
         //Party
-        public async void CalculateParty(BabelDatabase.Party party, BabelDatabase.Empire empire)
+        public async Task CalculateParty(BabelDatabase.Party party, BabelDatabase.Empire empire)
         {
             DPSSimulation.Classes.Party party1 = new DPSSimulation.Classes.Party();
 
@@ -243,7 +243,8 @@ namespace WOPR.Services
                 PopsimGlobalEthicGroup NewGroup = _context.PopsimGlobalEthicGroups.FirstOrDefault(a => a.PopsimGlobalEthicGroupId == group.Key.GroupId);
                 if (NewGroup != null)
                 {
-                    party.PopGroupEnlistment.Add(NewGroup, group.Value);
+                    if (party.PopGroupEnlistment.ContainsKey(NewGroup)) party.PopGroupEnlistment[NewGroup] = group.Value;
+                    else party.PopGroupEnlistment.Add(NewGroup, group.Value);
                 }
             }
 

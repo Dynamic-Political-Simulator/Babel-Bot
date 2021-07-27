@@ -361,5 +361,140 @@ namespace WOPR.Controllers.Popsim
             }
             return Ok(gbl.ToArray());
         }
+
+        struct PartySend
+        {
+            public float OverallPartyEnlistment;
+            public float PercentageOfEmpire;
+            public Dictionary<string, float> PerGroupEnlistment;
+            public float UpperPartyMembership;
+            public float LowerPartyMembership;
+            public string UpperAlignment;
+            public string LowerAlignment;
+            public string UpperDominantFaction;
+            public string LowerDominantFaction;
+            public float? UpperPercentage;
+        }
+
+        [HttpGet("get-party")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> GetParty()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            Party party = _context.Parties.FirstOrDefault(); // so long as it's a one-party state, we fine;
+            Empire empire = _context.Empires.Single(x => x.EmpireId == 1);
+
+            ulong population = 0;
+
+            foreach (GalacticObject system in empire.GalacticObjects)
+            {
+                foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
+                {
+                    population += planet.Population;
+
+                }
+            }
+
+            if (party is null)
+            {
+                party = new Party();
+                party.UpperPartyPercentage = 0.15f;
+                _context.Parties.Add(party);
+                await _context.SaveChangesAsync();
+            }
+
+            await _econ.CalculateParty(party, empire);
+
+            Dictionary<PopsimGlobalEthicGroup, float> grouoPop = new Dictionary<PopsimGlobalEthicGroup, float>();
+
+            foreach (GalacticObject system in empire.GalacticObjects)
+            {
+                foreach (Planet planet in system.Planets.Where(p => p.Population != 0))
+                {
+                    double populationPercentage = (double)((decimal)planet.Population / (decimal)population);
+
+                    if (planet.PlanetGroups.Count != 0)
+                    {
+                        foreach (PopsimPlanetEthicGroup group in planet.PlanetGroups)
+                        {
+                            float groupPerc = group.Percentage / 100f;
+                            KeyValuePair<PopsimGlobalEthicGroup, float> ge = grouoPop.FirstOrDefault(x => x.Key.PopsimGlobalEthicGroupId == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupId);
+                            if (ge.Equals(default(KeyValuePair<PopsimGlobalEthicGroup, float>)))
+                            {
+                                grouoPop.Add(group.PopsimGlobalEthicGroup, (float)(groupPerc * populationPercentage));
+                            }
+                            else
+                            {
+                                grouoPop[grouoPop.FirstOrDefault(x => x.Key.PopsimGlobalEthicGroupId == group.PopsimGlobalEthicGroup.PopsimGlobalEthicGroupId).Key] += (float)(groupPerc * populationPercentage);
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            // Console.WriteLine(grouoPop.First().Value);
+
+            float overall = party.PopGroupEnlistment.Sum(x => x.Value * grouoPop.FirstOrDefault(y => y.Key.PopsimGlobalEthicGroupId == x.Key.PopsimGlobalEthicGroupId).Value);
+
+            // Console.WriteLine(population);
+            // Console.WriteLine(overall);
+
+            PartySend ps = new PartySend()
+            {
+                OverallPartyEnlistment = overall * population,
+                PercentageOfEmpire = overall,
+                PerGroupEnlistment = party.PopGroupEnlistment.ToDictionary(k => k.Key.PopsimGlobalEthicGroupName, v => v.Value),
+                UpperPartyMembership = overall * party.UpperPartyPercentage,
+                LowerPartyMembership = overall * (1 - party.UpperPartyPercentage),
+                UpperAlignment = party.UpperPartyAffinity.Any(k => k.Value > 0.4f) ? party.UpperPartyAffinity.ToList().OrderBy(x => x.Value).Last().Key.AlignmentName : "None",
+                LowerAlignment = party.LowerPartyAffinity.Any(k => k.Value > 0.4f) ? party.LowerPartyAffinity.ToList().OrderBy(x => x.Value).Last().Key.AlignmentName : "None",
+                UpperDominantFaction = party.UpperPartyMembership.ToList().OrderBy(x => x.Value).Last().Key.PopsimGlobalEthicGroupName,
+                LowerDominantFaction = party.LowerPartyMembership.ToList().OrderBy(x => x.Value).Last().Key.PopsimGlobalEthicGroupName,
+                UpperPercentage = discordUser == null || !discordUser.IsAdmin ? (float?)null : party.UpperPartyPercentage
+            };
+
+            _context.Parties.Update(party);
+            _context.SaveChanges();
+
+            return Ok(ps);
+        }
+
+        public struct PartyReceive
+        {
+            public float UpperPercentage;
+        }
+
+        [HttpPost("set-party")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public IActionResult SetParty([FromBody] PartyReceive pr)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (discordUser == null || !discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            Party party = _context.Parties.FirstOrDefault(); // so long as it's a one-party state, we fine;
+
+            if (party is null)
+            {
+                party = new Party();
+                _context.Parties.Add(party);
+            }
+
+            party.UpperPartyPercentage = pr.UpperPercentage;
+
+            _context.Parties.Update(party);
+            _context.SaveChanges();
+
+            return Ok();
+        }
     }
 }
