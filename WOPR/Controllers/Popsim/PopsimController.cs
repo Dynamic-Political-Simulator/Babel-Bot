@@ -438,7 +438,7 @@ namespace WOPR.Controllers.Popsim
 
             // Console.WriteLine(grouoPop.First().Value);
 
-            float overall = party.PopGroupEnlistment.Sum(x => x.Value * grouoPop.FirstOrDefault(y => y.Key.PopsimGlobalEthicGroupId == x.Key.PopsimGlobalEthicGroupId).Value);
+            float overall = party.PopGroupEnlistment.Sum(x => x.Value * grouoPop[x.Key]);
 
             // Console.WriteLine(population);
             // Console.WriteLine(overall);
@@ -448,8 +448,8 @@ namespace WOPR.Controllers.Popsim
                 OverallPartyEnlistment = overall * population,
                 PercentageOfEmpire = overall,
                 PerGroupEnlistment = party.PopGroupEnlistment.ToDictionary(k => k.Key.PopsimGlobalEthicGroupName, v => v.Value),
-                UpperPartyMembership = overall * party.UpperPartyPercentage,
-                LowerPartyMembership = overall * (1 - party.UpperPartyPercentage),
+                UpperPartyMembership = overall * party.UpperPartyPercentage * population,
+                LowerPartyMembership = overall * (1 - party.UpperPartyPercentage) * population,
                 UpperAlignment = party.UpperPartyAffinity.Any(k => k.Value > 0.4f) ? party.UpperPartyAffinity.ToList().OrderBy(x => x.Value).Last().Key.AlignmentName : "None",
                 LowerAlignment = party.LowerPartyAffinity.Any(k => k.Value > 0.4f) ? party.LowerPartyAffinity.ToList().OrderBy(x => x.Value).Last().Key.AlignmentName : "None",
                 UpperDominantFaction = party.UpperPartyMembership.ToList().OrderBy(x => x.Value).Last().Key.PopsimGlobalEthicGroupName,

@@ -316,6 +316,40 @@ namespace WOPR.Controllers.Saves
             return Ok();
         }
 
+        [HttpGet("calculate-party")]
+        [Authorize(AuthenticationSchemes = "Discord")]
+        public async Task<IActionResult> PartyyCalculation()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+
+            if (userId == null || discordUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!discordUser.IsAdmin)
+            {
+                return Unauthorized();
+            }
+
+            Empire x = _context.Empires.SingleOrDefault(x => x.EmpireId == 1);
+
+            Party party = _context.Parties.FirstOrDefault(); // so long as it's a one-party state, we fine;
+
+            if (party is null)
+            {
+                party = new Party();
+                _context.Parties.Add(party);
+            }
+
+            await _econ.CalculateParty(party, x);
+            Console.WriteLine("Done!");
+
+            return Ok();
+        }
+
         // [HttpGet("assass")]
         // [Authorize(AuthenticationSchemes = "Discord")]
         // public async Task<IActionResult> AssFuck()
@@ -335,19 +369,9 @@ namespace WOPR.Controllers.Saves
         //     }
 
         //     Empire x = _context.Empires.SingleOrDefault(x => x.EmpireId == 1);
-        //     //Console.WriteLine("Done!");
+        //     // Console.WriteLine("Done!");
 
-        //     ulong pops = 0;
-
-        //     foreach (GalacticObject g in x.GalacticObjects)
-        //     {
-        //         foreach (Planet p in g.Planets)
-        //         {
-        //             pops += p.Population;
-        //         }
-        //     }
-
-        //     return Ok(pops);
+        //     return Ok(_econ.GetGrossGdp(x));
         // }
     }
 }
