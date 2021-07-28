@@ -295,7 +295,7 @@ namespace BabelBot.Modules
 			db.DiscordUsers.Update(deadCharacter.DiscordUser);
 			await db.SaveChangesAsync();
 
-			await ReplyAsync("The dead walk once more!");
+			await ReplyAsync($"{deadCharacter.CharacterName} walks amongst the living once again!");
 		}
 	}
 }
