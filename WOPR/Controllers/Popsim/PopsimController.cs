@@ -406,7 +406,7 @@ namespace WOPR.Controllers.Popsim
                 await _context.SaveChangesAsync();
             }
 
-            await _econ.CalculateParty(party, empire);
+            // await _econ.CalculateParty(party, empire);
 
             Dictionary<PopsimGlobalEthicGroup, float> grouoPop = new Dictionary<PopsimGlobalEthicGroup, float>();
 
