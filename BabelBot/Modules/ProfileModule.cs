@@ -1,6 +1,7 @@
 ﻿using BabelBot.CustomPreconditions;
 using BabelDatabase;
 using Discord.Commands;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,17 +11,18 @@ namespace BabelBot.Modules
 {
 	public class ProfileModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly BabelContext _context;
+		private IConfiguration Configuration;
 
-		public ProfileModule(BabelContext context)
+		public ProfileModule(IConfiguration configuration)
 		{
-			_context = context;
+			Configuration = configuration;
 		}
 
 		[Command("create profile")]
 		[RequireNoProfile]
 		public async Task CreateProfile()
 		{
+			using var db = new BabelContext(Configuration);
 			var profile = new DiscordUser()
 			{
 				DiscordUserId = Context.User.Id.ToString(),
@@ -28,8 +30,8 @@ namespace BabelBot.Modules
 				IsAdmin = false
 			};
 
-			_context.DiscordUsers.Add(profile);
-			await _context.SaveChangesAsync();
+			db.DiscordUsers.Add(profile);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Profile created.");
 		}

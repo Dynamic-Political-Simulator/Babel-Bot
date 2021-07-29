@@ -3,6 +3,7 @@ using BabelDatabase;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,11 @@ namespace BabelBot.Modules
 {
 	public class CharacterModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly BabelContext _context;
+		private IConfiguration Configuration;
 
-		public CharacterModule(BabelContext context)
+		public CharacterModule(IConfiguration configuration)
 		{
-			_context = context;
+			Configuration = configuration;
 		}
 
 		[Command("cliques")]
@@ -25,13 +26,14 @@ namespace BabelBot.Modules
 		[RequireLivingActiveCharacter]
 		public async Task MyCliques()
 		{
-			var profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+			using var db = new BabelContext(Configuration);
+			var profile = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
 
 			var embedBuilder = new EmbedBuilder();
 
 			embedBuilder.Title = "Cliques";
 
-			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);
+			var activeCharacter = db.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);
 
 			foreach (var clique in activeCharacter.Cliques)
 			{
@@ -40,14 +42,14 @@ namespace BabelBot.Modules
 
 				field.Value += "Members:\n";
 
-				foreach (var character in clique.Clique.CliqueMembers)
+				foreach (var character in clique.Clique.CliqueMemberCharacter)
 				{
 					field.Value += character.Member.CharacterName + "\n";
 				}
 
 				field.Value += "\nOfficers:\n";
 
-				foreach (var officer in clique.Clique.CliqueOfficers)
+				foreach (var officer in clique.Clique.CliqueOfficerCharacter)
 				{
 					field.Value += officer.Officer.CharacterName + "\n";
 				}
@@ -62,15 +64,16 @@ namespace BabelBot.Modules
 		[RequireProfile]
 		public async Task ViewCurrentCharacter([Remainder] SocketGuildUser mention = null)
 		{
+			using var db = new BabelContext(Configuration);
 			DiscordUser profile = null;
 
 			if (mention != null)
 			{
-				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+				profile = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 			}
 			else
 			{
-				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+				profile = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
 			}
 
 			if (profile.ActiveCharacterId == null)
@@ -79,7 +82,7 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var character = _context.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);			
+			var character = db.Characters.SingleOrDefault(c => c.CharacterId == profile.ActiveCharacterId);			
 
 			var embedBuilder = new EmbedBuilder();
 
@@ -99,15 +102,16 @@ namespace BabelBot.Modules
 		[RequireProfile]
 		public async Task ViewCharacters([Remainder] SocketGuildUser mention = null)
 		{
+			using var db = new BabelContext(Configuration);
 			DiscordUser profile = null;
 
 			if (mention != null)
 			{
-				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
+				profile = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == mention.Id.ToString());
 			}
 			else
 			{
-				profile = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
+				profile = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == Context.User.Id.ToString());
 			}
 
 			if (profile.Characters.Count() == 0)
@@ -143,9 +147,10 @@ namespace BabelBot.Modules
 		[RequireProfile]
 		public async Task CreateCharacter(string name)
 		{
+			using var db = new BabelContext(Configuration);
 			var userId = Context.Message.Author.Id.ToString();
 
-			var hasActiveCharacter = _context.Characters.AsQueryable().Where(c => c.DiscordUserId == userId && c.YearOfDeath == 0).ToList();
+			var hasActiveCharacter = db.Characters.AsQueryable().Where(c => c.DiscordUserId == userId && c.YearOfDeath == 0).ToList();
 
 			if (hasActiveCharacter.Count > 0)
 			{
@@ -165,7 +170,7 @@ namespace BabelBot.Modules
 				return;
 			}
 
-			var currentYear = _context.GameState.First().CurrentYear;
+			var currentYear = db.GameState.First().CurrentYear;
 
 			var rand = new Random();
 
@@ -173,7 +178,7 @@ namespace BabelBot.Modules
 
 			var yearOfBirth = currentYear - age;
 
-			var human = _context.Species.AsQueryable().First(s => s.SpeciesName == "Human");
+			var human = db.Species.AsQueryable().First(s => s.SpeciesName == "Human");
 
 			var newCharacter = new BabelDatabase.Character()
 			{
@@ -184,12 +189,12 @@ namespace BabelBot.Modules
 				YearOfBirth = yearOfBirth
 			};
 
-			var discordUser = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
+			var discordUser = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == userId);
 
 			discordUser.ActiveCharacterId = newCharacter.CharacterId;
-			_context.DiscordUsers.Update(discordUser);
-			_context.Characters.Add(newCharacter);
-			_context.SaveChanges();
+			db.DiscordUsers.Update(discordUser);
+			db.Characters.Add(newCharacter);
+			db.SaveChanges();
 
 			await ReplyAsync("Character created.");
 		}
@@ -198,6 +203,7 @@ namespace BabelBot.Modules
 		[RequireLivingActiveCharacter]
 		public async Task SetBio([Remainder] string bio)
 		{
+			using var db = new BabelContext(Configuration);
 			if (bio.Length > 2000)
 			{
 				await ReplyAsync("Bio has a maximum length of 2000 characters.");
@@ -205,13 +211,13 @@ namespace BabelBot.Modules
 			}
 
 			var activeCharacter =
-				_context.Characters
+				db.Characters
 					.SingleOrDefault(c => c.DiscordUserId == Context.User.Id.ToString() && c.YearOfDeath == 0);
 
 			activeCharacter.CharacterBio = bio;
 
-			_context.Characters.Update(activeCharacter);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(activeCharacter);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Bio set.");
 		}
@@ -219,7 +225,8 @@ namespace BabelBot.Modules
 		[Command("species")]
 		public async Task ListSpecies()
 		{
-			var species = _context.Species.ToList();
+			using var db = new BabelContext(Configuration);
+			var species = db.Species.ToList();
 
 			var embedBuilder = new EmbedBuilder();
 

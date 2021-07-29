@@ -19,25 +19,14 @@ namespace BabelDatabase.Migrations
                 .HasAnnotation("ProductVersion", "5.0.5")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("AlignmentClique", b =>
-                {
-                    b.Property<string>("AlignmentsAlignmentId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CliquesCliqueId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("AlignmentsAlignmentId", "CliquesCliqueId");
-
-                    b.HasIndex("CliquesCliqueId");
-
-                    b.ToTable("AlignmentClique");
-                });
-
             modelBuilder.Entity("BabelDatabase.Alignment", b =>
                 {
                     b.Property<string>("AlignmentId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AlignmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CooperationCompetition")
                         .HasColumnType("int");
@@ -78,6 +67,57 @@ namespace BabelDatabase.Migrations
                     b.HasKey("AlignmentId");
 
                     b.ToTable("Alignments");
+
+                    b.HasData(
+                        new
+                        {
+                            AlignmentId = "123",
+                            AlignmentName = "ULTRA COMMIE LIBERTARIANS",
+                            CooperationCompetition = 3,
+                            DemocracyAuthority = 1,
+                            Establishment = 0f,
+                            FederalismCentralism = 5,
+                            GlobalismIsolationism = 0,
+                            LowerPartyModiifer = 0f,
+                            MilitarismPacifism = 8,
+                            MonoculturalismMulticulturalism = 4,
+                            ProgressivismTraditionalism = 9,
+                            SecularismSpiritualism = 7,
+                            SecurityFreedom = 4,
+                            UpperPartyModifier = 0f
+                        },
+                        new
+                        {
+                            AlignmentId = "124",
+                            AlignmentName = "ULTRA LIBERTARIAN COMMIES",
+                            CooperationCompetition = 1,
+                            DemocracyAuthority = 3,
+                            Establishment = 0f,
+                            FederalismCentralism = 2,
+                            GlobalismIsolationism = 4,
+                            LowerPartyModiifer = 0f,
+                            MilitarismPacifism = 2,
+                            MonoculturalismMulticulturalism = 3,
+                            ProgressivismTraditionalism = 4,
+                            SecularismSpiritualism = 0,
+                            SecurityFreedom = 6,
+                            UpperPartyModifier = 0f
+                        });
+                });
+
+            modelBuilder.Entity("BabelDatabase.AlignmentClique", b =>
+                {
+                    b.Property<string>("CliqueId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AlignmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CliqueId", "AlignmentId");
+
+                    b.HasIndex("AlignmentId");
+
+                    b.ToTable("AlignmentClique");
                 });
 
             modelBuilder.Entity("BabelDatabase.AlignmentSpending", b =>
@@ -124,9 +164,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Army", b =>
                 {
                     b.Property<int>("ArmyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -177,9 +215,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Building", b =>
                 {
                     b.Property<int>("BuildingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<int>("PlanetId")
                         .HasColumnType("int");
@@ -411,14 +447,26 @@ namespace BabelDatabase.Migrations
                     b.HasKey("DiscordUserId");
 
                     b.ToTable("DiscordUsers");
+
+                    b.HasData(
+                        new
+                        {
+                            DiscordUserId = "75968535074967552",
+                            IsAdmin = true,
+                            UserName = "Obi"
+                        },
+                        new
+                        {
+                            DiscordUserId = "222825184887963648",
+                            IsAdmin = true,
+                            UserName = "Grindor"
+                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.District", b =>
                 {
-                    b.Property<int>("DistrictId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<string>("DistrictId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("PlanetId")
                         .HasColumnType("int");
@@ -436,14 +484,15 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Empire", b =>
                 {
                     b.Property<int>("EmpireId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("EconGmData")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GeneralAssembly")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GlobalAlignment")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -464,9 +513,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Fleet", b =>
                 {
                     b.Property<int>("FleetId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<int?>("EmpireId")
                         .HasColumnType("int");
@@ -480,7 +527,7 @@ namespace BabelDatabase.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("OwnerID")
+                    b.Property<int?>("OwnerID")
                         .HasColumnType("int");
 
                     b.Property<int>("SystemId")
@@ -494,17 +541,13 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("OwnerID");
 
-                    b.HasIndex("SystemId");
-
                     b.ToTable("Fleets");
                 });
 
             modelBuilder.Entity("BabelDatabase.GalacticObject", b =>
                 {
                     b.Property<int>("GalacticObjectId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<int?>("EmpireId")
                         .HasColumnType("int");
@@ -561,6 +604,30 @@ namespace BabelDatabase.Migrations
                             CurrentYear = 2500,
                             SecondsToMidnight = 10800
                         });
+                });
+
+            modelBuilder.Entity("BabelDatabase.GovernmentBranch", b =>
+                {
+                    b.Property<string>("GovernmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Modifiers")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("NationalModifier")
+                        .HasColumnType("real");
+
+                    b.Property<string>("PerceivedAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("GovernmentId");
+
+                    b.HasIndex("PerceivedAlignmentAlignmentId");
+
+                    b.ToTable("GovernmentBranches");
                 });
 
             modelBuilder.Entity("BabelDatabase.Graveyard", b =>
@@ -642,24 +709,34 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Planet", b =>
                 {
                     b.Property<int>("PlanetId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
-                    b.Property<int>("ControllerId")
+                    b.Property<int?>("ControllerId")
                         .HasColumnType("int");
 
                     b.Property<string>("EconGmData")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ExecutiveAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("GalacticObjectId")
                         .HasColumnType("int");
+
+                    b.Property<string>("GlobalAlignment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LegislativeAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Output")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
+
+                    b.Property<string>("PartyAlignmentAlignmentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PlanetClass")
                         .HasColumnType("nvarchar(max)");
@@ -680,11 +757,42 @@ namespace BabelDatabase.Migrations
 
                     b.HasIndex("ControllerId");
 
+                    b.HasIndex("ExecutiveAlignmentAlignmentId");
+
                     b.HasIndex("GalacticObjectId");
+
+                    b.HasIndex("LegislativeAlignmentAlignmentId");
 
                     b.HasIndex("OwnerId");
 
+                    b.HasIndex("PartyAlignmentAlignmentId");
+
                     b.ToTable("Planets");
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+                {
+                    b.Property<string>("SystemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Colour")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Lat")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Lng")
+                        .HasColumnType("real");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SystemId");
+
+                    b.HasIndex("PlanetId")
+                        .IsUnique();
+
+                    b.ToTable("PlanetarySystems");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
@@ -703,9 +811,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Pop", b =>
                 {
                     b.Property<int>("PopId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<float>("Happiness")
                         .HasColumnType("real");
@@ -718,6 +824,9 @@ namespace BabelDatabase.Migrations
 
                     b.Property<float>("Power")
                         .HasColumnType("real");
+
+                    b.Property<string>("Species")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Strata")
                         .HasColumnType("nvarchar(max)");
@@ -807,9 +916,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Ship", b =>
                 {
                     b.Property<int>("ShipId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<int>("FleetId")
                         .HasColumnType("int");
@@ -841,6 +948,23 @@ namespace BabelDatabase.Migrations
                     b.HasKey("SpeciesId");
 
                     b.ToTable("Species");
+
+                    b.HasData(
+                        new
+                        {
+                            SpeciesId = "1",
+                            SpeciesName = "Human"
+                        },
+                        new
+                        {
+                            SpeciesId = "2",
+                            SpeciesName = "Zelvan"
+                        },
+                        new
+                        {
+                            SpeciesId = "3",
+                            SpeciesName = "Liaran"
+                        });
                 });
 
             modelBuilder.Entity("BabelDatabase.StaffAction", b =>
@@ -913,9 +1037,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.Starbase", b =>
                 {
                     b.Property<int>("StarbaseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("Buildings")
                         .HasColumnType("nvarchar(max)");
@@ -991,19 +1113,23 @@ namespace BabelDatabase.Migrations
                     b.ToTable("VoteMessages");
                 });
 
-            modelBuilder.Entity("AlignmentClique", b =>
+            modelBuilder.Entity("BabelDatabase.AlignmentClique", b =>
                 {
-                    b.HasOne("BabelDatabase.Alignment", null)
-                        .WithMany()
-                        .HasForeignKey("AlignmentsAlignmentId")
+                    b.HasOne("BabelDatabase.Alignment", "Alignment")
+                        .WithMany("AlignmentClique")
+                        .HasForeignKey("AlignmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BabelDatabase.Clique", null)
-                        .WithMany()
-                        .HasForeignKey("CliquesCliqueId")
+                    b.HasOne("BabelDatabase.Clique", "Clique")
+                        .WithMany("Alignments")
+                        .HasForeignKey("CliqueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Alignment");
+
+                    b.Navigation("Clique");
                 });
 
             modelBuilder.Entity("BabelDatabase.AlignmentSpending", b =>
@@ -1127,7 +1253,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.CliqueMemberCharacter", b =>
                 {
                     b.HasOne("BabelDatabase.Clique", "Clique")
-                        .WithMany("CliqueMembers")
+                        .WithMany("CliqueMemberCharacter")
                         .HasForeignKey("CliqueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1146,7 +1272,7 @@ namespace BabelDatabase.Migrations
             modelBuilder.Entity("BabelDatabase.CliqueOfficerCharacter", b =>
                 {
                     b.HasOne("BabelDatabase.Clique", "Clique")
-                        .WithMany("CliqueOfficers")
+                        .WithMany("CliqueOfficerCharacter")
                         .HasForeignKey("CliqueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1205,18 +1331,9 @@ namespace BabelDatabase.Migrations
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany("Fleets")
                         .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("BabelDatabase.GalacticObject", "System")
-                        .WithMany()
-                        .HasForeignKey("SystemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Owner");
-
-                    b.Navigation("System");
                 });
 
             modelBuilder.Entity("BabelDatabase.GalacticObject", b =>
@@ -1234,13 +1351,25 @@ namespace BabelDatabase.Migrations
                     b.Navigation("Starbase");
                 });
 
+            modelBuilder.Entity("BabelDatabase.GovernmentBranch", b =>
+                {
+                    b.HasOne("BabelDatabase.Alignment", "PerceivedAlignment")
+                        .WithMany()
+                        .HasForeignKey("PerceivedAlignmentAlignmentId");
+
+                    b.Navigation("PerceivedAlignment");
+                });
+
             modelBuilder.Entity("BabelDatabase.Planet", b =>
                 {
                     b.HasOne("BabelDatabase.Empire", "Controller")
                         .WithMany()
                         .HasForeignKey("ControllerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("BabelDatabase.Alignment", "ExecutiveAlignment")
+                        .WithMany()
+                        .HasForeignKey("ExecutiveAlignmentAlignmentId");
 
                     b.HasOne("BabelDatabase.GalacticObject", "GalacticObject")
                         .WithMany("Planets")
@@ -1248,17 +1377,42 @@ namespace BabelDatabase.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BabelDatabase.Alignment", "LegislativeAlignment")
+                        .WithMany()
+                        .HasForeignKey("LegislativeAlignmentAlignmentId");
+
                     b.HasOne("BabelDatabase.Empire", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("BabelDatabase.Alignment", "PartyAlignment")
+                        .WithMany()
+                        .HasForeignKey("PartyAlignmentAlignmentId");
+
                     b.Navigation("Controller");
+
+                    b.Navigation("ExecutiveAlignment");
 
                     b.Navigation("GalacticObject");
 
+                    b.Navigation("LegislativeAlignment");
+
                     b.Navigation("Owner");
+
+                    b.Navigation("PartyAlignment");
+                });
+
+            modelBuilder.Entity("BabelDatabase.PlanetarySystem", b =>
+                {
+                    b.HasOne("BabelDatabase.Planet", "Planet")
+                        .WithOne()
+                        .HasForeignKey("BabelDatabase.PlanetarySystem", "PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
                 });
 
             modelBuilder.Entity("BabelDatabase.PlayerStaffAction", b =>
@@ -1390,6 +1544,11 @@ namespace BabelDatabase.Migrations
                     b.Navigation("VoteMessage");
                 });
 
+            modelBuilder.Entity("BabelDatabase.Alignment", b =>
+                {
+                    b.Navigation("AlignmentClique");
+                });
+
             modelBuilder.Entity("BabelDatabase.Character", b =>
                 {
                     b.Navigation("Cliques");
@@ -1397,9 +1556,11 @@ namespace BabelDatabase.Migrations
 
             modelBuilder.Entity("BabelDatabase.Clique", b =>
                 {
-                    b.Navigation("CliqueMembers");
+                    b.Navigation("Alignments");
 
-                    b.Navigation("CliqueOfficers");
+                    b.Navigation("CliqueMemberCharacter");
+
+                    b.Navigation("CliqueOfficerCharacter");
                 });
 
             modelBuilder.Entity("BabelDatabase.Committee", b =>

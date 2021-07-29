@@ -17,7 +17,6 @@ namespace BabelBot.Modules
 {
 	public class TimeModule : ModuleBase<SocketCommandContext>
 	{
-		private readonly BabelContext _context;
 		private readonly DeathService _deathService;
 		private readonly DiscordSocketClient _client;
 
@@ -26,7 +25,6 @@ namespace BabelBot.Modules
 
 		public TimeModule(BabelContext context, DeathService deathService, DiscordSocketClient client, IConfiguration configuration)
 		{
-			_context = context;
 			_deathService = deathService;
 			_client = client;
 			Configuration = configuration;
@@ -46,13 +44,13 @@ namespace BabelBot.Modules
 
 		private async void TriggerAutoAdvance(Object source, ElapsedEventArgs e)
 		{
+			using var db = new BabelContext(Configuration);
 			var timeToTrigger = DateTime.UtcNow.Date.AddHours(22);
 
 			var timeNow = DateTime.UtcNow;
 
 			var today = timeNow.Date;
 
-			using var db = new BabelContext(Configuration);
 			var autoAdvance = db.AutoAdvance.SingleOrDefault(aa => aa.AutoAdvanceId == "1");
 
 			if (!autoAdvance.Enabled)
@@ -73,12 +71,12 @@ namespace BabelBot.Modules
 			{
 				autoAdvance.LastDayTriggered = today;
 
-				var gameState = _context.GameState.First();
+				var gameState = db.GameState.First();
 
-				var charactersOver80AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
-				&& c.YearOfBirth < gameState.CurrentYear - 80);
+				var charactersOver110AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
+				&& c.YearOfBirth < gameState.CurrentYear - 110);
 
-				foreach (var character in charactersOver80AndAlive)
+				foreach (var character in charactersOver110AndAlive)
 				{
 					await _deathService.PerformOldAgeCalculation(character, gameState.CurrentYear, gameState.CurrentYear + autoAdvance.AmountOfYears - 1);
 				}
@@ -98,7 +96,8 @@ namespace BabelBot.Modules
 		[Command("year")]
 		public async Task GetCurrentYear()
 		{
-			var year = _context.GameState.SingleOrDefault();
+			using var db = new BabelContext(Configuration);
+			var year = db.GameState.SingleOrDefault();
 
 			await ReplyAsync($"The current year is {year.CurrentYear}.");
 		}
@@ -107,25 +106,26 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task AdvanceYear(int amount)
 		{
+			using var db = new BabelContext(Configuration);
 			if (amount <= 0)
 			{
 				await ReplyAsync("YOU FOOL, YOU ABSOLUTE BUFFOON");
 			}
 
-			var gameState = _context.GameState.FirstOrDefault();
+			var gameState = db.GameState.FirstOrDefault();
 
-			var charactersOver80AndAlive = _context.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
-				&& c.YearOfBirth < gameState.CurrentYear - 80);
+			var charactersOver110AndAlive = db.Characters.AsQueryable().Where(c => c.YearOfDeath == 0
+				&& c.YearOfBirth < gameState.CurrentYear - 110);
 
-			foreach (var character in charactersOver80AndAlive)
+			foreach (var character in charactersOver110AndAlive)
 			{
 				await _deathService.PerformOldAgeCalculation(character, gameState.CurrentYear, gameState.CurrentYear + amount - 1);
 			}
 
 			gameState.CurrentYear += amount;
 
-			_context.GameState.Update(gameState);
-			await _context.SaveChangesAsync();
+			db.GameState.Update(gameState);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync($"The year is now {gameState.CurrentYear}");
 		}
@@ -134,12 +134,13 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task SetAutoAdvanceChannel()
 		{
-			var autoAdvance = _context.AutoAdvance.First();
+			using var db = new BabelContext(Configuration);
+			var autoAdvance = db.AutoAdvance.First();
 
 			autoAdvance.ChannelId = Context.Channel.Id.ToString();
 
-			_context.AutoAdvance.Update(autoAdvance);
-			await _context.SaveChangesAsync();
+			db.AutoAdvance.Update(autoAdvance);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync("Auto Advance announcement channel set.");
 		}
@@ -148,12 +149,13 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task ToggleAutoAdvance()
 		{
-			var autoAdvance = _context.AutoAdvance.First();
+			using var db = new BabelContext(Configuration);
+			var autoAdvance = db.AutoAdvance.First();
 
 			autoAdvance.Enabled = !autoAdvance.Enabled;
 
-			_context.AutoAdvance.Update(autoAdvance);
-			await _context.SaveChangesAsync();
+			db.AutoAdvance.Update(autoAdvance);
+			await db.SaveChangesAsync();
 
 			if (autoAdvance.Enabled)
 			{
@@ -169,20 +171,21 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task AutoAdvanceAmount(int amount)
 		{
+			using var db = new BabelContext(Configuration);
 			if (amount <= 0)
 			{
 				await ReplyAsync("Amount must be greater than zero.");
 				return;
 			}
 
-			var autoAdvance = _context.AutoAdvance.First();
+			var autoAdvance = db.AutoAdvance.First();
 
 			var oldAmount = autoAdvance.AmountOfYears;
 
 			autoAdvance.AmountOfYears = amount;
 
-			_context.AutoAdvance.Update(autoAdvance);
-			await _context.SaveChangesAsync();
+			db.AutoAdvance.Update(autoAdvance);
+			await db.SaveChangesAsync();
 
 			await ReplyAsync($"Changed amount from {oldAmount} to {amount}.");
 		}
@@ -214,13 +217,14 @@ namespace BabelBot.Modules
 		[RequiresAdmin]
 		public async Task AutoAdvanceExceptions([Remainder] string day)
 		{
-			if(!Enum.IsDefined(typeof(DayOfWeek), day))
+			using var db = new BabelContext(Configuration);
+			if (!Enum.IsDefined(typeof(DayOfWeek), day))
 			{
 				await ReplyAsync("Please specify a valid day.");
 				return;
 			}
 
-			var autoAdvance = _context.AutoAdvance.First();
+			var autoAdvance = db.AutoAdvance.First();
 
 			var dayOfTheWeek = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), day);
 			
@@ -232,8 +236,8 @@ namespace BabelBot.Modules
 				sb[(int)dayOfTheWeek] = '1';
 				autoAdvance.DayExceptions = sb.ToString();
 
-				_context.AutoAdvance.Update(autoAdvance);
-				await _context.SaveChangesAsync();
+				db.AutoAdvance.Update(autoAdvance);
+				await db.SaveChangesAsync();
 
 				await ReplyAsync($"Exception on {dayOfTheWeek} added.");
 			}
@@ -243,8 +247,8 @@ namespace BabelBot.Modules
 				sb[(int)dayOfTheWeek] = '0';
 				autoAdvance.DayExceptions = sb.ToString();
 
-				_context.AutoAdvance.Update(autoAdvance);
-				await _context.SaveChangesAsync();
+				db.AutoAdvance.Update(autoAdvance);
+				await db.SaveChangesAsync();
 
 				await ReplyAsync($"Exception on {dayOfTheWeek} removed.");
 			}

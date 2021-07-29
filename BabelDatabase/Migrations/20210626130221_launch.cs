@@ -23,7 +23,8 @@ namespace BabelDatabase.Migrations
                     CooperationCompetition = table.Column<int>(type: "int", nullable: false),
                     SecularismSpiritualism = table.Column<int>(type: "int", nullable: false),
                     ProgressivismTraditionalism = table.Column<int>(type: "int", nullable: false),
-                    MonoculturalismMulticulturalism = table.Column<int>(type: "int", nullable: false)
+                    MonoculturalismMulticulturalism = table.Column<int>(type: "int", nullable: false),
+                    AlignmentName = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {

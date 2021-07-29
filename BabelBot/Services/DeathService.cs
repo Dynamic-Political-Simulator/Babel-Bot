@@ -1,6 +1,7 @@
 ﻿using BabelDatabase;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,14 @@ namespace BabelBot.Services
 {
 	public class DeathService
 	{
-		private readonly BabelContext _context;
 		private readonly DiscordSocketClient _client;
 
-		public DeathService(BabelContext context, DiscordSocketClient client)
+		private IConfiguration Configuration;
+
+		public DeathService(DiscordSocketClient client, IConfiguration configuration)
 		{
-			_context = context;
 			_client = client;
+			Configuration = configuration;
 			StartOldAgeCheckerTimer();
 		}
 
@@ -31,16 +33,17 @@ namespace BabelBot.Services
 
 		private async void OldAgeDeathCheck(Object source, ElapsedEventArgs e)
 		{
-			var charactersToKill = _context.CharacterDeathTimers.AsQueryable().Where(cdt => cdt.DeathTime < DateTime.UtcNow).ToList();
+			using var db = new BabelContext(Configuration);
+			var charactersToKill = db.CharacterDeathTimers.AsQueryable().Where(cdt => cdt.DeathTime < DateTime.UtcNow).ToList();
 
 			foreach (var characterTimer in charactersToKill)
 			{
-				var character = _context.Characters.SingleOrDefault(c => c.CharacterId == characterTimer.CharacterId);
+				var character = db.Characters.SingleOrDefault(c => c.CharacterId == characterTimer.CharacterId);
 				character.YearOfDeath = characterTimer.YearOfDeath;
 				character.DiscordUser.ActiveCharacterId = null;
 
-				_context.Characters.Update(character);
-				_context.CharacterDeathTimers.Remove(characterTimer);
+				db.Characters.Update(character);
+				db.CharacterDeathTimers.Remove(characterTimer);
 
 				try
 				{
@@ -55,12 +58,13 @@ namespace BabelBot.Services
 
 				await SendGraveyardMessage(characterTimer.Character);
 			}
-			await _context.SaveChangesAsync();
+			await db.SaveChangesAsync();
 		}
 
 		public async Task PerformOldAgeCalculation(Character character, int startYear, int endYear)
 		{
-			var alreadyHasTimer = _context.CharacterDeathTimers.SingleOrDefault(cdt =>
+			using var db = new BabelContext(Configuration);
+			var alreadyHasTimer = db.CharacterDeathTimers.SingleOrDefault(cdt =>
 					cdt.CharacterId == character.CharacterId);
 
 			if (alreadyHasTimer != null)
@@ -71,9 +75,9 @@ namespace BabelBot.Services
 			for (var year = startYear; year < endYear + 1; year++)
 			{
 				var age = character.GetAge(year);
-				var yearsOver80 = age - 80;
+				var yearsOver110 = age - 110;
 
-				var chanceOfDeath = yearsOver80 * 2;
+				var chanceOfDeath = yearsOver110 * 2;
 
 				if (chanceOfDeath > 10) chanceOfDeath = 10;
 
@@ -99,8 +103,8 @@ namespace BabelBot.Services
 						Console.WriteLine("Exception occurred whilst trying to inform user that their character has 24 hours left. Exception: " + e.Message);
 					}
 
-					_context.CharacterDeathTimers.Add(timer);
-					await _context.SaveChangesAsync();
+					db.CharacterDeathTimers.Add(timer);
+					await db.SaveChangesAsync();
 					break;
 				}
 			}
@@ -108,7 +112,8 @@ namespace BabelBot.Services
 
 		private async Task SendGraveyardMessage(Character activeCharacter)
 		{
-			var graveYards = _context.Graveyards.ToList();
+			using var db = new BabelContext(Configuration);
+			var graveYards = db.Graveyards.ToList();
 
 			var message = $"{activeCharacter.CharacterName} {activeCharacter.YearOfBirth} - {activeCharacter.YearOfDeath}";
 
@@ -128,7 +133,8 @@ namespace BabelBot.Services
 
 		public async Task Kill(ulong id, bool graveyardMessage, ISocketMessageChannel channel)
 		{
-			var user = _context.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == id.ToString());
+			using var db = new BabelContext(Configuration);
+			var user = db.DiscordUsers.SingleOrDefault(du => du.DiscordUserId == id.ToString());
 
 			if (user.ActiveCharacterId == null)
 			{
@@ -136,9 +142,9 @@ namespace BabelBot.Services
 				return;
 			}
 
-			var activeCharacter = _context.Characters.SingleOrDefault(c => c.CharacterId == user.ActiveCharacterId);
+			var activeCharacter = db.Characters.SingleOrDefault(c => c.CharacterId == user.ActiveCharacterId);
 
-			var year = _context.GameState.SingleOrDefault();
+			var year = db.GameState.SingleOrDefault();
 
 			activeCharacter.YearOfDeath = year.CurrentYear;
 			user.ActiveCharacterId = null;
@@ -148,9 +154,9 @@ namespace BabelBot.Services
 				await SendGraveyardMessage(activeCharacter);
 			}
 
-			_context.Characters.Update(activeCharacter);
-			_context.DiscordUsers.Update(user);
-			await _context.SaveChangesAsync();
+			db.Characters.Update(activeCharacter);
+			db.DiscordUsers.Update(user);
+			await db.SaveChangesAsync();
 
 			await channel.SendMessageAsync("Press F.");
 		}

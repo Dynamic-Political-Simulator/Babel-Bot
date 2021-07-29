@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.Json;
 using WOPR.Services;
 
+
 namespace WOPR
 {
     public class Startup
@@ -34,10 +35,17 @@ namespace WOPR
 
             services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
+#if DEBUG
                 builder.WithOrigins("http://localhost:3000")
+                                    .AllowAnyMethod()
+                                    .AllowAnyHeader()
+                                    .AllowCredentials();
+#else
+                builder.WithOrigins("https://discordplaysstellaris.com")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials();
+#endif
             }));
 
             services.AddControllers().AddNewtonsoftJson(options =>
@@ -156,12 +164,12 @@ namespace WOPR
 
             app.UseAuthorization();
 
-			
 
-			app.UseEndpoints(endpoints =>
-			{
-				endpoints.MapControllers();
-			});
-		}
-	}
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+    }
 }
